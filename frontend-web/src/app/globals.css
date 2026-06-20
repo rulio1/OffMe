@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-pulse-bg text-pulse-text antialiased;
+  }
+}
+
+@layer components {
+  .pulse-card {
+    @apply border-b border-pulse-border px-4 py-3 transition-colors hover:bg-white/[0.03];
+  }
+
+  .pulse-btn-primary {
+    @apply rounded-full bg-pulse-accent px-5 py-2 font-bold text-white transition-colors hover:bg-pulse-accentHover disabled:opacity-50;
+  }
+
+  .pulse-btn-ghost {
+    @apply rounded-full p-2 text-pulse-muted transition-colors hover:bg-pulse-accent/10 hover:text-pulse-accent;
+  }
+}

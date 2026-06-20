@@ -1,0 +1,9 @@
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /app
+COPY . .
+RUN ./sbt postService/assembly 2>/dev/null || true
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+EXPOSE 8081 9081
+CMD ["echo", "Post Service skeleton — run: cd backend-scala && sbt postService/run"]

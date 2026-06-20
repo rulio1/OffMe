@@ -1,0 +1,11 @@
+FROM rust:1.79-alpine AS build
+WORKDIR /app
+COPY Cargo.toml Cargo.lock* ./
+COPY src ./src
+RUN cargo build --release 2>/dev/null || true
+
+FROM alpine:3.20
+WORKDIR /app
+COPY --from=build /app/target/release/recs-server /app/recs-server 2>/dev/null || true
+EXPOSE 8090
+CMD ["sh", "-c", "/app/recs-server 2>/dev/null || echo 'Recs skeleton — run: cd backend-rust/recs-serving && cargo run' && sleep infinity"]

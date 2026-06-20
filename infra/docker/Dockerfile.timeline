@@ -1,0 +1,4 @@
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+EXPOSE 8082 9082
+CMD ["echo", "Timeline Service skeleton — run: cd backend-scala && sbt timelineService/run"]

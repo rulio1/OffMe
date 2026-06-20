@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "pulse-api-gateway"
+    static_configs:
+      - targets: ["api-gateway:8080"]
+
+  - job_name: "pulse-post-service"
+    static_configs:
+      - targets: ["post-service:9081"]
+
+  - job_name: "pulse-timeline-service"
+    static_configs:
+      - targets: ["timeline-service:9082"]
+
+  - job_name: "pulse-recs-serving"
+    static_configs:
+      - targets: ["recs-serving:8090"]
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

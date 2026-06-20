@@ -1,0 +1,4 @@
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+EXPOSE 8083
+CMD ["echo", "Graph Service skeleton — run: cd backend-scala && sbt graphService/run"]
