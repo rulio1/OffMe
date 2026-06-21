@@ -18,9 +18,9 @@ struct LoginView: View {
                 .padding(.top, 40)
 
                 VStack(spacing: 14) {
-                    TextField("E-mail", text: $email)
+                    TextField("E-mail ou usuário", text: $email)
                         .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
+                        .keyboardType(.default)
                         .autocorrectionDisabled()
                         .liquidGlassField()
 

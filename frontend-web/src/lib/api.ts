@@ -85,7 +85,7 @@ export async function login(email: string, password: string): Promise<AuthSessio
     body: JSON.stringify({ email, password }),
   });
 
-  if (!res.ok) await parseError(res, 'E-mail ou senha inválidos');
+  if (!res.ok) await parseError(res, 'E-mail/usuário ou senha inválidos');
 
   const data = await res.json();
   return {

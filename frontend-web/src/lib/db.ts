@@ -10,9 +10,18 @@ function resolveSsl(): PoolConfig['ssl'] | undefined {
   return undefined;
 }
 
+function normalizeConnectionString(url: string): string {
+  // pg v8+ treats sslmode=require as verify-full; we set ssl.rejectUnauthorized below.
+  if (process.env.DATABASE_SSL === 'true' || url.includes('sslmode=require')) {
+    return url.replace(/([?&])sslmode=[^&]*/g, '$1').replace(/[?&]$/, '');
+  }
+  return url;
+}
+
 function createPool(): Pool {
-  const connectionString =
+  const raw =
     process.env.DATABASE_URL || 'postgresql://offme:offme_dev@localhost:5432/offme';
+  const connectionString = normalizeConnectionString(raw);
   const isServerless = Boolean(process.env.VERCEL);
 
   return new Pool({

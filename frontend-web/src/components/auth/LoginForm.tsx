@@ -20,7 +20,7 @@ export function LoginForm() {
     setError('');
 
     if (!email.trim()) {
-      setError('Informe seu e-mail');
+      setError('Informe seu e-mail ou usuário');
       return;
     }
     if (password.length < 4) {
@@ -52,9 +52,9 @@ export function LoginForm() {
       <AuthField
         id="email"
         name="email"
-        type="email"
-        autoComplete="email"
-        label="E-mail"
+        type="text"
+        autoComplete="username"
+        label="E-mail ou usuário"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
       />

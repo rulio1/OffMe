@@ -8,6 +8,10 @@ export function validateUsername(username: string): string | null {
   return null;
 }
 
+export function isEmail(value: string): boolean {
+  return EMAIL_RE.test(value.trim());
+}
+
 export function validateEmail(email: string): string | null {
   if (!email.trim() || !EMAIL_RE.test(email)) {
     return 'Informe um e-mail válido';
