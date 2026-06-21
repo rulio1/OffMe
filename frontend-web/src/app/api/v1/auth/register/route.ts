@@ -3,6 +3,7 @@ import { jsonError, jsonOk } from '@/lib/api-response';
 import { hashPassword, issueAuthTokens } from '@/lib/auth-server';
 import { createUser, findUserByEmail, findUserByUsername } from '@/lib/user-repository';
 import {
+  normalizeEmail,
   validateDisplayName,
   validateEmail,
   validatePassword,
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const username = String(body.username ?? '').trim().toLowerCase();
-    const email = String(body.email ?? '').trim().toLowerCase();
+    const email = normalizeEmail(String(body.email ?? ''));
     const password = String(body.password ?? '');
     const displayName = String(body.displayName ?? '').trim();
 

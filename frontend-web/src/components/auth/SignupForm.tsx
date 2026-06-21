@@ -5,9 +5,14 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { register } from '@/lib/api';
 import { setSession } from '@/lib/auth';
+import {
+  normalizeEmail,
+  validateDisplayName,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+} from '@/lib/validators';
 import { AuthField } from './AuthField';
-
-const USERNAME_RE = /^[a-zA-Z0-9_]{1,15}$/;
 
 export function SignupForm() {
   const router = useRouter();
@@ -24,20 +29,15 @@ export function SignupForm() {
     e.preventDefault();
     setError('');
 
-    if (!displayName.trim()) {
-      setError('Informe seu nome de exibição');
-      return;
-    }
-    if (!USERNAME_RE.test(username)) {
-      setError('Usuário: 1–15 caracteres (letras, números e _)');
-      return;
-    }
-    if (!email.trim() || !email.includes('@')) {
-      setError('Informe um e-mail válido');
-      return;
-    }
-    if (password.length < 8) {
-      setError('A senha deve ter pelo menos 8 caracteres');
+    const normalizedEmail = normalizeEmail(email);
+    const validationError =
+      validateDisplayName(displayName) ??
+      validateUsername(username) ??
+      validateEmail(email) ??
+      validatePassword(password);
+
+    if (validationError) {
+      setError(validationError);
       return;
     }
     if (password !== confirmPassword) {
@@ -47,7 +47,12 @@ export function SignupForm() {
 
     setLoading(true);
     try {
-      const session = await register(username, email.trim(), password, displayName.trim());
+      const session = await register(
+        username,
+        normalizedEmail,
+        password,
+        displayName.trim()
+      );
       setSession(session);
       router.push('/');
       router.refresh();
@@ -59,10 +64,10 @@ export function SignupForm() {
   };
 
   const canSubmit =
-    displayName.trim() &&
-    USERNAME_RE.test(username) &&
-    email.trim().includes('@') &&
-    password.length >= 8 &&
+    !validateDisplayName(displayName) &&
+    !validateUsername(username) &&
+    !validateEmail(email) &&
+    !validatePassword(password) &&
     password === confirmPassword;
 
   return (

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { PostCard } from '@/components/post/PostCard';
 import { FollowButton } from '@/components/user/FollowButton';
+import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import { fetchUserPosts, fetchUserProfile, startConversation } from '@/lib/api';
 import type { Post, TimelineEntry, User } from '@/types';
@@ -148,11 +149,7 @@ export function ProfileView({ username }: ProfileViewProps) {
         <div className="mt-3">
           <h2 className="text-xl font-bold">
             {user.displayName}
-            {user.verified && (
-              <span className="ml-1 text-offme-accent" aria-label="Verificado">
-                ✓
-              </span>
-            )}
+            {user.verified && <VerifiedBadge className="ml-1 inline-block" />}
           </h2>
           <p className="text-offme-muted">@{user.username}</p>
           {user.bio && <p className="mt-3 text-[15px]">{user.bio}</p>}

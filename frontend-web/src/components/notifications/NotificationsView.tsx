@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Bell } from 'lucide-react';
 import { fetchNotifications, markNotificationsRead } from '@/lib/api';
 import { getStoredUser } from '@/lib/auth';
 import { usePostgresChanges } from '@/lib/use-supabase-realtime';
@@ -69,8 +70,9 @@ export function NotificationsView() {
         <div className="px-4 py-12 text-center text-red-400">Erro ao carregar notificações.</div>
       )}
       {!isLoading && !error && notifications.length === 0 && (
-        <div className="px-4 py-12 text-center text-offme-muted">
-          Nenhuma notificação ainda.
+        <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-offme-muted">
+          <Bell className="h-12 w-12 opacity-50" aria-hidden />
+          <p className="font-medium text-offme-text">Nenhuma notificação ainda.</p>
         </div>
       )}
       {notifications.map((n) => (

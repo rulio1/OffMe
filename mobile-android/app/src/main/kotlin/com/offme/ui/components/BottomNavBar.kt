@@ -34,7 +34,7 @@ private val tabs = listOf(
     TabSpec(OffMeTab.Messages, XNavIconKind.Messages),
 )
 
-/** Barra inferior estilo X — ícones customizados, sem legendas. */
+/** Barra inferior — Material Symbols, sem legendas. */
 @Composable
 fun BottomNavBar(
     selected: OffMeTab,

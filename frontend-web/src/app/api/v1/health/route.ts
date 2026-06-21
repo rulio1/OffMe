@@ -16,6 +16,14 @@ export async function GET() {
       storage: storageMode
     });
   } catch (e) {
-    return jsonError('Database unavailable. Configure DATABASE_URL no .env.local (Neon etc)', 503);
+    const detail = e instanceof Error ? e.message : 'unknown';
+    const host = (process.env.DATABASE_URL ?? '').replace(/.*@([^/]+)\/.*/, '$1') || 'unset';
+    console.error('[health] database error:', detail, 'host:', host);
+    return jsonError(
+      process.env.VERCEL
+        ? `Database unavailable (${host}): ${detail}`
+        : 'Database unavailable. Configure DATABASE_URL no .env.local (Neon etc)',
+      503
+    );
   }
 }

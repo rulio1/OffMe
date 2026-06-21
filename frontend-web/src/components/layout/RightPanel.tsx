@@ -1,6 +1,7 @@
 'use client';
 
 import { Search } from 'lucide-react';
+import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 
 const TRENDING = [
   { category: 'Technology · Trending', topic: '#OffMe', posts: '12.4K' },
@@ -53,11 +54,7 @@ export function RightPanel() {
             <div className="min-w-0 flex-1">
               <p className="truncate font-bold">
                 {user.name}
-                {user.verified && (
-                  <span className="ml-1 text-offme-accent" aria-label="Verified">
-                    ✓
-                  </span>
-                )}
+                {user.verified && <VerifiedBadge className="ml-1 inline-block" label="Verified" />}
               </p>
               <p className="truncate text-sm text-offme-muted">{user.handle}</p>
             </div>

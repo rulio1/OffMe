@@ -1,7 +1,6 @@
 import Foundation
 
 enum APIConfig {
-    /// Altere para o IP do seu Mac na rede local (Simulador não alcança localhost do host).
-    /// Rode: ipconfig getifaddr en0
-    static let baseURL = "http://192.168.0.100:3000/api/v1"
+    /// Produção (Vercel). Para dev local: IOS_USE_LOCAL_API=1 make ios-ipa
+    static let baseURL = "https://offme.vercel.app/api/v1"
 }

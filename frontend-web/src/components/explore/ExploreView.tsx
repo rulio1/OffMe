@@ -7,6 +7,7 @@ import { Search } from 'lucide-react';
 import { PostCard } from '@/components/post/PostCard';
 import { FollowButton } from '@/components/user/FollowButton';
 import { UserAvatar } from '@/components/user/UserAvatar';
+import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import { fetchTrendingPosts, searchPosts, searchUsers } from '@/lib/api';
 import type { Post, User } from '@/types';
 
@@ -123,11 +124,7 @@ export function ExploreView() {
               <div className="min-w-0 flex-1">
                 <Link href={`/profile/${user.username}`} className="block truncate font-bold hover:underline">
                   {user.displayName}
-                  {user.verified && (
-                    <span className="ml-1 text-offme-accent" aria-label="Verificado">
-                      ✓
-                    </span>
-                  )}
+                  {user.verified && <VerifiedBadge className="ml-1 inline-block" />}
                 </Link>
                 <Link href={`/profile/${user.username}`} className="block truncate text-sm text-offme-muted hover:underline">
                   @{user.username}

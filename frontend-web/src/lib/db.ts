@@ -27,8 +27,9 @@ function createPool(): Pool {
   return new Pool({
     connectionString,
     max: isServerless ? 1 : 10,
-    idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 10_000,
+    idleTimeoutMillis: isServerless ? 5_000 : 30_000,
+    connectionTimeoutMillis: isServerless ? 20_000 : 10_000,
+    allowExitOnIdle: isServerless,
     ssl: resolveSsl(),
   });
 }

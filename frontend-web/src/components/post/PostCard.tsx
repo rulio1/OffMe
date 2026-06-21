@@ -12,8 +12,8 @@ import {
   Bookmark,
   Share,
   X,
-  BadgeCheck,
 } from 'lucide-react';
+import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import type { Post } from '@/types';
 import clsx from 'clsx';
 import {
@@ -155,12 +155,7 @@ function PostCardInner({ post }: PostCardProps) {
               >
                 {author.displayName}
               </Link>
-              {author.verified && (
-                <BadgeCheck
-                  className="h-[18px] w-[18px] shrink-0 fill-offme-accent text-offme-bg"
-                  aria-label="Verificado"
-                />
-              )}
+              {author.verified && <VerifiedBadge />}
               <Link
                 href={`/profile/${author.username}`}
                 onClick={(e) => e.stopPropagation()}

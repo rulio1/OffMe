@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronDown, UserRoundPlus } from 'lucide-react';
+import { ChevronDown, Plus, UserRoundPlus } from 'lucide-react';
 import clsx from 'clsx';
 import { OffMeLogo } from '@/components/auth/OffMeLogo';
 import { UserAvatar } from '@/components/user/UserAvatar';
@@ -72,7 +72,8 @@ export function FeedHeader({ tab, onTabChange }: FeedHeaderProps) {
           className="feed-tab feed-tab-inactive relative flex flex-1 items-center justify-center gap-1.5"
           aria-label="Adicionar feed"
         >
-          Add +
+          <Plus className="h-4 w-4 stroke-[2]" aria-hidden />
+          <span className="sr-only">Adicionar feed</span>
           <span className="h-1.5 w-1.5 rounded-full bg-offme-accent" aria-hidden />
         </button>
       </div>

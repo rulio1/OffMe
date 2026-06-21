@@ -64,7 +64,7 @@ No painel **Settings → Environment Variables** (Production):
 
 | Variável | Valor |
 |----------|-------|
-| `DATABASE_URL` | URL Neon (pooler) |
+| `DATABASE_URL` | **Supavisor (transaction mode, porta 6543)** — obrigatório na Vercel (IPv4). Não use `db.*.supabase.co:5432` (só IPv6). Copie em Supabase → Connect → Transaction pooler |
 | `DATABASE_SSL` | `true` |
 | `JWT_SECRET` | `openssl rand -base64 48` |
 | `S3_ENDPOINT` | endpoint R2 |

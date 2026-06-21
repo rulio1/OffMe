@@ -1,6 +1,7 @@
 'use client';
 
 import useSWRInfinite from 'swr/infinite';
+import { Bookmark } from 'lucide-react';
 import { PostCard } from '@/components/post/PostCard';
 import { fetchBookmarks } from '@/lib/api';
 import type { Post, TimelineEntry } from '@/types';
@@ -52,8 +53,12 @@ export function BookmarksView() {
         <div className="px-4 py-12 text-center text-red-400">Erro ao carregar salvos.</div>
       )}
       {!isLoading && !error && posts.length === 0 && (
-        <div className="px-4 py-12 text-center text-offme-muted">
-          Nenhum post salvo ainda. Toque no ícone de bookmark em um post para salvar.
+        <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-offme-muted">
+          <Bookmark className="h-12 w-12 opacity-50" aria-hidden />
+          <p className="font-medium text-offme-text">Nenhum post salvo ainda.</p>
+          <p className="max-w-xs text-sm">
+            Toque no ícone de bookmark em um post para salvar.
+          </p>
         </div>
       )}
 
