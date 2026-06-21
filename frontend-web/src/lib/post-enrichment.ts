@@ -1,7 +1,5 @@
-import { getBookmarkedPostIds } from './bookmark-repository';
+import { query } from './db';
 import { getMediaUrlsByPostIds } from './media-repository';
-import { getLikedPostIds } from './like-repository';
-import { getRepostedPostIds } from './repost-repository';
 import {
   type DbPost,
   type DbTimelineRow,
@@ -17,6 +15,10 @@ type EnrichExtra = {
   timelineSource?: 'following' | 'repost' | 'recommended';
 };
 
+function toIdSet(values: number[] | null | undefined): Set<number> {
+  return new Set(values ?? []);
+}
+
 async function loadEnrichment(
   viewerId: number,
   postIds: number[]
@@ -26,13 +28,40 @@ async function loadEnrichment(
   repostedIds: Set<number>;
   mediaMap: Map<number, string[]>;
 }> {
-  const [likedIds, bookmarkedIds, repostedIds, mediaMap] = await Promise.all([
-    getLikedPostIds(viewerId, postIds),
-    getBookmarkedPostIds(viewerId, postIds),
-    getRepostedPostIds(viewerId, postIds),
+  if (postIds.length === 0) {
+    return {
+      likedIds: new Set(),
+      bookmarkedIds: new Set(),
+      repostedIds: new Set(),
+      mediaMap: new Map(),
+    };
+  }
+
+  const [flags, mediaMap] = await Promise.all([
+    query<{
+      liked_ids: number[] | null;
+      bookmarked_ids: number[] | null;
+      reposted_ids: number[] | null;
+    }>(
+      `SELECT
+         (SELECT COALESCE(array_agg(post_id), '{}') FROM post_likes
+          WHERE user_id = $1 AND post_id = ANY($2::bigint[])) AS liked_ids,
+         (SELECT COALESCE(array_agg(post_id), '{}') FROM post_bookmarks
+          WHERE user_id = $1 AND post_id = ANY($2::bigint[])) AS bookmarked_ids,
+         (SELECT COALESCE(array_agg(post_id), '{}') FROM post_reposts
+          WHERE user_id = $1 AND post_id = ANY($2::bigint[])) AS reposted_ids`,
+      [viewerId, postIds]
+    ),
     getMediaUrlsByPostIds(postIds),
   ]);
-  return { likedIds, bookmarkedIds, repostedIds, mediaMap };
+
+  const row = flags[0];
+  return {
+    likedIds: toIdSet(row?.liked_ids),
+    bookmarkedIds: toIdSet(row?.bookmarked_ids),
+    repostedIds: toIdSet(row?.reposted_ids),
+    mediaMap,
+  };
 }
 
 function buildExtra(

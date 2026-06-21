@@ -32,7 +32,10 @@ function notificationLink(n: Notification): string {
 
 export function NotificationsView() {
   const user = getStoredUser();
-  const { data, error, mutate, isLoading } = useSWR('notifications', fetchNotifications);
+  const { data, error, mutate, isLoading } = useSWR('notifications', fetchNotifications, {
+    revalidateOnFocus: false,
+    dedupingInterval: 15_000,
+  });
 
   useEffect(() => {
     if (data && data.unreadCount > 0) {
@@ -47,7 +50,8 @@ export function NotificationsView() {
       filter: user ? `user_id=eq.${user.id}` : undefined,
     },
     () => mutate(),
-    Boolean(user)
+    Boolean(user),
+    400
   );
 
   const notifications = data?.notifications ?? [];

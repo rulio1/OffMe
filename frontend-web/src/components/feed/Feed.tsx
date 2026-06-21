@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useSWRInfinite from 'swr/infinite';
 import { Composer } from '@/components/composer/Composer';
 import { ComposeFab } from '@/components/composer/ComposeFab';
@@ -9,6 +9,12 @@ import { FeedHeader } from '@/components/feed/FeedHeader';
 import { PostCard } from '@/components/post/PostCard';
 import { fetchHomeTimeline, fetchForYouTimeline } from '@/lib/api';
 import type { FeedTab, Post, TimelineEntry } from '@/types';
+
+const SWR_FEED_OPTS = {
+  revalidateOnFocus: false,
+  dedupingInterval: 30_000,
+  revalidateFirstPage: false,
+} as const;
 
 function entryToPost(entry: TimelineEntry): Post {
   return (
@@ -27,6 +33,7 @@ function entryToPost(entry: TimelineEntry): Post {
 export function Feed() {
   const [tab, setTab] = useState<FeedTab>('for-you');
   const [composeOpen, setComposeOpen] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const getKey = (pageIndex: number, previousPageData: { nextCursor?: string } | null) => {
     if (previousPageData && !previousPageData.nextCursor) return null;
@@ -43,20 +50,51 @@ export function Feed() {
   const { data, error, mutate, isLoading, size, setSize, isValidating } = useSWRInfinite(
     getKey,
     fetcher,
-    { revalidateOnFocus: true, dedupingInterval: 5000 }
+    SWR_FEED_OPTS
   );
 
   const posts: Post[] = data?.flatMap((page) => page.entries.map(entryToPost)) ?? [];
   const hasMore = data?.[data.length - 1]?.nextCursor != null;
   const isLoadingMore = isValidating && size > 1;
 
+  const handleTabChange = useCallback(
+    (next: FeedTab) => {
+      setTab(next);
+      setSize(1);
+    },
+    [setSize]
+  );
+
   const handlePostCreated = useCallback(() => {
     mutate();
   }, [mutate]);
 
+  const loadMore = useCallback(() => {
+    if (hasMore && !isLoadingMore) {
+      setSize(size + 1);
+    }
+  }, [hasMore, isLoadingMore, setSize, size]);
+
+  useEffect(() => {
+    const node = loadMoreRef.current;
+    if (!node || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: '400px' }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, loadMore]);
+
   return (
     <div className="min-h-dvh bg-offme-bg">
-      <FeedHeader tab={tab} onTabChange={setTab} />
+      <FeedHeader tab={tab} onTabChange={handleTabChange} />
 
       <div className="hidden md:block">
         <Composer onPostCreated={handlePostCreated} />
@@ -83,15 +121,11 @@ export function Feed() {
           <PostCard key={post.id} post={post} />
         ))}
         {hasMore && (
-          <div className="border-b border-offme-border px-4 py-4 text-center">
-            <button
-              type="button"
-              onClick={() => setSize(size + 1)}
-              disabled={isLoadingMore}
-              className="rounded-full px-4 py-2 text-[15px] font-bold text-offme-accent transition-colors hover:bg-sky-500/10 disabled:opacity-50"
-            >
-              {isLoadingMore ? 'Carregando...' : 'Mostrar mais'}
-            </button>
+          <div
+            ref={loadMoreRef}
+            className="border-b border-offme-border px-4 py-4 text-center text-[15px] text-offme-muted"
+          >
+            {isLoadingMore ? 'Carregando...' : ''}
           </div>
         )}
       </div>

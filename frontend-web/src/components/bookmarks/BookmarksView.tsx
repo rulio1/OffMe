@@ -32,7 +32,7 @@ export function BookmarksView() {
       const cursor = key.split(':')[1] || undefined;
       return fetchBookmarks(cursor);
     },
-    { revalidateOnFocus: true }
+    { revalidateOnFocus: false, dedupingInterval: 30_000 }
   );
 
   const posts = data?.flatMap((page) => page.entries.map(entryToPost)) ?? [];

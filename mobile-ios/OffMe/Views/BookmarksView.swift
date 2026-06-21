@@ -103,20 +103,22 @@ struct BookmarksView: View {
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.posts) { post in
                         PostRowView(post: post)
+                            .onAppear {
+                                if post.id == viewModel.posts.last?.id,
+                                   viewModel.nextCursor != nil,
+                                   !viewModel.isLoadingMore {
+                                    Task { await viewModel.loadMore(token: token) }
+                                }
+                            }
                         Divider().overlay(OffMeTheme.border)
                     }
 
-                    if viewModel.nextCursor != nil {
-                        Button {
-                            Task { await viewModel.loadMore(token: token) }
-                        } label: {
-                            Text(viewModel.isLoadingMore ? "Carregando..." : "Mostrar mais")
-                                .font(.subheadline.weight(.bold))
-                                .foregroundStyle(OffMeTheme.accent)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                        }
-                        .disabled(viewModel.isLoadingMore)
+                    if viewModel.isLoadingMore {
+                        Text("Carregando...")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(OffMeTheme.accent)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
                     }
                 }
             }

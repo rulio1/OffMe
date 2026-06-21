@@ -1,6 +1,13 @@
 import SwiftUI
 
 struct PostRowView: View {
+    private static let timeFormatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.locale = Locale(identifier: "pt_BR")
+        formatter.unitsStyle = .short
+        return formatter
+    }()
+
     let post: Post
 
     @EnvironmentObject private var auth: AuthStore
@@ -32,10 +39,7 @@ struct PostRowView: View {
 
     private var timeAgo: String {
         let date = Date(timeIntervalSince1970: TimeInterval(post.createdAt) / 1000)
-        let formatter = RelativeDateTimeFormatter()
-        formatter.locale = Locale(identifier: "pt_BR")
-        formatter.unitsStyle = .short
-        return formatter.localizedString(for: date, relativeTo: Date())
+        return Self.timeFormatter.localizedString(for: date, relativeTo: Date())
     }
 
     private var viewCount: Int {

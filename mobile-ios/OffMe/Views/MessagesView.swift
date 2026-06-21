@@ -22,6 +22,7 @@ final class MessagesViewModel: ObservableObject {
 struct MessagesView: View {
     @EnvironmentObject private var auth: AuthStore
     @StateObject private var viewModel = MessagesViewModel()
+    @State private var reloadTask: Task<Void, Never>?
 
     var body: some View {
         Group {
@@ -87,9 +88,16 @@ struct MessagesView: View {
             filter: "",
             accessToken: token
         ) {
-            Task {
-                await viewModel.load(token: token)
-            }
+            scheduleReload(token: token)
+        }
+    }
+
+    private func scheduleReload(token: String) {
+        reloadTask?.cancel()
+        reloadTask = Task {
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            guard !Task.isCancelled else { return }
+            await viewModel.load(token: token)
         }
     }
 }

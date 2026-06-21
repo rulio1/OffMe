@@ -19,6 +19,13 @@ enum APIError: LocalizedError {
 final class APIClient {
     static let shared = APIClient()
     private let decoder = JSONDecoder()
+    private let session: URLSession = {
+        let cache = URLCache(memoryCapacity: 20_000_000, diskCapacity: 100_000_000)
+        let config = URLSessionConfiguration.default
+        config.urlCache = cache
+        config.requestCachePolicy = .useProtocolCachePolicy
+        return URLSession(configuration: config)
+    }()
 
     private func request<T: Decodable>(
         _ path: String,
@@ -40,7 +47,7 @@ final class APIClient {
             req.httpBody = try JSONEncoder().encode(AnyEncodable(body))
         }
 
-        let (data, response) = try await URLSession.shared.data(for: req)
+        let (data, response) = try await session.data(for: req)
         guard let http = response as? HTTPURLResponse else {
             throw APIError.server("Sem resposta do servidor")
         }
@@ -74,7 +81,7 @@ final class APIClient {
         var req = URLRequest(url: url)
         req.httpMethod = "GET"
         req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        let (data, response) = try await URLSession.shared.data(for: req)
+        let (data, response) = try await session.data(for: req)
         guard let http = response as? HTTPURLResponse else {
             throw APIError.server("Sem resposta do servidor")
         }
@@ -159,7 +166,7 @@ final class APIClient {
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         req.httpBody = body
 
-        let (responseData, response) = try await URLSession.shared.data(for: req)
+        let (responseData, response) = try await session.data(for: req)
         guard let http = response as? HTTPURLResponse else {
             throw APIError.server("Sem resposta do servidor")
         }

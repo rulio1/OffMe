@@ -2,6 +2,9 @@ import { NextRequest } from 'next/server';
 import { extractBearerToken, verifyAccessToken } from './auth-server';
 import { findUserById, type DbUser } from './user-repository';
 
+const USER_CACHE_TTL_MS = 60_000;
+const userCache = new Map<number, { user: DbUser; expiresAt: number }>();
+
 export async function getRequestUser(request: NextRequest): Promise<DbUser | null> {
   const authHeader = request.headers.get('authorization');
   const cookieToken = request.cookies.get('offme_token')?.value;
@@ -11,5 +14,15 @@ export async function getRequestUser(request: NextRequest): Promise<DbUser | nul
   const payload = verifyAccessToken(token);
   if (!payload) return null;
 
-  return findUserById(Number(payload.sub));
+  const userId = Number(payload.sub);
+  const cached = userCache.get(userId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.user;
+  }
+
+  const user = await findUserById(userId);
+  if (user) {
+    userCache.set(userId, { user, expiresAt: Date.now() + USER_CACHE_TTL_MS });
+  }
+  return user;
 }

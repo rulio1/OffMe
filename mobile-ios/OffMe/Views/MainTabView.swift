@@ -2,13 +2,34 @@ import SwiftUI
 
 struct MainTabView: View {
     @EnvironmentObject private var auth: AuthStore
+    @StateObject private var feedVM = FeedViewModel()
     @State private var unreadCount = 0
     @State private var selectedTab = 0
 
     var body: some View {
         VStack(spacing: 0) {
-            tabContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            ZStack {
+                NavigationStack { FeedView(viewModel: feedVM) }
+                    .opacity(selectedTab == 0 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 0)
+
+                NavigationStack { ExploreView() }
+                    .opacity(selectedTab == 1 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 1)
+
+                NavigationStack { BookmarksView() }
+                    .opacity(selectedTab == 2 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 2)
+
+                NavigationStack { NotificationsView() }
+                    .opacity(selectedTab == 3 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 3)
+
+                NavigationStack { MessagesView() }
+                    .opacity(selectedTab == 4 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 4)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             BottomTabBar(selectedTab: $selectedTab, unreadCount: unreadCount)
         }
@@ -21,24 +42,6 @@ struct MainTabView: View {
             if newValue == 3 {
                 Task { await refreshUnread() }
             }
-        }
-    }
-
-    @ViewBuilder
-    private var tabContent: some View {
-        switch selectedTab {
-        case 0:
-            NavigationStack { FeedView() }
-        case 1:
-            NavigationStack { ExploreView() }
-        case 2:
-            NavigationStack { BookmarksView() }
-        case 3:
-            NavigationStack { NotificationsView() }
-        case 4:
-            NavigationStack { MessagesView() }
-        default:
-            NavigationStack { FeedView() }
         }
     }
 

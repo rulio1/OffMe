@@ -23,17 +23,20 @@ export function ExploreView() {
   }, [query]);
 
   const { data: userData, isLoading: usersLoading } = useSWR(
-    debouncedQuery ? `search-users-${debouncedQuery}` : null,
-    () => searchUsers(debouncedQuery)
+    debouncedQuery && tab === 'people' ? `search-users-${debouncedQuery}` : null,
+    () => searchUsers(debouncedQuery),
+    { revalidateOnFocus: false, dedupingInterval: 10_000 }
   );
 
   const { data: postData, isLoading: postsLoading } = useSWR(
-    debouncedQuery ? `search-posts-${debouncedQuery}` : null,
-    () => searchPosts(debouncedQuery)
+    debouncedQuery && tab === 'top' ? `search-posts-${debouncedQuery}` : null,
+    () => searchPosts(debouncedQuery),
+    { revalidateOnFocus: false, dedupingInterval: 10_000 }
   );
 
   const { data: trendingData } = useSWR('trending-posts', fetchTrendingPosts, {
     revalidateOnFocus: false,
+    dedupingInterval: 120_000,
   });
 
   const users: User[] = userData?.users ?? [];

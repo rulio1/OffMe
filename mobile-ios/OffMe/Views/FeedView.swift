@@ -7,6 +7,12 @@ enum FeedTab: String, CaseIterable {
 
 @MainActor
 final class FeedViewModel: ObservableObject {
+    private struct TabCache {
+        var posts: [Post]
+        var nextCursor: String?
+        var fetchedAt: Date
+    }
+
     @Published var tab: FeedTab = .forYou
     @Published var posts: [Post] = []
     @Published var isLoading = false
@@ -14,27 +20,49 @@ final class FeedViewModel: ObservableObject {
     @Published var nextCursor: String?
     @Published var error: String?
 
-    func load(token: String, reset: Bool = true) async {
-        if reset {
-            isLoading = true
-            nextCursor = nil
-        }
-        error = nil
-        defer { if reset { isLoading = false } }
+    private var cache: [FeedTab: TabCache] = [:]
+    private let staleInterval: TimeInterval = 120
+    private var loadTask: Task<Void, Never>?
 
-        do {
-            let response: TimelineResponse
-            switch tab {
-            case .forYou:
-                response = try await APIClient.shared.forYouTimeline(token: token)
-            case .following:
-                response = try await APIClient.shared.homeTimeline(token: token)
+    func load(token: String, reset: Bool = true, force: Bool = false) async {
+        loadTask?.cancel()
+        loadTask = Task {
+            if reset {
+                if !force,
+                   let cached = cache[tab],
+                   Date().timeIntervalSince(cached.fetchedAt) < staleInterval {
+                    posts = cached.posts
+                    nextCursor = cached.nextCursor
+                    return
+                }
+                isLoading = true
+                nextCursor = nil
             }
-            posts = response.entries.compactMap { $0.post }
-            nextCursor = response.nextCursor
-        } catch {
-            self.error = error.localizedDescription
+            error = nil
+            defer { if reset { isLoading = false } }
+
+            do {
+                let response: TimelineResponse
+                switch tab {
+                case .forYou:
+                    response = try await APIClient.shared.forYouTimeline(token: token)
+                case .following:
+                    response = try await APIClient.shared.homeTimeline(token: token)
+                }
+                guard !Task.isCancelled else { return }
+                posts = response.entries.compactMap { $0.post }
+                nextCursor = response.nextCursor
+                cache[tab] = TabCache(
+                    posts: posts,
+                    nextCursor: nextCursor,
+                    fetchedAt: Date()
+                )
+            } catch {
+                guard !Task.isCancelled else { return }
+                self.error = error.localizedDescription
+            }
         }
+        await loadTask?.value
     }
 
     func loadMore(token: String) async {
@@ -167,7 +195,7 @@ private struct FeedHeaderView: View {
 
 struct FeedView: View {
     @EnvironmentObject private var auth: AuthStore
-    @StateObject private var viewModel = FeedViewModel()
+    @ObservedObject var viewModel: FeedViewModel
     @State private var showCompose = false
     @State private var showSideMenu = false
     @State private var navigateToBookmarks = false
@@ -236,7 +264,7 @@ struct FeedView: View {
                             token: token,
                             mediaIds: mediaIds.isEmpty ? nil : mediaIds
                         )
-                        await viewModel.load(token: token)
+                        await viewModel.load(token: token, force: true)
                     }
                     .padding(.top, 8)
                     .navigationTitle("Novo post")
@@ -316,25 +344,27 @@ struct FeedView: View {
                     LazyVStack(spacing: 0) {
                         ForEach(viewModel.posts) { post in
                             PostRowView(post: post)
+                                .onAppear {
+                                    if post.id == viewModel.posts.last?.id,
+                                       viewModel.nextCursor != nil,
+                                       !viewModel.isLoadingMore {
+                                        Task { await viewModel.loadMore(token: token) }
+                                    }
+                                }
                             Divider().overlay(OffMeTheme.border)
                         }
 
-                        if viewModel.nextCursor != nil {
-                            Button {
-                                Task { await viewModel.loadMore(token: token) }
-                            } label: {
-                                Text(viewModel.isLoadingMore ? "Carregando..." : "Mostrar mais")
-                                    .font(.subheadline.weight(.bold))
-                                    .foregroundStyle(OffMeTheme.accent)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 16)
-                            }
-                            .disabled(viewModel.isLoadingMore)
+                        if viewModel.isLoadingMore {
+                            Text("Carregando...")
+                                .font(.subheadline.weight(.bold))
+                                .foregroundStyle(OffMeTheme.accent)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
                         }
                     }
                 }
                 .refreshable {
-                    await viewModel.load(token: token)
+                    await viewModel.load(token: token, force: true)
                 }
             }
         }

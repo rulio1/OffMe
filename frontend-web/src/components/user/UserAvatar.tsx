@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import clsx from 'clsx';
 
 interface UserAvatarProps {
@@ -7,9 +8,9 @@ interface UserAvatarProps {
 }
 
 const sizes = {
-  sm: 'h-8 w-8',
-  md: 'h-10 w-10',
-  lg: 'h-12 w-12',
+  sm: { className: 'h-8 w-8', px: 32 },
+  md: { className: 'h-10 w-10', px: 40 },
+  lg: { className: 'h-12 w-12', px: 48 },
 };
 
 export function UserAvatar({ url, size = 'md', className }: UserAvatarProps) {
@@ -17,10 +18,13 @@ export function UserAvatar({ url, size = 'md', className }: UserAvatarProps) {
 
   if (url) {
     return (
-      <img
+      <Image
         src={url}
         alt=""
-        className={clsx(dim, 'shrink-0 rounded-full object-cover', className)}
+        width={dim.px}
+        height={dim.px}
+        className={clsx(dim.className, 'shrink-0 rounded-full object-cover', className)}
+        loading="lazy"
       />
     );
   }
@@ -28,7 +32,7 @@ export function UserAvatar({ url, size = 'md', className }: UserAvatarProps) {
   return (
     <div
       className={clsx(
-        dim,
+        dim.className,
         'shrink-0 rounded-full bg-offme-surface ring-1 ring-offme-border',
         className
       )}

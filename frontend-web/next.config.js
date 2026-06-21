@@ -2,7 +2,12 @@
 const nextConfig = {
   reactStrictMode: true,
   output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'date-fns'],
+  },
   images: {
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200],
     remotePatterns: [
       { protocol: 'http', hostname: 'localhost', port: '9000', pathname: '/offme-media/**' },
       { protocol: 'https', hostname: '**.amazonaws.com', pathname: '/**' },

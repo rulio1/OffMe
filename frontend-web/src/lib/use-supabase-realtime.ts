@@ -41,10 +41,12 @@ export function usePostgresChanges(
   channelName: string,
   config: PostgresChangeConfig,
   onChange: () => void,
-  enabled = true
+  enabled = true,
+  debounceMs = 0
 ): void {
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { table, event = 'INSERT', filter, schema = 'public' } = config;
 
@@ -52,6 +54,19 @@ export function usePostgresChanges(
     if (!enabled || !isSupabaseConfigured()) return;
 
     syncRealtimeAuth();
+
+    const emitChange = () => {
+      if (debounceMs <= 0) {
+        onChangeRef.current();
+        return;
+      }
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        onChangeRef.current();
+      }, debounceMs);
+    };
 
     const channel = supabase
       .channel(channelName)
@@ -63,14 +78,15 @@ export function usePostgresChanges(
           table,
           ...(filter ? { filter } : {}),
         },
-        () => {
-          onChangeRef.current();
-        }
+        emitChange
       )
       .subscribe();
 
     return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
       supabase.removeChannel(channel);
     };
-  }, [channelName, table, event, filter, schema, enabled]);
+  }, [channelName, table, event, filter, schema, enabled, debounceMs]);
 }

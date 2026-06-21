@@ -162,6 +162,11 @@ function buildTimelineCursorClause(cursor: string | undefined, paramOffset: numb
 }
 
 const HOME_TIMELINE_SQL = `
+  WITH following AS (
+    SELECT $1::bigint AS user_id
+    UNION
+    SELECT following_id FROM follows WHERE follower_id = $1
+  )
   SELECT p.id, p.author_id, p.text, p.reply_to_id, p.like_count, p.repost_count,
          p.reply_count, p.created_at,
          u.username, u.display_name, u.avatar_url, u.verified,
@@ -170,12 +175,7 @@ const HOME_TIMELINE_SQL = `
     SELECT p.id AS post_id, 'following'::text AS timeline_source,
            p.created_at AS timeline_at, p.id AS event_id
     FROM posts p
-    JOIN users u ON u.id = p.author_id
-    WHERE u.deactivated_at IS NULL
-      AND (
-        p.author_id = $1
-        OR p.author_id IN (SELECT following_id FROM follows WHERE follower_id = $1)
-      )
+    WHERE p.author_id IN (SELECT user_id FROM following)
 
     UNION ALL
 
@@ -183,8 +183,7 @@ const HOME_TIMELINE_SQL = `
            r.created_at AS timeline_at,
            (r.user_id::bigint * 1000000000 + r.post_id) AS event_id
     FROM post_reposts r
-    WHERE r.user_id = $1
-       OR r.user_id IN (SELECT following_id FROM follows WHERE follower_id = $1)
+    WHERE r.user_id IN (SELECT user_id FROM following)
   ) te
   JOIN posts p ON p.id = te.post_id
   JOIN users u ON u.id = p.author_id
@@ -273,14 +272,24 @@ export async function searchPosts(queryText: string, limit = 20): Promise<DbPost
   );
 }
 
+let trendingCache: { posts: DbPost[]; expiresAt: number } | null = null;
+const TRENDING_TTL_MS = 120_000;
+
 export async function getTrendingPosts(limit = 10): Promise<DbPost[]> {
-  return query<DbPost>(
+  if (trendingCache && trendingCache.expiresAt > Date.now()) {
+    return trendingCache.posts.slice(0, limit);
+  }
+
+  const posts = await query<DbPost>(
     `${POST_SELECT}
      WHERE u.deactivated_at IS NULL AND p.reply_to_id IS NULL
      ORDER BY (p.like_count + p.repost_count * 2 + p.reply_count) DESC, p.created_at DESC
      LIMIT $1`,
     [limit]
   );
+
+  trendingCache = { posts, expiresAt: Date.now() + TRENDING_TTL_MS };
+  return posts;
 }
 
 export async function listByAuthor(

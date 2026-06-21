@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { memo, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -36,7 +37,7 @@ function formatCount(n: number): string {
   return n.toString();
 }
 
-export function PostCard({ post }: PostCardProps) {
+function PostCardInner({ post }: PostCardProps) {
   const router = useRouter();
   const author = post.author ?? {
     id: post.authorId,
@@ -199,13 +200,16 @@ export function PostCard({ post }: PostCardProps) {
               onClick={(e) => e.stopPropagation()}
             >
               {post.mediaUrls.map((url) => (
-                <img
-                  key={url}
-                  src={url}
-                  alt=""
-                  className="max-h-[min(512px,70vh)] w-full object-cover"
-                  loading="lazy"
-                />
+                <div key={url} className="relative aspect-video max-h-[min(512px,70vh)] w-full">
+                  <Image
+                    src={url}
+                    alt=""
+                    fill
+                    sizes="(max-width: 768px) 100vw, 600px"
+                    className="object-cover"
+                    loading="lazy"
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -280,3 +284,5 @@ export function PostCard({ post }: PostCardProps) {
     </article>
   );
 }
+
+export const PostCard = memo(PostCardInner, (prev, next) => prev.post.id === next.post.id);

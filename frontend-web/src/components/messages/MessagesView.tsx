@@ -44,13 +44,16 @@ export function MessagesView() {
 
   const { data, error, isLoading, mutate } = useSWR('conversations', fetchConversations, {
     refreshInterval: realtimeEnabled ? 0 : 10000,
+    revalidateOnFocus: false,
+    dedupingInterval: 15_000,
   });
 
   usePostgresChanges(
     'conversations-list',
     { table: 'direct_messages' },
     () => mutate(),
-    realtimeEnabled
+    realtimeEnabled,
+    400
   );
 
   const conversations = data?.conversations ?? [];

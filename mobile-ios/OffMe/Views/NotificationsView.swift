@@ -59,6 +59,7 @@ extension AppNotification {
 struct NotificationsView: View {
     @EnvironmentObject private var auth: AuthStore
     @StateObject private var viewModel = NotificationsViewModel()
+    @State private var reloadTask: Task<Void, Never>?
 
     var body: some View {
         Group {
@@ -142,9 +143,16 @@ struct NotificationsView: View {
             filter: "user_id=eq.\(userId)",
             accessToken: token
         ) {
-            Task {
-                await viewModel.load(token: token, markRead: false)
-            }
+            scheduleReload(token: token)
+        }
+    }
+
+    private func scheduleReload(token: String) {
+        reloadTask?.cancel()
+        reloadTask = Task {
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            guard !Task.isCancelled else { return }
+            await viewModel.load(token: token, markRead: false)
         }
     }
 
