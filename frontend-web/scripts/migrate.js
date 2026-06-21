@@ -68,6 +68,7 @@ async function main() {
     '006_bookmarks_reposts.sql',
     '007_messages.sql',
     '008_supabase_realtime.sql',
+    '009_perf_indexes.sql',
   ];
 
   const root = path.join(__dirname, '..', '..');
