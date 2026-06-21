@@ -46,6 +46,7 @@ mobile-android/app/build/
 local.properties
 
 # Tooling
+.tools/
 .metals/
 *.tsbuildinfo
 
