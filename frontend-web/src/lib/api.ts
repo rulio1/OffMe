@@ -78,11 +78,12 @@ async function parseError(res: Response, fallback: string): Promise<never> {
   throw new Error(err.message || fallback);
 }
 
-export async function login(email: string, password: string): Promise<AuthSession> {
+export async function login(identifier: string, password: string): Promise<AuthSession> {
+  const value = identifier.trim().toLowerCase();
   const res = await fetch(`${API_BASE}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ identifier: value, email: value, password }),
   });
 
   if (!res.ok) await parseError(res, 'E-mail/usuário ou senha inválidos');

@@ -9,7 +9,7 @@ import { AuthField } from './AuthField';
 
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +19,7 @@ export function LoginForm() {
     e.preventDefault();
     setError('');
 
-    if (!email.trim()) {
+    if (!identifier.trim()) {
       setError('Informe seu e-mail ou usuário');
       return;
     }
@@ -30,7 +30,7 @@ export function LoginForm() {
 
     setLoading(true);
     try {
-      const session = await login(email.trim(), password);
+      const session = await login(identifier, password);
       setSession(session);
       router.push('/');
       router.refresh();
@@ -50,13 +50,13 @@ export function LoginForm() {
       )}
 
       <AuthField
-        id="email"
-        name="email"
+        id="identifier"
+        name="identifier"
         type="text"
         autoComplete="username"
         label="E-mail ou usuário"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        value={identifier}
+        onChange={(e) => setIdentifier(e.target.value)}
       />
 
       <AuthField
@@ -90,7 +90,7 @@ export function LoginForm() {
 
       <button
         type="submit"
-        disabled={loading || !email.trim() || password.length < 4}
+        disabled={loading || !identifier.trim() || password.length < 4}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-offme-accent py-3.5 text-[17px] font-bold text-white transition-colors hover:bg-offme-accentHover disabled:cursor-default disabled:opacity-50"
       >
         {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Entrar'}

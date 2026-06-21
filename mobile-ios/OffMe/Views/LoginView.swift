@@ -2,7 +2,7 @@ import SwiftUI
 
 struct LoginView: View {
     @EnvironmentObject private var auth: AuthStore
-    @State private var email = ""
+    @State private var identifier = ""
     @State private var password = ""
     @State private var error: String?
     @State private var showSignup = false
@@ -18,7 +18,7 @@ struct LoginView: View {
                 .padding(.top, 40)
 
                 VStack(spacing: 14) {
-                    TextField("E-mail ou usuário", text: $email)
+                    TextField("E-mail ou usuário", text: $identifier)
                         .textInputAutocapitalization(.never)
                         .keyboardType(.default)
                         .autocorrectionDisabled()
@@ -71,7 +71,7 @@ struct LoginView: View {
     private func submit() async {
         error = nil
         do {
-            try await auth.login(email: email.trimmingCharacters(in: .whitespaces), password: password)
+            try await auth.login(identifier: identifier, password: password)
         } catch {
             self.error = error.localizedDescription
         }

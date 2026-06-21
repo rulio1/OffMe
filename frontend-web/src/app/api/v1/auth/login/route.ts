@@ -3,7 +3,13 @@ import { enforceRateLimit } from '@/lib/api-guard';
 import { jsonError, jsonOk } from '@/lib/api-response';
 import { issueAuthTokens, verifyPassword } from '@/lib/auth-server';
 import { findUserByEmail, findUserByUsername } from '@/lib/user-repository';
-import { isEmail, validatePassword } from '@/lib/validators';
+import { validatePassword } from '@/lib/validators';
+
+async function findUserByIdentifier(identifier: string) {
+  const byEmail = await findUserByEmail(identifier);
+  if (byEmail) return byEmail;
+  return findUserByUsername(identifier);
+}
 
 export async function POST(request: NextRequest) {
   const limited = enforceRateLimit(request, 'auth-login', 20, 60_000);
@@ -21,9 +27,7 @@ export async function POST(request: NextRequest) {
     const passwordError = validatePassword(password, 4);
     if (passwordError) return jsonError('E-mail/usuário ou senha inválidos', 401);
 
-    const user = isEmail(identifier)
-      ? await findUserByEmail(identifier)
-      : await findUserByUsername(identifier);
+    const user = await findUserByIdentifier(identifier);
 
     if (!user) {
       return jsonError('E-mail/usuário ou senha inválidos', 401);

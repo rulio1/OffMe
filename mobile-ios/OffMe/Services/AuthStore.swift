@@ -68,10 +68,10 @@ final class AuthStore: ObservableObject {
         UserDefaults.standard.removeObject(forKey: userKey)
     }
 
-    func login(email: String, password: String) async throws {
+    func login(identifier: String, password: String) async throws {
         isLoading = true
         defer { isLoading = false }
-        let auth = try await APIClient.shared.login(email: email, password: password)
+        let auth = try await APIClient.shared.login(identifier: identifier, password: password)
         save(auth)
     }
 

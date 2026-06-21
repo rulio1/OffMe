@@ -95,9 +95,18 @@ final class APIClient {
         return data
     }
 
-    func login(email: String, password: String) async throws -> AuthSession {
-        struct Body: Encodable { let email: String; let password: String }
-        return try await request("/auth/login", method: "POST", body: Body(email: email, password: password))
+    func login(identifier: String, password: String) async throws -> AuthSession {
+        struct Body: Encodable {
+            let identifier: String
+            let email: String
+            let password: String
+        }
+        let value = identifier.trimmingCharacters(in: .whitespaces).lowercased()
+        return try await request(
+            "/auth/login",
+            method: "POST",
+            body: Body(identifier: value, email: value, password: password)
+        )
     }
 
     func refreshSession(refreshToken: String) async throws -> AuthSession {
