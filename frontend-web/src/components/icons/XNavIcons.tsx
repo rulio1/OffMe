@@ -3,7 +3,6 @@ import clsx from 'clsx';
 export type XNavIconName =
   | 'home'
   | 'search'
-  | 'grok'
   | 'notifications'
   | 'messages'
   | 'bookmarks'
@@ -53,20 +52,6 @@ export function XNavIcon({ name, active = false, className }: XNavIconProps) {
             strokeLinecap="round"
             d="M10.25 3.75a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 0L16.25 16.25"
           />
-        </svg>
-      );
-
-    case 'grok':
-      return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          <path
-            stroke="currentColor"
-            strokeWidth={active ? 2.1 : 1.75}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 3.5v3.25M12 17.25V20.5M4.75 12H8M16 12h3.25M6.4 6.4l2.3 2.3M15.3 15.3l2.3 2.3M17.6 6.4l-2.3 2.3M8.7 15.3l-2.3 2.3"
-          />
-          <circle cx="12" cy="12" r="2.35" fill="currentColor" stroke="none" />
         </svg>
       );
 

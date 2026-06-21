@@ -18,7 +18,7 @@ echo "Variáveis obrigatórias no painel Vercel:"
 echo "  DATABASE_URL, DATABASE_SSL=true, JWT_SECRET"
 echo "  NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (ou ANON_KEY)"
 echo "  IMGBB_API_KEY (ou S3_*)"
-echo "  XAI_API_KEY (Grok com IA)"
+
 echo ""
 
 if [[ -z "${DATABASE_URL:-}" ]] && [[ -f "$ROOT/frontend-web/.env.local" ]]; then

@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 enum class XNavIconKind {
     Home,
     Search,
-    Grok,
+    Bookmarks,
     Notifications,
     Messages,
 }
@@ -89,42 +89,37 @@ private val XSearch: ImageVector by lazy {
     }
 }
 
-private val XGrok: ImageVector by lazy {
+private val XBookmarksOutline: ImageVector by lazy {
+    strokePath("XBookmarksOutline") {
+        moveTo(4f, 4.5f)
+        arcToRelative(1.5f, 1.5f, 0f, false, true, 1.5f, -1.5f)
+        horizontalLineToRelative(13f)
+        arcToRelative(1.5f, 1.5f, 0f, false, true, 1.5f, 1.5f)
+        verticalLineToRelative(17.5f)
+        lineToRelative(-8f, -4.5f)
+        lineTo(4f, 22f)
+        verticalLineTo(4.5f)
+        close()
+    }
+}
+
+private val XBookmarksFilled: ImageVector by lazy {
     ImageVector.Builder(
-        name = "XGrok",
+        name = "XBookmarksFilled",
         defaultWidth = 24.dp,
         defaultHeight = 24.dp,
         viewportWidth = 24f,
         viewportHeight = 24f,
     ).apply {
-        path(
-            fill = SolidColor(Color.Transparent),
-            stroke = SolidColor(Color.Black),
-            strokeLineWidth = 1.75f,
-            strokeLineCap = StrokeCap.Round,
-            strokeLineJoin = StrokeJoin.Round,
-        ) {
-            moveTo(12f, 3.5f)
-            verticalLineToRelative(3.25f)
-            moveTo(12f, 17.25f)
-            verticalLineToRelative(3.25f)
-            moveTo(4.75f, 12f)
-            horizontalLineToRelative(3.25f)
-            moveTo(16f, 12f)
-            horizontalLineToRelative(3.25f)
-            moveTo(6.4f, 6.4f)
-            lineToRelative(2.3f, 2.3f)
-            moveTo(15.3f, 15.3f)
-            lineToRelative(2.3f, 2.3f)
-            moveTo(17.6f, 6.4f)
-            lineToRelative(-2.3f, 2.3f)
-            moveTo(8.7f, 15.3f)
-            lineToRelative(-2.3f, 2.3f)
-        }
         path {
-            moveTo(12f, 9.65f)
-            arcTo(2.35f, 2.35f, 0f, true, false, 12f, 14.35f)
-            arcTo(2.35f, 2.35f, 0f, true, false, 12f, 9.65f)
+            moveTo(4f, 4.5f)
+            arcToRelative(1.5f, 1.5f, 0f, false, true, 1.5f, -1.5f)
+            horizontalLineToRelative(13f)
+            arcToRelative(1.5f, 1.5f, 0f, false, true, 1.5f, 1.5f)
+            verticalLineToRelative(17.5f)
+            lineToRelative(-8f, -4.5f)
+            lineTo(4f, 22f)
+            verticalLineTo(4.5f)
             close()
         }
     }.build()
@@ -174,7 +169,7 @@ fun XNavIcon(
     val icon = when (kind) {
         XNavIconKind.Home -> if (active) XHomeFilled else XHomeOutline
         XNavIconKind.Search -> XSearch
-        XNavIconKind.Grok -> XGrok
+        XNavIconKind.Bookmarks -> if (active) XBookmarksFilled else XBookmarksOutline
         XNavIconKind.Notifications -> XNotifications
         XNavIconKind.Messages -> XMessages
     }

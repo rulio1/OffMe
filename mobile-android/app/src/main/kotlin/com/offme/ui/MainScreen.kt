@@ -42,7 +42,7 @@ private fun PlaceholderScreen(tab: OffMeTab) {
     val title = when (tab) {
         OffMeTab.Home -> "Início"
         OffMeTab.Explore -> "Explorar"
-        OffMeTab.Grok -> "Grok"
+        OffMeTab.Bookmarks -> "Salvos"
         OffMeTab.Notifications -> "Notificações"
         OffMeTab.Messages -> "Mensagens"
     }

@@ -3,7 +3,7 @@ import SwiftUI
 enum XNavIconKind {
     case home
     case search
-    case grok
+    case bookmarks
     case notifications
     case messages
 }
@@ -21,8 +21,8 @@ struct XNavIcon: View {
                 homeIcon
             case .search:
                 strokedIcon(searchPath)
-            case .grok:
-                grokIcon
+            case .bookmarks:
+                bookmarksIcon
             case .notifications:
                 strokedIcon(notificationsPath)
             case .messages:
@@ -46,13 +46,12 @@ struct XNavIcon: View {
         }
     }
 
-    private var grokIcon: some View {
-        ZStack {
-            grokRaysPath
-                .stroke(OffMeTheme.text, style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round, lineJoin: .round))
-            Circle()
-                .fill(OffMeTheme.text)
-                .frame(width: 4.7, height: 4.7)
+    @ViewBuilder
+    private var bookmarksIcon: some View {
+        if active {
+            bookmarksPath.fill(OffMeTheme.text)
+        } else {
+            bookmarksPath.stroke(OffMeTheme.text, style: StrokeStyle(lineWidth: 1.75, lineJoin: .round))
         }
     }
 
@@ -108,22 +107,17 @@ struct XNavIcon: View {
         return path
     }
 
-    private var grokRaysPath: Path {
+    private var bookmarksPath: Path {
         var path = Path()
-        let rays: [(CGPoint, CGPoint)] = [
-            (CGPoint(x: 12, y: 3.5), CGPoint(x: 12, y: 6.75)),
-            (CGPoint(x: 12, y: 17.25), CGPoint(x: 12, y: 20.5)),
-            (CGPoint(x: 4.75, y: 12), CGPoint(x: 8, y: 12)),
-            (CGPoint(x: 16, y: 12), CGPoint(x: 19.25, y: 12)),
-            (CGPoint(x: 6.4, y: 6.4), CGPoint(x: 8.7, y: 8.7)),
-            (CGPoint(x: 15.3, y: 15.3), CGPoint(x: 17.6, y: 17.6)),
-            (CGPoint(x: 17.6, y: 6.4), CGPoint(x: 15.3, y: 8.7)),
-            (CGPoint(x: 8.7, y: 15.3), CGPoint(x: 6.4, y: 17.6)),
-        ]
-        for (start, end) in rays {
-            path.move(to: start)
-            path.addLine(to: end)
-        }
+        path.move(to: CGPoint(x: 5.5, y: 3))
+        path.addLine(to: CGPoint(x: 18.5, y: 3))
+        path.addQuadCurve(to: CGPoint(x: 20, y: 4.5), control: CGPoint(x: 20, y: 3))
+        path.addLine(to: CGPoint(x: 20, y: 22))
+        path.addLine(to: CGPoint(x: 12, y: 17.5))
+        path.addLine(to: CGPoint(x: 4, y: 22))
+        path.addLine(to: CGPoint(x: 4, y: 4.5))
+        path.addQuadCurve(to: CGPoint(x: 5.5, y: 3), control: CGPoint(x: 4, y: 3))
+        path.closeSubpath()
         return path
     }
 

@@ -12,7 +12,7 @@ if [[ -z "$REMOTE" ]]; then
   echo "Uso: bash scripts/git-push-github.sh <git-remote-url>"
   echo ""
   echo "Exemplo (HTTPS):"
-  echo "  bash scripts/git-push-github.sh https://github.com/SEU_USUARIO/OffMe.git"
+  echo "  bash scripts/git-push-github.sh https://github.com/rulio1/OffMe.git"
   echo ""
   echo "Exemplo (SSH):"
   echo "  bash scripts/git-push-github.sh git@github.com:SEU_USUARIO/OffMe.git"
@@ -25,9 +25,9 @@ if ! git diff --quiet || ! git diff --cached --quiet || [[ -n "$(git status --po
   echo "==> Commitando alterações..."
   git add -A
   git commit -m "$(cat <<'EOF'
-OffMe MVP: web, iOS, Grok, Realtime e deploy Vercel
+OffMe MVP: web, iOS, Realtime e deploy Vercel
 
-- Next.js com auth, feed, mensagens, notificações, Grok IA
+- Next.js com auth, feed, mensagens, notificações, salvos
 - Supabase Realtime (web + iOS)
 - Navbar estilo X, explore com busca de posts
 - iOS app completo + Android scaffold

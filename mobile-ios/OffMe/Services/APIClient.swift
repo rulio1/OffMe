@@ -290,25 +290,6 @@ final class APIClient {
         try await request("/posts/\(postId)/bookmark", method: "DELETE", token: token)
     }
 
-    func chatWithGrok(
-        messages: [(role: String, content: String)],
-        token: String
-    ) async throws -> String {
-        struct Msg: Encodable {
-            let role: String
-            let content: String
-        }
-        struct Body: Encodable {
-            let messages: [Msg]
-        }
-        struct Response: Decodable {
-            let reply: String
-        }
-        let body = Body(messages: messages.map { Msg(role: $0.role, content: $0.content) })
-        let res: Response = try await request("/grok/chat", method: "POST", body: body, token: token)
-        return res.reply
-    }
-
     func fetchBookmarks(token: String, cursor: String? = nil) async throws -> TimelineResponse {
         var query: [URLQueryItem] = []
         if let cursor { query.append(URLQueryItem(name: "cursor", value: cursor)) }

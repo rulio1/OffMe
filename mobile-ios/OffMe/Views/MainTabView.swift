@@ -32,7 +32,7 @@ struct MainTabView: View {
         case 1:
             NavigationStack { ExploreView() }
         case 2:
-            NavigationStack { GrokView() }
+            NavigationStack { BookmarksView() }
         case 3:
             NavigationStack { NotificationsView() }
         case 4:

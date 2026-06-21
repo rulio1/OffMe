@@ -105,15 +105,6 @@ export function Sidebar() {
               className="absolute bottom-full left-0 z-50 mb-2 w-56 overflow-hidden rounded-2xl border border-offme-border bg-offme-bg py-2 shadow-lg xl:left-4"
             >
               <Link
-                href="/grok"
-                role="menuitem"
-                onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-black/5"
-              >
-                <XNavIcon name="grok" className="h-5 w-5" />
-                Grok
-              </Link>
-              <Link
                 href="/bookmarks"
                 role="menuitem"
                 onClick={() => setMoreOpen(false)}

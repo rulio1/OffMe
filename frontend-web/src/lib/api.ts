@@ -234,19 +234,6 @@ export async function searchPosts(query: string): Promise<{ posts: Post[] }> {
   return { posts: (data.posts ?? []).map(normalizePost) };
 }
 
-export async function chatWithGrok(
-  messages: { role: 'user' | 'assistant'; content: string }[]
-): Promise<string> {
-  const res = await apiFetch('/grok/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages }),
-  });
-  if (!res.ok) await parseError(res, 'Erro ao conversar com Grok');
-  const data = await res.json();
-  return String(data.reply ?? '');
-}
-
 export async function fetchTrendingPosts(): Promise<{ posts: Post[] }> {
   const res = await apiFetch('/posts/search?trending=1');
   if (!res.ok) await parseError(res, 'Erro ao carregar trending');

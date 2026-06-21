@@ -13,7 +13,7 @@ struct BottomTabBar: View {
     private let items: [BottomTabItem] = [
         BottomTabItem(id: 0, icon: .home, label: "Início"),
         BottomTabItem(id: 1, icon: .search, label: "Explorar"),
-        BottomTabItem(id: 2, icon: .grok, label: "Grok"),
+        BottomTabItem(id: 2, icon: .bookmarks, label: "Salvos"),
         BottomTabItem(id: 3, icon: .notifications, label: "Notificações"),
         BottomTabItem(id: 4, icon: .messages, label: "Mensagens"),
     ]

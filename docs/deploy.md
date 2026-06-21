@@ -77,8 +77,6 @@ No painel **Settings → Environment Variables** (Production):
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave publishable (ou `ANON_KEY`) |
 | `IMGBB_API_KEY` | Upload de imagens (ou use `S3_*`) |
-| `XAI_API_KEY` | Grok com IA ([console.x.ai](https://console.x.ai)) |
-
 **JWT:** o `JWT_SECRET` da Vercel deve ser **igual** ao JWT Secret do painel Supabase (Settings → API).
 
 #### 4.4 Deploy manual (alternativa à Git)

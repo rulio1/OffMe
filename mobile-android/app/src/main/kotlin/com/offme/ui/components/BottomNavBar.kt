@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 enum class OffMeTab(val label: String) {
     Home("Início"),
     Explore("Explorar"),
-    Grok("Grok"),
+    Bookmarks("Salvos"),
     Notifications("Notificações"),
     Messages("Mensagens"),
 }
@@ -29,7 +29,7 @@ private data class TabSpec(
 private val tabs = listOf(
     TabSpec(OffMeTab.Home, XNavIconKind.Home),
     TabSpec(OffMeTab.Explore, XNavIconKind.Search),
-    TabSpec(OffMeTab.Grok, XNavIconKind.Grok),
+    TabSpec(OffMeTab.Bookmarks, XNavIconKind.Bookmarks),
     TabSpec(OffMeTab.Notifications, XNavIconKind.Notifications),
     TabSpec(OffMeTab.Messages, XNavIconKind.Messages),
 )

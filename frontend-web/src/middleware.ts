@@ -6,7 +6,7 @@ const AUTH_PATHS = ['/login', '/signup'];
 const PROTECTED_PREFIXES = [
   '/',
   '/explore',
-  '/grok',
+
   '/notifications',
   '/messages',
   '/bookmarks',
@@ -43,7 +43,7 @@ export const config = {
     '/login',
     '/signup',
     '/explore',
-    '/grok',
+  
     '/notifications',
     '/messages',
     '/messages/:path*',
