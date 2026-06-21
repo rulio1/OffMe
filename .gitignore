@@ -51,3 +51,10 @@ local.properties
 
 # Large binaries
 mobile-ios/OffMe.ipa
+
+# Xcode user data
+**/xcuserdata/
+*.xcuserstate
+
+# Uploads locais (dev)
+frontend-web/public/uploads/
