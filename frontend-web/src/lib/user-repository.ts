@@ -9,6 +9,7 @@ export interface DbUser {
   display_name: string;
   bio: string;
   avatar_url: string | null;
+  banner_url: string | null;
   verified: boolean;
   follower_count: number;
   following_count: number;
@@ -25,7 +26,7 @@ export interface CreateUserInput {
 export async function findUserByEmail(email: string): Promise<DbUser | null> {
   return queryOne<DbUser>(
     `SELECT id, public_id, username, email, password_hash, display_name, bio,
-            avatar_url, verified, follower_count, following_count, created_at
+            avatar_url, banner_url, verified, follower_count, following_count, created_at
      FROM users WHERE LOWER(email) = LOWER($1) AND deactivated_at IS NULL`,
     [email]
   );
@@ -34,7 +35,7 @@ export async function findUserByEmail(email: string): Promise<DbUser | null> {
 export async function findUserByUsername(username: string): Promise<DbUser | null> {
   return queryOne<DbUser>(
     `SELECT id, public_id, username, email, password_hash, display_name, bio,
-            avatar_url, verified, follower_count, following_count, created_at
+            avatar_url, banner_url, verified, follower_count, following_count, created_at
      FROM users WHERE LOWER(username) = LOWER($1) AND deactivated_at IS NULL`,
     [username]
   );
@@ -43,7 +44,7 @@ export async function findUserByUsername(username: string): Promise<DbUser | nul
 export async function findUserById(id: number): Promise<DbUser | null> {
   return queryOne<DbUser>(
     `SELECT id, public_id, username, email, password_hash, display_name, bio,
-            avatar_url, verified, follower_count, following_count, created_at
+            avatar_url, banner_url, verified, follower_count, following_count, created_at
      FROM users WHERE id = $1 AND deactivated_at IS NULL`,
     [id]
   );
@@ -54,7 +55,7 @@ export async function createUser(input: CreateUserInput): Promise<DbUser> {
     `INSERT INTO users (username, email, password_hash, display_name)
      VALUES ($1, $2, $3, $4)
      RETURNING id, public_id, username, email, password_hash, display_name, bio,
-               avatar_url, verified, follower_count, following_count, created_at`,
+               avatar_url, banner_url, verified, follower_count, following_count, created_at`,
     [input.username, input.email.toLowerCase(), input.passwordHash, input.displayName]
   );
 
@@ -62,15 +63,85 @@ export async function createUser(input: CreateUserInput): Promise<DbUser> {
   return row;
 }
 
-export function toPublicUser(user: DbUser) {
+export function toPublicUser(user: DbUser, extra?: { isFollowing?: boolean }) {
   return {
-    id: user.id,
+    id: Number(user.id),
     username: user.username,
     displayName: user.display_name,
-    avatarUrl: user.avatar_url ?? '',
+    avatarUrl: user.avatar_url || undefined,
+    bannerUrl: user.banner_url || undefined,
     verified: user.verified,
     bio: user.bio,
-    followerCount: user.follower_count,
-    followingCount: user.following_count,
+    followerCount: Number(user.follower_count),
+    followingCount: Number(user.following_count),
+    ...(extra?.isFollowing != null ? { isFollowing: extra.isFollowing } : {}),
   };
+}
+
+export interface UpdateProfileInput {
+  displayName?: string;
+  bio?: string;
+  avatarUrl?: string | null;
+  bannerUrl?: string | null;
+}
+
+export async function updateUserProfile(
+  userId: number,
+  input: UpdateProfileInput
+): Promise<DbUser | null> {
+  const sets: string[] = [];
+  const params: unknown[] = [userId];
+  let idx = 2;
+
+  if (input.displayName !== undefined) {
+    const name = input.displayName.trim();
+    if (name.length < 1 || name.length > 50) {
+      throw new Error('Nome deve ter entre 1 e 50 caracteres');
+    }
+    sets.push(`display_name = $${idx++}`);
+    params.push(name);
+  }
+  if (input.bio !== undefined) {
+    const bio = input.bio.trim();
+    if (bio.length > 160) throw new Error('Bio deve ter no máximo 160 caracteres');
+    sets.push(`bio = $${idx++}`);
+    params.push(bio);
+  }
+  if (input.avatarUrl !== undefined) {
+    sets.push(`avatar_url = $${idx++}`);
+    params.push(input.avatarUrl || null);
+  }
+  if (input.bannerUrl !== undefined) {
+    sets.push(`banner_url = $${idx++}`);
+    params.push(input.bannerUrl || null);
+  }
+
+  if (sets.length === 0) return findUserById(userId);
+
+  sets.push('updated_at = NOW()');
+
+  return queryOne<DbUser>(
+    `UPDATE users SET ${sets.join(', ')}
+     WHERE id = $1 AND deactivated_at IS NULL
+     RETURNING id, public_id, username, email, password_hash, display_name, bio,
+               avatar_url, banner_url, verified, follower_count, following_count, created_at`,
+    params
+  );
+}
+
+export async function searchUsers(queryText: string, limit = 20): Promise<DbUser[]> {
+  const term = queryText.trim();
+  if (!term) return [];
+
+  const pattern = `%${term}%`;
+  return query<DbUser>(
+    `SELECT id, public_id, username, email, password_hash, display_name, bio,
+            avatar_url, banner_url, verified, follower_count, following_count, created_at
+     FROM users
+     WHERE deactivated_at IS NULL
+       AND (username ILIKE $1 OR display_name ILIKE $1)
+     ORDER BY follower_count DESC, username ASC
+     LIMIT $2`,
+    [pattern, limit]
+  );
 }

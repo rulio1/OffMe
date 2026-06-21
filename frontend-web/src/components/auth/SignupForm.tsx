@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { register } from '@/lib/api';
 import { setSession } from '@/lib/auth';
+import { AuthField } from './AuthField';
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{1,15}$/;
 
@@ -58,111 +58,93 @@ export function SignupForm() {
     }
   };
 
+  const canSubmit =
+    displayName.trim() &&
+    USERNAME_RE.test(username) &&
+    email.trim().includes('@') &&
+    password.length >= 8 &&
+    password === confirmPassword;
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-1">
       {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <p className="mb-4 text-[15px] text-red-400" role="alert">
           {error}
-        </div>
+        </p>
       )}
 
-      <div>
-        <label htmlFor="displayName" className="mb-1.5 block text-sm font-medium text-pulse-muted">
-          Nome de exibição
-        </label>
-        <input
-          id="displayName"
-          type="text"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="Seu nome"
-          maxLength={50}
-          className="w-full rounded-lg border border-pulse-border bg-pulse-surface px-4 py-3 text-pulse-text outline-none transition-colors placeholder:text-pulse-muted focus:border-pulse-accent"
-        />
-      </div>
+      <AuthField
+        id="displayName"
+        name="displayName"
+        type="text"
+        label="Nome"
+        value={displayName}
+        onChange={(e) => setDisplayName(e.target.value)}
+        maxLength={50}
+      />
 
-      <div>
-        <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-pulse-muted">
-          Nome de usuário
-        </label>
-        <input
-          id="username"
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value.toLowerCase())}
-          placeholder="seu_usuario"
-          maxLength={15}
-          className="w-full rounded-lg border border-pulse-border bg-pulse-surface px-4 py-3 text-pulse-text outline-none transition-colors placeholder:text-pulse-muted focus:border-pulse-accent"
-        />
-      </div>
+      <AuthField
+        id="username"
+        name="username"
+        type="text"
+        label="Nome de usuário"
+        value={username}
+        onChange={(e) => setUsername(e.target.value.toLowerCase())}
+        maxLength={15}
+      />
 
-      <div>
-        <label htmlFor="signup-email" className="mb-1.5 block text-sm font-medium text-pulse-muted">
-          E-mail
-        </label>
-        <input
-          id="signup-email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="voce@email.com"
-          className="w-full rounded-lg border border-pulse-border bg-pulse-surface px-4 py-3 text-pulse-text outline-none transition-colors placeholder:text-pulse-muted focus:border-pulse-accent"
-        />
-      </div>
+      <AuthField
+        id="signup-email"
+        name="email"
+        type="email"
+        autoComplete="email"
+        label="E-mail"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
 
-      <div>
-        <label htmlFor="signup-password" className="mb-1.5 block text-sm font-medium text-pulse-muted">
-          Senha
-        </label>
-        <div className="relative">
-          <input
-            id="signup-password"
-            type={showPassword ? 'text' : 'password'}
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mínimo 8 caracteres"
-            className="w-full rounded-lg border border-pulse-border bg-pulse-surface px-4 py-3 pr-12 text-pulse-text outline-none transition-colors placeholder:text-pulse-muted focus:border-pulse-accent"
-          />
+      <AuthField
+        id="signup-password"
+        name="password"
+        type={showPassword ? 'text' : 'password'}
+        autoComplete="new-password"
+        label="Senha"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        endAdornment={
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-pulse-muted hover:text-pulse-text"
+            className="rounded-full p-2 text-offme-muted transition-colors hover:bg-offme-accent/10 hover:text-offme-accent"
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
-        </div>
-      </div>
+        }
+      />
 
-      <div>
-        <label htmlFor="confirmPassword" className="mb-1.5 block text-sm font-medium text-pulse-muted">
-          Confirmar senha
-        </label>
-        <input
-          id="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Repita a senha"
-          className="w-full rounded-lg border border-pulse-border bg-pulse-surface px-4 py-3 text-pulse-text outline-none transition-colors placeholder:text-pulse-muted focus:border-pulse-accent"
-        />
-      </div>
+      <AuthField
+        id="confirmPassword"
+        name="confirmPassword"
+        type="password"
+        autoComplete="new-password"
+        label="Confirmar senha"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+      />
 
       <button
         type="submit"
-        disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-full bg-pulse-accent py-3 font-bold text-white transition-colors hover:bg-pulse-accentHover disabled:opacity-60"
+        disabled={loading || !canSubmit}
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-offme-accent py-3.5 text-[17px] font-bold text-white transition-colors hover:bg-offme-accentHover disabled:cursor-default disabled:opacity-50"
       >
         {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Criar conta'}
       </button>
 
-      <p className="text-center text-pulse-muted">
-        Já tem uma conta?{' '}
-        <Link href="/login" className="text-pulse-accent hover:underline">
-          Entrar
-        </Link>
+      <p className="mt-4 text-[11px] leading-relaxed text-offme-muted">
+        Ao se inscrever, você concorda com os{' '}
+        <span className="text-offme-accent">Termos de Serviço</span> e a{' '}
+        <span className="text-offme-accent">Política de Privacidade</span>, incluindo o{' '}
+        <span className="text-offme-accent">Uso de Cookies</span>.
       </p>
     </form>
   );

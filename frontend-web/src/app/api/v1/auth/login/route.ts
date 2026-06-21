@@ -1,10 +1,14 @@
 import { NextRequest } from 'next/server';
+import { enforceRateLimit } from '@/lib/api-guard';
 import { jsonError, jsonOk } from '@/lib/api-response';
 import { issueAuthTokens, verifyPassword } from '@/lib/auth-server';
 import { findUserByEmail } from '@/lib/user-repository';
 import { validateEmail, validatePassword } from '@/lib/validators';
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, 'auth-login', 20, 60_000);
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const email = String(body.email ?? '').trim().toLowerCase();

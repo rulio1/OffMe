@@ -1,0 +1,80 @@
+# OffMe — stack de produção self-hosted (VPS / Railway / Fly)
+# Uso: docker compose -f docker-compose.prod.yml up -d --build
+#
+# Para Vercel + Neon + R2, use scripts/deploy-vercel.sh em vez deste arquivo.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: offme-prod-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-offme}
+      POSTGRES_USER: ${POSTGRES_USER:-offme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD}
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+      - ../schemas/postgres/offme_init.sql:/docker-entrypoint-initdb.d/001_offme_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-offme} -d ${POSTGRES_DB:-offme}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: offme-prod-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports: ["9000:9000", "9001:9001"]
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-offme}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?Defina S3_SECRET_KEY}
+    volumes:
+      - prod_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: offme-prod-minio-init
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${S3_ACCESS_KEY:-offme} ${S3_SECRET_KEY} &&
+      mc mb local/${S3_BUCKET:-offme-media} --ignore-existing &&
+      mc anonymous set download local/${S3_BUCKET:-offme-media} &&
+      echo 'bucket pronto'
+      "
+    restart: "no"
+
+  frontend:
+    build:
+      context: ../frontend-web
+      dockerfile: ../infra/docker/Dockerfile.frontend
+      args:
+        DOCKER_BUILD: "true"
+    container_name: offme-prod-frontend
+    restart: unless-stopped
+    ports: ["${APP_PORT:-3000}:3000"]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-offme}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-offme}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET}
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-offme}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:-offme-media}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/offme-media}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      NEXT_PUBLIC_DEV_AUTH: "false"
+    depends_on:
+      postgres: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+
+volumes:
+  prod_postgres_data:
+  prod_minio_data:

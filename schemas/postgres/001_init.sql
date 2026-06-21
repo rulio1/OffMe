@@ -1,4 +1,4 @@
--- Pulse PostgreSQL Schema
+-- OffMe PostgreSQL Schema
 -- Relational data: users, profiles, notifications, moderation, media metadata
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

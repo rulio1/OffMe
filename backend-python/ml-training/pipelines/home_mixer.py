@@ -1,5 +1,5 @@
 """
-Pulse Home Mixer — recommendation orchestrator outline.
+OffMe Home Mixer — recommendation orchestrator outline.
 
 Mirrors X's the-algorithm Home Mixer pipeline:
   1. Candidate Generation (multiple sources)

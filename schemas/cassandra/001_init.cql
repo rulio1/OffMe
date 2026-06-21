@@ -1,10 +1,10 @@
--- Pulse Cassandra Schema
+-- OffMe Cassandra Schema
 -- High-write paths: posts, timelines, engagement counters
 
-CREATE KEYSPACE IF NOT EXISTS pulse
+CREATE KEYSPACE IF NOT EXISTS offme
 WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
-USE pulse;
+USE offme;
 
 -- ============================================================
 -- POSTS (authoritative post storage, like Twemcache-backed Tweets DB)

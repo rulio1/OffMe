@@ -3,7 +3,7 @@ import { LoginForm } from '@/components/auth/LoginForm';
 
 export default function LoginPage() {
   return (
-    <AuthShell title="Entrar no OffMe" subtitle="Bem-vindo de volta.">
+    <AuthShell mode="login" title="Entrar no OffMe">
       <LoginForm />
     </AuthShell>
   );

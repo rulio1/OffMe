@@ -31,3 +31,23 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Vercel / deploy local
+.vercel/
+frontend-web/.vercel/
+
+# iOS / Android build artifacts
+mobile-ios/build/
+mobile-ios/DerivedData/
+*.ipa
+*.xcarchive
+mobile-android/.gradle/
+mobile-android/app/build/
+local.properties
+
+# Tooling
+.metals/
+*.tsbuildinfo
+
+# Large binaries
+mobile-ios/OffMe.ipa

@@ -6,12 +6,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        pulse: {
-          bg: '#000000',
-          surface: '#16181c',
-          border: '#2f3336',
-          text: '#e7e9ea',
-          muted: '#71767b',
+        offme: {
+          bg: '#ffffff',
+          surface: '#f7f9f9',
+          border: '#eff3f4',
+          text: '#0f1419',
+          muted: '#536471',
           accent: '#1d9bf0',
           accentHover: '#1a8cd8',
           like: '#f91880',

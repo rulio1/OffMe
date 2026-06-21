@@ -1,6 +1,6 @@
-# Pulse Architecture
+# OffMe Architecture
 
-Pulse is a Twitter/X-inspired social media platform built as a microservices monorepo. The design mirrors production patterns from X: fanout-on-write for in-network timelines, pull-based hydration for celebrity accounts, a hybrid recommendation pipeline (Home Mixer), and event-driven async processing via Kafka.
+OffMe is a Twitter/X-inspired social media platform built as a microservices monorepo. The design mirrors production patterns from X: fanout-on-write for in-network timelines, pull-based hydration for celebrity accounts, a hybrid recommendation pipeline (Home Mixer), and event-driven async processing via Kafka.
 
 ## System Context
 
@@ -97,12 +97,12 @@ flowchart TB
 
 ## Timeline Strategy (Fanout-on-Write + Pull)
 
-Pulse uses a hybrid timeline model identical to X's approach:
+OffMe uses a hybrid timeline model identical to X's approach:
 
 ### Fanout-on-Write (Push)
 When a user with **< 10,000 followers** posts:
 1. Post Service writes to Cassandra `posts` table
-2. Publishes `PostCreated` event to Kafka topic `pulse.posts.created`
+2. Publishes `PostCreated` event to Kafka topic `offme.posts.created`
 3. Timeline Service consumer reads event, fetches follower list from Graph Service
 4. Writes post ID to each follower's `home_timeline` Cassandra row (bounded fanout batch)
 5. Redis caches hot timelines for sub-millisecond reads

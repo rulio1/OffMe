@@ -1,8 +1,8 @@
-# Pulse Recommendation System
+# OffMe Recommendation System
 
 ## Overview
 
-Pulse's For You feed uses a 3-stage pipeline directly inspired by X's [Home Mixer](https://github.com/twitter/the-algorithm/tree/main/home-mixer) and [Product Mixer](https://github.com/twitter/the-algorithm/tree/main/product-mixer) frameworks.
+OffMe's For You feed uses a 3-stage pipeline directly inspired by X's [Home Mixer](https://github.com/twitter/the-algorithm/tree/main/home-mixer) and [Product Mixer](https://github.com/twitter/the-algorithm/tree/main/product-mixer) frameworks.
 
 ## Pipeline Stages
 

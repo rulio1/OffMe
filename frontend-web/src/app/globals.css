@@ -3,21 +3,157 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-pulse-bg text-pulse-text antialiased;
+    @apply bg-offme-bg text-offme-text antialiased;
+    overflow-x: hidden;
   }
 }
 
 @layer components {
-  .pulse-card {
-    @apply border-b border-pulse-border px-4 py-3 transition-colors hover:bg-white/[0.03];
+  .offme-card {
+    @apply cursor-pointer border-b border-offme-border transition-colors hover:bg-black/[0.03];
   }
 
-  .pulse-btn-primary {
-    @apply rounded-full bg-pulse-accent px-5 py-2 font-bold text-white transition-colors hover:bg-pulse-accentHover disabled:opacity-50;
+  .feed-tab {
+    @apply text-[15px] transition-colors hover:bg-black/[0.03];
   }
 
-  .pulse-btn-ghost {
-    @apply rounded-full p-2 text-pulse-muted transition-colors hover:bg-pulse-accent/10 hover:text-pulse-accent;
+  .feed-tab-active {
+    @apply font-bold text-offme-text;
+  }
+
+  .feed-tab-inactive {
+    @apply font-medium text-offme-muted;
+  }
+
+  .feed-tab-indicator {
+    @apply absolute bottom-0 left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-offme-accent;
+  }
+
+  .compose-fab {
+    right: 1rem;
+    bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-nav-item {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-item:active svg {
+    transform: scale(0.94);
+  }
+
+  .post-engagement .post-action {
+    @apply min-w-0 gap-0.5 px-0;
+  }
+
+  .post-action {
+    @apply -m-2 flex items-center gap-1 rounded-full p-2 text-[13px] transition-colors;
+  }
+
+  .post-action-reply {
+    @apply text-offme-muted hover:bg-sky-500/10 hover:text-offme-accent;
+  }
+
+  .post-action-repost {
+    @apply text-offme-muted hover:bg-emerald-500/10 hover:text-offme-repost;
+  }
+
+  .post-action-like {
+    @apply text-offme-muted hover:bg-pink-500/10 hover:text-offme-like;
+  }
+
+  .post-action-views {
+    @apply text-offme-muted hover:bg-sky-500/10 hover:text-offme-accent;
+  }
+
+  .post-action-bookmark {
+    @apply text-offme-muted hover:bg-sky-500/10 hover:text-offme-accent;
+  }
+
+  .post-action-share {
+    @apply text-offme-muted hover:bg-sky-500/10 hover:text-offme-accent;
+  }
+
+  .offme-btn-primary {
+    @apply rounded-full bg-offme-accent px-5 py-2 font-bold text-white transition-colors hover:bg-offme-accentHover disabled:opacity-50;
+  }
+
+  .offme-btn-ghost {
+    @apply rounded-full p-2 text-offme-muted transition-colors hover:bg-offme-accent/10 hover:text-offme-accent;
+  }
+
+  .auth-outline-btn {
+    @apply flex w-full items-center justify-center gap-3 rounded-full border border-offme-border px-4 py-3 text-[15px] font-bold text-offme-text transition-colors hover:bg-black/[0.03];
+  }
+
+  .offme-main-column {
+    padding-bottom: calc(3.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .offme-main-column {
+      padding-bottom: 0;
+    }
+  }
+
+  .logo-splash-enter {
+    animation: logo-splash-enter 0.72s cubic-bezier(0.34, 1.45, 0.64, 1) forwards;
+  }
+
+  .logo-splash-breathe {
+    animation: logo-splash-breathe 0.55s ease-in-out 0.72s 1 forwards;
+  }
+
+  .logo-splash-ring {
+    animation: logo-splash-ring 0.85s ease-out 0.12s forwards;
+  }
+}
+
+@keyframes logo-splash-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.38) rotate(-14deg);
+    filter: blur(10px);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.07) rotate(3deg);
+    filter: blur(0);
+  }
+  78% {
+    transform: scale(0.96) rotate(-1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0);
+  }
+}
+
+@keyframes logo-splash-breathe {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.045);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes logo-splash-ring {
+  0% {
+    opacity: 0.45;
+    transform: scale(0.55);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.75);
   }
 }

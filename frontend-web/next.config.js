@@ -1,6 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
+  images: {
+    remotePatterns: [
+      { protocol: 'http', hostname: 'localhost', port: '9000', pathname: '/offme-media/**' },
+      { protocol: 'https', hostname: '**.amazonaws.com', pathname: '/**' },
+      { protocol: 'https', hostname: '**.r2.cloudflarestorage.com', pathname: '/**' },
+      { protocol: 'https', hostname: '**.r2.dev', pathname: '/**' },
+      { protocol: 'https', hostname: 'i.ibb.co', pathname: '/**' },
+      { protocol: 'https', hostname: '**.imgbb.com', pathname: '/**' },
+    ],
+  },
   async rewrites() {
     const gateway = process.env.API_GATEWAY_URL;
     if (!gateway) return [];

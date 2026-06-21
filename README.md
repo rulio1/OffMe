@@ -3,7 +3,7 @@
 A production-grade Twitter/X-inspired social media platform built with microservices architecture, fanout-on-write timelines, and a hybrid recommendation pipeline.
 
 ```
-pulse/
+OffMe/
 ├── docs/                    # Architecture documentation
 ├── schemas/                 # PostgreSQL + Cassandra schemas
 ├── thrift/                  # Inter-service Thrift IDL
@@ -18,7 +18,7 @@ pulse/
 
 ## Architecture Overview
 
-Pulse mirrors X's production architecture:
+OffMe mirrors X's production architecture:
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -112,7 +112,7 @@ Authoritative write path for all posts. On `createPost`:
 1. Validates (280 char limit, visibility)
 2. Generates Snowflake ID
 3. Writes to Cassandra `posts` + `user_timeline`
-4. Publishes `pulse.posts.created` Kafka event
+4. Publishes `offme.posts.created` Kafka event
 
 ### Timeline Service (`backend-scala/timeline-service`)
 
@@ -123,7 +123,7 @@ Hybrid fanout model:
 
 ### Graph Service (`backend-scala/graph-service`)
 
-Neo4j-backed social graph with PostgreSQL denormalized counters. Emits `pulse.graph.follow.created` events.
+Neo4j-backed social graph with PostgreSQL denormalized counters. Emits `offme.graph.follow.created` events.
 
 ### Identity Service (`backend-scala/identity-service`)
 
@@ -154,7 +154,7 @@ Candidates (1500)  →  Heavy Ranker (Rust)  →  Heuristics  →  Top 50
 
 - **PostgreSQL**: `schemas/postgres/001_init.sql` — users, sessions, follows, notifications, polls, moderation
 - **Cassandra**: `schemas/cassandra/001_init.cql` — posts, home_timeline, user_timeline, counters
-- **Thrift IDL**: `thrift/pulse.thrift` — PostService, TimelineService, GraphService, IdentityService
+- **Thrift IDL**: `thrift/offme.thrift` — PostService, TimelineService, GraphService, IdentityService
 
 ## Frontend
 
@@ -185,7 +185,7 @@ Engineering practices from real X:
 
 - **Metrics**: Prometheus histograms (`rpc_latency_seconds`, `timeline_fanout_size`, `recs_rank_latency_ms`)
 - **Tracing**: Zipkin B3 propagation across Finagle → gRPC → HTTP
-- **Dashboards**: Grafana at `:3001` (admin/pulse)
+- **Dashboards**: Grafana at `:3001` (admin/offme)
 - **Logging**: Structured JSON → ELK (configure in production)
 
 ## Mobile (Stubs)

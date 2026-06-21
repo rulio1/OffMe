@@ -3,7 +3,7 @@ import { SignupForm } from '@/components/auth/SignupForm';
 
 export default function SignupPage() {
   return (
-    <AuthShell title="Criar sua conta" subtitle="Junte-se ao OffMe hoje.">
+    <AuthShell mode="signup" title="Criar sua conta">
       <SignupForm />
     </AuthShell>
   );

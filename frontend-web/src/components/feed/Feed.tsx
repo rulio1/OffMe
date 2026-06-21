@@ -1,45 +1,14 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import useSWR from 'swr';
+import { useCallback, useState } from 'react';
+import useSWRInfinite from 'swr/infinite';
 import { Composer } from '@/components/composer/Composer';
+import { ComposeFab } from '@/components/composer/ComposeFab';
+import { ComposeSheet } from '@/components/composer/ComposeSheet';
+import { FeedHeader } from '@/components/feed/FeedHeader';
 import { PostCard } from '@/components/post/PostCard';
 import { fetchHomeTimeline, fetchForYouTimeline } from '@/lib/api';
 import type { FeedTab, Post, TimelineEntry } from '@/types';
-import clsx from 'clsx';
-
-const MOCK_POSTS: Post[] = [
-  {
-    id: 1,
-    authorId: 1,
-    author: { id: 1, username: 'offme', displayName: 'OffMe', verified: true },
-    text: 'Bem-vindo ao OffMe — sua rede social no seu ritmo. Sem algoritmo, sem ruído. 🚀',
-    createdAt: Date.now() - 3600000,
-    likeCount: 4200,
-    repostCount: 890,
-    replyCount: 312,
-  },
-  {
-    id: 2,
-    authorId: 2,
-    author: { id: 2, username: 'finagle_fan', displayName: 'Finagle Fan', verified: false },
-    text: 'Fanout-on-write timelines with celebrity pull model — just like the real thing. The hybrid approach scales to billions of timeline reads.',
-    createdAt: Date.now() - 7200000,
-    likeCount: 156,
-    repostCount: 42,
-    replyCount: 18,
-  },
-  {
-    id: 3,
-    authorId: 3,
-    author: { id: 3, username: 'rust_recs', displayName: 'Rust Recs', verified: true },
-    text: 'Our Heavy Ranker serves multi-task predictions in <10ms p99. Five heads: like, repost, reply, click, dwell. Inspired by the open-source X algorithm.',
-    createdAt: Date.now() - 10800000,
-    likeCount: 892,
-    repostCount: 201,
-    replyCount: 67,
-  },
-];
 
 function entryToPost(entry: TimelineEntry): Post {
   return (
@@ -57,55 +26,82 @@ function entryToPost(entry: TimelineEntry): Post {
 
 export function Feed() {
   const [tab, setTab] = useState<FeedTab>('for-you');
+  const [composeOpen, setComposeOpen] = useState(false);
 
-  const fetcher = tab === 'for-you' ? fetchForYouTimeline : fetchHomeTimeline;
-  const { data, mutate, isLoading } = useSWR(`timeline-${tab}`, fetcher, {
-    fallbackData: undefined,
-    revalidateOnFocus: true,
-    dedupingInterval: 5000,
-  });
+  const getKey = (pageIndex: number, previousPageData: { nextCursor?: string } | null) => {
+    if (previousPageData && !previousPageData.nextCursor) return null;
+    const cursor = pageIndex === 0 ? '' : (previousPageData?.nextCursor ?? '');
+    return JSON.stringify({ tab, cursor });
+  };
 
-  const posts: Post[] = data?.entries?.length
-    ? data.entries.map(entryToPost)
-    : MOCK_POSTS;
+  const fetcher = async (key: string) => {
+    const { tab: activeTab, cursor } = JSON.parse(key) as { tab: FeedTab; cursor: string };
+    const c = cursor || undefined;
+    return activeTab === 'for-you' ? fetchForYouTimeline(c) : fetchHomeTimeline(c);
+  };
+
+  const { data, error, mutate, isLoading, size, setSize, isValidating } = useSWRInfinite(
+    getKey,
+    fetcher,
+    { revalidateOnFocus: true, dedupingInterval: 5000 }
+  );
+
+  const posts: Post[] = data?.flatMap((page) => page.entries.map(entryToPost)) ?? [];
+  const hasMore = data?.[data.length - 1]?.nextCursor != null;
+  const isLoadingMore = isValidating && size > 1;
 
   const handlePostCreated = useCallback(() => {
     mutate();
   }, [mutate]);
 
   return (
-    <div>
-      <header className="sticky top-0 z-10 border-b border-pulse-border bg-pulse-bg/80 backdrop-blur-md">
-        <h1 className="px-4 py-3 text-xl font-bold">Home</h1>
-        <div className="flex">
-          {(['for-you', 'following'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={clsx(
-                'relative flex-1 py-4 text-center text-[15px] transition-colors hover:bg-white/5',
-                tab === t ? 'font-bold' : 'text-pulse-muted'
-              )}
-            >
-              {t === 'for-you' ? 'For you' : 'Following'}
-              {tab === t && (
-                <span className="absolute bottom-0 left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-pulse-accent" />
-              )}
-            </button>
-          ))}
-        </div>
-      </header>
+    <div className="min-h-dvh bg-offme-bg">
+      <FeedHeader tab={tab} onTabChange={setTab} />
 
-      <Composer onPostCreated={handlePostCreated} />
+      <div className="hidden md:block">
+        <Composer onPostCreated={handlePostCreated} />
+      </div>
 
       <div>
-        {isLoading && posts === MOCK_POSTS && (
-          <div className="px-4 py-8 text-center text-pulse-muted">Loading timeline...</div>
+        {isLoading && posts.length === 0 && (
+          <div className="px-4 py-10 text-center text-[15px] text-offme-muted">
+            Carregando timeline...
+          </div>
+        )}
+        {error && posts.length === 0 && (
+          <div className="px-4 py-10 text-center text-[15px] text-red-500">
+            Não foi possível carregar o feed. Tente novamente.
+          </div>
+        )}
+        {!isLoading && !error && posts.length === 0 && (
+          <div className="px-4 py-16 text-center">
+            <p className="text-xl font-extrabold text-offme-text">Nenhum post ainda</p>
+            <p className="mt-2 text-[15px] text-offme-muted">Seja o primeiro a publicar algo.</p>
+          </div>
         )}
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}
+        {hasMore && (
+          <div className="border-b border-offme-border px-4 py-4 text-center">
+            <button
+              type="button"
+              onClick={() => setSize(size + 1)}
+              disabled={isLoadingMore}
+              className="rounded-full px-4 py-2 text-[15px] font-bold text-offme-accent transition-colors hover:bg-sky-500/10 disabled:opacity-50"
+            >
+              {isLoadingMore ? 'Carregando...' : 'Mostrar mais'}
+            </button>
+          </div>
+        )}
       </div>
+
+      <ComposeFab onClick={() => setComposeOpen(true)} />
+      <ComposeSheet
+        open={composeOpen}
+        onClose={() => setComposeOpen(false)}
+        onPostCreated={handlePostCreated}
+      />
     </div>
   );
 }

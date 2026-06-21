@@ -1,4 +1,4 @@
-ThisBuild / organization := "com.pulse"
+ThisBuild / organization := "com.offme"
 ThisBuild / scalaVersion := "3.3.3"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
@@ -29,33 +29,33 @@ lazy val commonSettings = Seq(
 
 lazy val shared = (project in file("shared"))
   .settings(commonSettings)
-  .settings(name := "pulse-shared")
+  .settings(name := "offme-shared")
 
 lazy val postService = (project in file("post-service"))
   .dependsOn(shared)
   .settings(commonSettings)
-  .settings(name := "pulse-post-service")
+  .settings(name := "offme-post-service")
 
 lazy val timelineService = (project in file("timeline-service"))
   .dependsOn(shared)
   .settings(commonSettings)
-  .settings(name := "pulse-timeline-service")
+  .settings(name := "offme-timeline-service")
 
 lazy val graphService = (project in file("graph-service"))
   .dependsOn(shared)
   .settings(commonSettings)
-  .settings(name := "pulse-graph-service")
+  .settings(name := "offme-graph-service")
 
 lazy val identityService = (project in file("identity-service"))
   .dependsOn(shared)
   .settings(commonSettings)
-  .settings(name := "pulse-identity-service")
+  .settings(name := "offme-identity-service")
 
 lazy val apiGateway = (project in file("api-gateway"))
   .dependsOn(shared)
   .settings(commonSettings)
-  .settings(name := "pulse-api-gateway")
+  .settings(name := "offme-api-gateway")
 
 lazy val root = (project in file("."))
   .aggregate(shared, postService, timelineService, graphService, identityService, apiGateway)
-  .settings(name := "pulse-backend")
+  .settings(name := "offme-backend")

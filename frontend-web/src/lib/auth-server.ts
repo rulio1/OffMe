@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
-import { createSession, deleteSession } from './session-repository';
-import { toPublicUser, type DbUser } from './user-repository';
+import { createSession, deleteSession, findSessionByRefreshToken } from './session-repository';
+import { findUserById, toPublicUser, type DbUser } from './user-repository';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'offme_dev_secret_change_in_production';
 const ACCESS_TOKEN_TTL = '15m';
@@ -30,10 +30,13 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export function signAccessToken(user: DbUser): string {
-  const payload: TokenPayload = {
+  const payload: TokenPayload & { role: string; aud: string } = {
     sub: String(user.id),
     username: user.username,
     type: 'access',
+    // Claims exigidos pelo Supabase Realtime (RLS + postgres_changes)
+    role: 'authenticated',
+    aud: 'authenticated',
   };
   return jwt.sign(payload, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TTL });
 }
@@ -65,6 +68,20 @@ export async function issueAuthTokens(user: DbUser, ipAddress?: string): Promise
 
 export async function revokeRefreshToken(refreshToken: string): Promise<void> {
   await deleteSession(refreshToken);
+}
+
+export async function refreshAuthTokens(refreshToken: string): Promise<AuthResult | null> {
+  const session = await findSessionByRefreshToken(refreshToken);
+  if (!session) return null;
+
+  const user = await findUserById(session.user_id);
+  if (!user) return null;
+
+  return {
+    accessToken: signAccessToken(user),
+    refreshToken,
+    user: toPublicUser(user),
+  };
 }
 
 export function extractBearerToken(header: string | null): string | null {

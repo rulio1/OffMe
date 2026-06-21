@@ -3,12 +3,12 @@ use prometheus::{Encoder, TextEncoder, Histogram, IntCounter, opts, register_his
 
 lazy_static::lazy_static! {
     pub static ref RANK_LATENCY: Histogram = register_histogram!(
-        opts!("pulse_recs_rank_latency_ms", "Ranking pipeline latency in ms")
+        opts!("offme_recs_rank_latency_ms", "Ranking pipeline latency in ms")
             .buckets(vec![1.0, 5.0, 10.0, 25.0, 50.0, 100.0, 250.0])
     ).unwrap();
 
     pub static ref RANK_REQUESTS: IntCounter = register_int_counter!(
-        opts!("pulse_recs_rank_requests_total", "Total rank requests")
+        opts!("offme_recs_rank_requests_total", "Total rank requests")
     ).unwrap();
 }
 

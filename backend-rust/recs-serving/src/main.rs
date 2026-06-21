@@ -1,4 +1,4 @@
-//! Pulse Recs Serving — Navi-inspired low-latency model inference.
+//! OffMe Recs Serving — Navi-inspired low-latency model inference.
 //!
 //! 3-stage pipeline (called by Home Mixer via gRPC):
 //!   1. Feature hydration from Redis
@@ -77,6 +77,6 @@ async fn rank_handler(
     Json(RankResponse {
         ranked,
         latency_ms,
-        model_version: "pulse-ranker-v1".into(),
+        model_version: "offme-ranker-v1".into(),
     })
 }

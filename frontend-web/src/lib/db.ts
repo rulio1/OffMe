@@ -1,16 +1,26 @@
-import { Pool } from 'pg';
+import { Pool, type PoolConfig } from 'pg';
 
 const globalForPg = globalThis as unknown as { pgPool?: Pool };
+
+function resolveSsl(): PoolConfig['ssl'] | undefined {
+  const url = process.env.DATABASE_URL ?? '';
+  if (process.env.DATABASE_SSL === 'true' || url.includes('sslmode=require')) {
+    return { rejectUnauthorized: false };
+  }
+  return undefined;
+}
 
 function createPool(): Pool {
   const connectionString =
     process.env.DATABASE_URL || 'postgresql://offme:offme_dev@localhost:5432/offme';
+  const isServerless = Boolean(process.env.VERCEL);
 
   return new Pool({
     connectionString,
-    max: 10,
+    max: isServerless ? 1 : 10,
     idleTimeoutMillis: 30_000,
-    connectionTimeoutMillis: 5_000,
+    connectionTimeoutMillis: 10_000,
+    ssl: resolveSsl(),
   });
 }
 

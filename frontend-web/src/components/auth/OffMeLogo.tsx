@@ -1,21 +1,29 @@
+import Image from 'next/image';
 import clsx from 'clsx';
 
 interface OffMeLogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
-const sizes = {
-  sm: 'text-2xl',
-  md: 'text-4xl',
-  lg: 'text-5xl',
+const dimensions = {
+  sm: { px: 28, className: 'h-7 w-7' },
+  md: { px: 40, className: 'h-10 w-10' },
+  lg: { px: 48, className: 'h-12 w-12' },
+  xl: { px: 140, className: 'h-[min(140px,18vw)] w-[min(140px,18vw)]' },
 };
 
 export function OffMeLogo({ size = 'md', className }: OffMeLogoProps) {
+  const { px, className: sizeClass } = dimensions[size];
+
   return (
-    <div className={clsx('font-extrabold tracking-tight', sizes[size], className)}>
-      <span className="text-pulse-text">Off</span>
-      <span className="text-pulse-accent">Me</span>
-    </div>
+    <Image
+      src="/logo.png"
+      alt="OffMe"
+      width={px}
+      height={px}
+      priority={size === 'xl'}
+      className={clsx('object-contain', sizeClass, className)}
+    />
   );
 }

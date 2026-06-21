@@ -3,19 +3,19 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: "pulse-api-gateway"
+  - job_name: "offme-api-gateway"
     static_configs:
       - targets: ["api-gateway:8080"]
 
-  - job_name: "pulse-post-service"
+  - job_name: "offme-post-service"
     static_configs:
       - targets: ["post-service:9081"]
 
-  - job_name: "pulse-timeline-service"
+  - job_name: "offme-timeline-service"
     static_configs:
       - targets: ["timeline-service:9082"]
 
-  - job_name: "pulse-recs-serving"
+  - job_name: "offme-recs-serving"
     static_configs:
       - targets: ["recs-serving:8090"]
 
