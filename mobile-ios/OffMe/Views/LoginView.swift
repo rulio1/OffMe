@@ -9,59 +9,54 @@ struct LoginView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                VStack(spacing: 8) {
-                    OffMeLogoView(size: 42)
-                    Text("Bem-vindo de volta")
-                        .foregroundStyle(OffMeTheme.muted)
-                }
-                .padding(.top, 40)
-
-                VStack(spacing: 14) {
-                    TextField("E-mail ou usuário", text: $identifier)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.default)
-                        .autocorrectionDisabled()
-                        .liquidGlassField()
-
-                    SecureField("Senha", text: $password)
-                        .liquidGlassField()
-                }
-
-                if let error {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                        .multilineTextAlignment(.center)
-                }
-
-                Button {
-                    Task { await submit() }
-                } label: {
-                    Group {
-                        if auth.isLoading {
-                            ProgressView().tint(.white)
-                        } else {
-                            Text("Entrar")
-                        }
+            AuthScreenLayout {
+                VStack(spacing: 28) {
+                    VStack(spacing: 10) {
+                        OffMeLogoView(size: 48)
+                        Text("Bem-vindo de volta")
+                            .font(.title3)
+                            .foregroundStyle(OffMeTheme.muted)
                     }
-                    .frame(maxWidth: .infinity)
-                    .liquidGlassCapsuleButton()
+
+                    VStack(spacing: 14) {
+                        TextField("E-mail ou usuário", text: $identifier)
+                            .textInputAutocapitalization(.never)
+                            .keyboardType(.default)
+                            .autocorrectionDisabled()
+                            .liquidGlassField()
+
+                        SecureField("Senha", text: $password)
+                            .liquidGlassField()
+                    }
+
+                    if let error {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    VStack(spacing: 16) {
+                        Button {
+                            Task { await submit() }
+                        } label: {
+                            Group {
+                                if auth.isLoading {
+                                    ProgressView().tint(.white)
+                                } else {
+                                    Text("Entrar")
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .liquidGlassCapsuleButton()
+                        }
+                        .disabled(auth.isLoading)
+
+                        Button("Criar conta") { showSignup = true }
+                            .foregroundStyle(OffMeTheme.accent)
+                    }
                 }
-                .disabled(auth.isLoading)
-
-                Button("Criar conta") { showSignup = true }
-                    .foregroundStyle(OffMeTheme.accent)
-
-                Text("API: \(APIConfig.baseURL)")
-                    .font(.caption2)
-                    .foregroundStyle(OffMeTheme.muted)
-                    .padding(.top, 8)
-
-                Spacer()
             }
-            .padding(24)
-            .offMeScreenBackground()
             .navigationDestination(isPresented: $showSignup) {
                 SignupView()
             }

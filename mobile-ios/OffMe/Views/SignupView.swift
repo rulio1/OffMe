@@ -11,52 +11,56 @@ struct SignupView: View {
     @State private var error: String?
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Criar conta")
-                .font(.title.bold())
-                .foregroundStyle(OffMeTheme.text)
-
-            VStack(spacing: 12) {
-                TextField("Nome de exibição", text: $displayName)
-                    .liquidGlassField()
-                TextField("Usuário", text: $username)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .liquidGlassField()
-                TextField("E-mail", text: $email)
-                    .textInputAutocapitalization(.never)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-                    .liquidGlassField()
-                SecureField("Senha", text: $password)
-                    .liquidGlassField()
-            }
-
-            if let error {
-                Text(error)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            }
-
-            Button {
-                Task { await submit() }
-            } label: {
-                Group {
-                    if auth.isLoading {
-                        ProgressView().tint(.white)
-                    } else {
-                        Text("Cadastrar")
-                    }
+        AuthScreenLayout {
+            VStack(spacing: 24) {
+                VStack(spacing: 8) {
+                    Text("Criar conta")
+                        .font(.title.bold())
+                        .foregroundStyle(OffMeTheme.text)
+                    Text("Preencha os dados para começar")
+                        .font(.subheadline)
+                        .foregroundStyle(OffMeTheme.muted)
                 }
-                .frame(maxWidth: .infinity)
-                .liquidGlassCapsuleButton()
-            }
-            .disabled(auth.isLoading)
 
-            Spacer()
+                VStack(spacing: 12) {
+                    TextField("Nome de exibição", text: $displayName)
+                        .liquidGlassField()
+                    TextField("Usuário", text: $username)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .liquidGlassField()
+                    TextField("E-mail", text: $email)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
+                        .autocorrectionDisabled()
+                        .liquidGlassField()
+                    SecureField("Senha", text: $password)
+                        .liquidGlassField()
+                }
+
+                if let error {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                }
+
+                Button {
+                    Task { await submit() }
+                } label: {
+                    Group {
+                        if auth.isLoading {
+                            ProgressView().tint(.white)
+                        } else {
+                            Text("Cadastrar")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .liquidGlassCapsuleButton()
+                }
+                .disabled(auth.isLoading)
+            }
         }
-        .padding(24)
-        .offMeScreenBackground()
         .navigationBarTitleDisplayMode(.inline)
     }
 

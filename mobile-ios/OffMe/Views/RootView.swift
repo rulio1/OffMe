@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
     @EnvironmentObject private var auth: AuthStore
     @State private var showSplash = true
+    @State private var contentVisible = false
 
     var body: some View {
         ZStack {
@@ -15,16 +16,21 @@ struct RootView: View {
                     LoginView()
                 }
             }
-            .opacity(showSplash ? 0 : 1)
+            .opacity(contentVisible ? 1 : 0)
+            .scaleEffect(contentVisible ? 1 : 0.98)
+            .animation(.easeOut(duration: 0.45), value: contentVisible)
 
             if showSplash {
                 SplashView {
-                    withAnimation(.easeOut(duration: 0.25)) {
-                        showSplash = false
-                    }
+                    showSplash = false
+                    contentVisible = true
                 }
                 .transition(.opacity)
+                .zIndex(1)
             }
+        }
+        .onAppear {
+            contentVisible = false
         }
     }
 }
