@@ -17,6 +17,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+secrets/push-keys.env
 
 # OS
 .DS_Store
