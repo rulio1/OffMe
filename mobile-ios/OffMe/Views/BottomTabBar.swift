@@ -12,8 +12,8 @@ struct BottomTabBar: View {
 
     private let items: [BottomTabItem] = [
         BottomTabItem(id: 0, icon: .home, label: "Início"),
-        BottomTabItem(id: 1, icon: .search, label: "Explorar"),
-        BottomTabItem(id: 2, icon: .bookmarks, label: "Salvos"),
+        BottomTabItem(id: 1, icon: .grok, label: "Grok"),
+        BottomTabItem(id: 2, icon: .search, label: "Explorar"),
         BottomTabItem(id: 3, icon: .notifications, label: "Notificações"),
         BottomTabItem(id: 4, icon: .messages, label: "Mensagens"),
     ]
@@ -54,6 +54,12 @@ struct BottomTabBar: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 if item.id == 3, unreadCount > 0 {
+                    Circle()
+                        .fill(OffMeTheme.accent)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 6, y: 8)
+                }
+                if item.id == 4, unreadCount > 0 {
                     Circle()
                         .fill(OffMeTheme.accent)
                         .frame(width: 8, height: 8)

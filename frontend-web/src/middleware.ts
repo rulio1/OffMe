@@ -16,6 +16,7 @@ const PROTECTED_PREFIXES = [
   '/moderation',
   '/lists',
   '/communities',
+  '/grok',
 ];
 
 function isPublicContent(pathname: string): boolean {
@@ -85,6 +86,7 @@ export const config = {
     '/lists/:path*',
     '/communities',
     '/communities/:path*',
+    '/grok',
     '/terms',
     '/privacy',
     '/about',

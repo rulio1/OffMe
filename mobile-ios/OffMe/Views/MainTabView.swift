@@ -13,11 +13,11 @@ struct MainTabView: View {
                     .opacity(selectedTab == 0 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 0)
 
-                NavigationStack { ExploreView() }
+                NavigationStack { GrokView() }
                     .opacity(selectedTab == 1 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 1)
 
-                NavigationStack { BookmarksView() }
+                NavigationStack { ExploreView() }
                     .opacity(selectedTab == 2 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 2)
 

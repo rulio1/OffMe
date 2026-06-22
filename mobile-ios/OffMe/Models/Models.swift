@@ -412,6 +412,19 @@ struct OffMeCommunity: Codable, Identifiable {
     }
 }
 
+// MARK: - Grok (AI Assistant)
+
+struct GrokChatMessage: Codable {
+    let role: String
+    let content: String
+}
+
+struct GrokChatResponse: Codable {
+    let reply: String
+    let model: String?
+    let demo: Bool?
+}
+
 enum Formatters {
     static func count(_ n: Int) -> String {
         if n >= 1_000_000 { return String(format: "%.1fM", Double(n) / 1_000_000) }

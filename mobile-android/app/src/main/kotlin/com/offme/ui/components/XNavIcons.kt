@@ -18,9 +18,10 @@ enum class XNavIconKind {
     Bookmarks,
     Notifications,
     Messages,
+    Grok,
 }
 
-/** Ícones estilo Twitter/X Side Navigation (Figma Community). */
+/** Ícones modernos e consistentes para a navegação (iOS / Android / Web). */
 private fun strokePath(
     name: String,
     width: Float = 1.75f,
@@ -45,14 +46,17 @@ private fun strokePath(
 private val XHomeOutline: ImageVector by lazy {
     strokePath("XHomeOutline") {
         moveTo(12f, 2.25f)
-        lineTo(3.75f, 7.5f)
-        verticalLineToRelative(12.75f)
-        horizontalLineToRelative(5.25f)
+        lineTo(3.25f, 7.65f)
+        verticalLineToRelative(11.6f)
+        arcToRelative(0.5f, 0.5f, 0f, false, false, 0.5f, 0.5f)
+        horizontalLineToRelative(5.45f)
         verticalLineToRelative(-6.75f)
-        horizontalLineToRelative(6f)
+        horizontalLineToRelative(5.6f)
         verticalLineToRelative(6.75f)
-        horizontalLineToRelative(5.25f)
-        verticalLineTo(7.5f)
+        horizontalLineToRelative(5.45f)
+        arcToRelative(0.5f, 0.5f, 0f, false, false, 0.5f, -0.5f)
+        verticalLineTo(7.65f)
+        lineTo(12f, 2.25f)
         close()
     }
 }
@@ -66,16 +70,17 @@ private val XHomeFilled: ImageVector by lazy {
         viewportHeight = 24f,
     ).apply {
         path {
-            moveTo(21.591f, 7.146f)
-            lineTo(12f, 1.88f)
-            lineTo(2.409f, 7.146f)
-            verticalLineToRelative(12.879f)
-            horizontalLineToRelative(6.481f)
-            verticalLineToRelative(-6.525f)
-            horizontalLineToRelative(5.826f)
-            verticalLineToRelative(6.525f)
-            horizontalLineToRelative(6.481f)
-            verticalLineTo(7.146f)
+            moveTo(12f, 1.696f)
+            lineTo(0.622f, 8.807f)
+            lineTo(1.682f, 10.503f)
+            lineTo(3f, 9.679f)
+            verticalLineToRelative(9.821f)
+            arcToRelative(2.5f, 2.5f, 0f, false, false, 2.5f, 2.5f)
+            horizontalLineToRelative(13f)
+            arcToRelative(2.5f, 2.5f, 0f, false, false, 2.5f, -2.5f)
+            verticalLineToRelative(-9.821f)
+            lineToRelative(1.318f, 0.824f)
+            lineToRelative(1.06f, -1.696f)
             close()
         }
     }.build()
@@ -83,81 +88,113 @@ private val XHomeFilled: ImageVector by lazy {
 
 private val XSearch: ImageVector by lazy {
     strokePath("XSearch") {
-        moveTo(10.25f, 3.75f)
-        arcTo(6.5f, 6.5f, 0f, true, false, 10.25f, 16.75f)
-        moveTo(16.25f, 16.25f)
-        lineTo(20.25f, 20.25f)
+        // Circle: cx=10.5 cy=10.5 r=6.5  -> bounding (4,4)-(17,17)
+        arcTo(6.5f, 6.5f, 0f, true, false, 17f, 10.5f)
+        arcTo(6.5f, 6.5f, 0f, true, false, 4f, 10.5f)
+        // Handle
+        moveTo(15.5f, 15.5f)
+        lineTo(19.75f, 19.75f)
     }
 }
 
-private val XBookmarksOutline: ImageVector by lazy {
-    strokePath("XBookmarksOutline") {
+private val XBookmarks: ImageVector by lazy {
+    strokePath("XBookmarks") {
         moveTo(4f, 4.5f)
-        arcToRelative(1.5f, 1.5f, 0f, false, true, 1.5f, -1.5f)
-        horizontalLineToRelative(13f)
-        arcToRelative(1.5f, 1.5f, 0f, false, true, 1.5f, 1.5f)
-        verticalLineToRelative(17.5f)
-        lineToRelative(-8f, -4.5f)
-        lineTo(4f, 22f)
-        verticalLineTo(4.5f)
+        arcToRelative(2.5f, 2.5f, 0f, false, true, 2.5f, -2.5f)
+        horizontalLineToRelative(11f)
+        arcToRelative(2.5f, 2.5f, 0f, false, true, 2.5f, 2.5f)
+        verticalLineToRelative(17.15f)
+        lineToRelative(-8f, -5.6f)
+        lineToRelative(-8f, 5.6f)
         close()
     }
-}
-
-private val XBookmarksFilled: ImageVector by lazy {
-    ImageVector.Builder(
-        name = "XBookmarksFilled",
-        defaultWidth = 24.dp,
-        defaultHeight = 24.dp,
-        viewportWidth = 24f,
-        viewportHeight = 24f,
-    ).apply {
-        path {
-            moveTo(4f, 4.5f)
-            arcToRelative(1.5f, 1.5f, 0f, false, true, 1.5f, -1.5f)
-            horizontalLineToRelative(13f)
-            arcToRelative(1.5f, 1.5f, 0f, false, true, 1.5f, 1.5f)
-            verticalLineToRelative(17.5f)
-            lineToRelative(-8f, -4.5f)
-            lineTo(4f, 22f)
-            verticalLineTo(4.5f)
-            close()
-        }
-    }.build()
 }
 
 private val XNotifications: ImageVector by lazy {
     strokePath("XNotifications") {
-        moveTo(12f, 3.25f)
-        arcToRelative(5.75f, 5.75f, 0f, false, false, -5.75f, 5.75f)
-        verticalLineToRelative(4.1f)
-        lineToRelative(-1.4f, 2.1f)
-        horizontalLineToRelative(14.3f)
-        lineToRelative(-1.4f, -2.1f)
-        verticalLineToRelative(-4.1f)
-        arcToRelative(5.75f, 5.75f, 0f, false, false, -5.75f, -5.75f)
+        moveTo(12f, 2.75f)
+        arcToRelative(6.25f, 6.25f, 0f, false, false, -6.25f, 6.25f)
+        verticalLineToRelative(3.1f)
+        lineToRelative(-1.5f, 2.6f)
+        arcToRelative(0.75f, 0.75f, 0f, false, false, 0.65f, 1.125f)
+        horizontalLineToRelative(14.2f)
+        arcToRelative(0.75f, 0.75f, 0f, false, false, 0.65f, -1.125f)
+        lineToRelative(-1.5f, -2.6f)
+        verticalLineToRelative(-3.1f)
+        arcToRelative(6.25f, 6.25f, 0f, false, false, -6.25f, -6.25f)
         close()
-        moveTo(9.25f, 18.5f)
-        arcToRelative(2.75f, 2.75f, 0f, false, false, 5.5f, 0f)
+        moveTo(9.5f, 19f)
+        arcToRelative(2.5f, 2.5f, 0f, false, false, 5f, 0f)
     }
 }
 
 private val XMessages: ImageVector by lazy {
     strokePath("XMessages") {
-        moveTo(4.5f, 5.75f)
-        horizontalLineToRelative(15f)
-        arcToRelative(1.25f, 1.25f, 0f, false, true, 1.25f, 1.25f)
+        moveTo(5.25f, 5f)
+        arcToRelative(2.25f, 2.25f, 0f, false, false, -2.25f, 2.25f)
         verticalLineToRelative(8.5f)
-        arcToRelative(1.25f, 1.25f, 0f, false, true, -1.25f, 1.25f)
-        horizontalLineToRelative(-10.3f)
-        lineToRelative(-3.95f, 2.75f)
-        verticalLineToRelative(-2.75f)
-        horizontalLineToRelative(-0.75f)
-        arcToRelative(1.25f, 1.25f, 0f, false, true, -1.25f, -1.25f)
+        arcToRelative(2.25f, 2.25f, 0f, false, false, 2.25f, 2.25f)
+        horizontalLineToRelative(0.25f)
+        verticalLineToRelative(2.43f)
+        arcToRelative(0.75f, 0.75f, 0f, false, false, 1.15f, 0.59f)
+        lineToRelative(3.85f, -3.02f)
+        horizontalLineToRelative(10.25f)
+        arcToRelative(2.25f, 2.25f, 0f, false, false, 2.25f, -2.25f)
         verticalLineToRelative(-8.5f)
-        arcToRelative(1.25f, 1.25f, 0f, false, true, 1.25f, -1.25f)
+        arcToRelative(2.25f, 2.25f, 0f, false, false, -2.25f, -2.25f)
         close()
     }
+}
+
+private val XGrok: ImageVector by lazy {
+    ImageVector.Builder(
+        name = "XGrok",
+        defaultWidth = 24.dp,
+        defaultHeight = 24.dp,
+        viewportWidth = 24f,
+        viewportHeight = 24f,
+    ).apply {
+        // Big sparkle
+        path(
+            fill = SolidColor(Color.Transparent),
+            stroke = SolidColor(Color.Black),
+            strokeLineWidth = 1.75f,
+            strokeLineCap = StrokeCap.Round,
+            strokeLineJoin = StrokeJoin.Round,
+        ) {
+            moveTo(12f, 2f)
+            lineToRelative(1.8f, 5.2f)
+            arcToRelative(4f, 4f, 0f, false, false, 2.4f, 2.4f)
+            lineToRelative(5.2f, 1.4f)
+            lineToRelative(-5.2f, 1.4f)
+            arcToRelative(4f, 4f, 0f, false, false, -2.4f, 2.4f)
+            lineToRelative(-1.8f, 5.2f)
+            lineToRelative(-1.8f, -5.2f)
+            arcToRelative(4f, 4f, 0f, false, false, -2.4f, -2.4f)
+            lineToRelative(-5.2f, -1.4f)
+            lineToRelative(5.2f, -1.4f)
+            arcToRelative(4f, 4f, 0f, false, false, 2.4f, -2.4f)
+            close()
+        }
+        // Small sparkle
+        path(
+            fill = SolidColor(Color.Transparent),
+            stroke = SolidColor(Color.Black),
+            strokeLineWidth = 1.75f,
+            strokeLineCap = StrokeCap.Round,
+            strokeLineJoin = StrokeJoin.Round,
+        ) {
+            moveTo(19f, 13.5f)
+            lineToRelative(0.8f, 2.2f)
+            lineToRelative(2.2f, 0.8f)
+            lineToRelative(-2.2f, 0.8f)
+            lineToRelative(-0.8f, 2.2f)
+            lineToRelative(-0.8f, -2.2f)
+            lineToRelative(-2.2f, -0.8f)
+            lineToRelative(2.2f, -0.8f)
+            close()
+        }
+    }.build()
 }
 
 @Composable
@@ -170,9 +207,10 @@ fun XNavIcon(
     val icon = when (kind) {
         XNavIconKind.Home -> if (active) XHomeFilled else XHomeOutline
         XNavIconKind.Search -> XSearch
-        XNavIconKind.Bookmarks -> if (active) XBookmarksFilled else XBookmarksOutline
+        XNavIconKind.Bookmarks -> XBookmarks
         XNavIconKind.Notifications -> XNotifications
         XNavIconKind.Messages -> XMessages
+        XNavIconKind.Grok -> XGrok
     }
 
     Icon(
