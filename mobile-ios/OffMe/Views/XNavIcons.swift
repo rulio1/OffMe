@@ -59,7 +59,7 @@ struct XNavIcon: View {
         } else {
             homeOutlinePath.stroke(
                 OffMeTheme.text,
-                style: StrokeStyle(lineWidth: strokeWidth, lineJoin: .round, lineCap: .round)
+                style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round, lineJoin: .round)
             )
         }
     }
