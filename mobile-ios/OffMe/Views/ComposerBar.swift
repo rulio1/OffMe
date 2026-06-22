@@ -3,7 +3,7 @@ import SwiftUI
 
 struct ComposerBar: View {
     var placeholder: String = "O que está acontecendo?"
-    let onPost: (String, [String]) async throws -> Void
+    let onPost: (String, [String], Date?) async throws -> Void
 
     @EnvironmentObject private var auth: AuthStore
 
@@ -15,12 +15,14 @@ struct ComposerBar: View {
     @State private var pickerItem: PhotosPickerItem?
     @State private var pendingMediaIds: [String] = []
     @State private var previewImages: [UIImage] = []
+    @State private var scheduledAt: Date?
+    @State private var showSchedulePicker = false
 
     private let maxLength = 280
     private let maxImages = 4
 
     private var expanded: Bool {
-        focused || !text.isEmpty || !previewImages.isEmpty
+        focused || !text.isEmpty || !previewImages.isEmpty || scheduledAt != nil
     }
 
     var body: some View {
@@ -30,6 +32,21 @@ struct ComposerBar: View {
                     .font(.caption)
                     .foregroundStyle(.red)
                     .padding(.bottom, 8)
+            }
+
+            if let scheduledAt {
+                HStack {
+                    Image(systemName: "calendar")
+                        .foregroundStyle(OffMeTheme.accent)
+                    Text("Agendado: \(scheduledAt.formatted(date: .abbreviated, time: .shortened))")
+                        .font(.caption)
+                        .foregroundStyle(OffMeTheme.muted)
+                    Spacer()
+                    Button("Limpar") { self.scheduledAt = nil }
+                        .font(.caption)
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
             }
 
             HStack(alignment: .top, spacing: 12) {
@@ -72,6 +89,15 @@ struct ComposerBar: View {
                             }
                             .disabled(isUploading || pendingMediaIds.count >= maxImages)
 
+                            Button {
+                                showSchedulePicker = true
+                            } label: {
+                                Image(systemName: "calendar")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(OffMeTheme.accent)
+                                    .frame(width: 36, height: 36)
+                            }
+
                             if isUploading {
                                 Text("Enviando...")
                                     .font(.caption)
@@ -87,7 +113,7 @@ struct ComposerBar: View {
                             Button {
                                 Task { await submit() }
                             } label: {
-                                Text(isPosting ? "Publicando..." : "Publicar")
+                                Text(buttonTitle)
                                     .font(.subheadline.weight(.bold))
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 16)
@@ -112,10 +138,44 @@ struct ComposerBar: View {
                 .fill(OffMeTheme.border)
                 .frame(height: 0.5)
         }
+        .sheet(isPresented: $showSchedulePicker) {
+            NavigationStack {
+                VStack {
+                    DatePicker(
+                        "Agendar publicação",
+                        selection: Binding(
+                            get: { scheduledAt ?? Date().addingTimeInterval(3600) },
+                            set: { scheduledAt = $0 }
+                        ),
+                        in: Date().addingTimeInterval(300)...,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
+                    .datePickerStyle(.graphical)
+                    .padding()
+                    Spacer()
+                }
+                .navigationTitle("Agendar")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Cancelar") { showSchedulePicker = false }
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("OK") { showSchedulePicker = false }
+                    }
+                }
+            }
+            .presentationDetents([.medium, .large])
+        }
         .onChange(of: pickerItem) { newItem in
             guard let newItem else { return }
             Task { await handleImagePick(newItem) }
         }
+    }
+
+    private var buttonTitle: String {
+        if isPosting { return scheduledAt == nil ? "Publicando..." : "Agendando..." }
+        return scheduledAt == nil ? "Publicar" : "Agendar"
     }
 
     private var canPost: Bool {
@@ -163,12 +223,14 @@ struct ComposerBar: View {
         do {
             try await onPost(
                 text.trimmingCharacters(in: .whitespacesAndNewlines),
-                pendingMediaIds
+                pendingMediaIds,
+                scheduledAt
             )
             text = ""
             focused = false
             pendingMediaIds = []
             previewImages = []
+            scheduledAt = nil
         } catch {
             self.error = error.localizedDescription
         }

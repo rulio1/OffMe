@@ -1,4 +1,6 @@
 import webpush from 'web-push';
+import { sendApnsNotification } from './apns-client';
+import { sendFcmNotification } from './fcm-client';
 import { query, queryOne } from './db';
 
 export type PushPlatform = 'web' | 'ios' | 'android';
@@ -55,12 +57,48 @@ export async function unregisterPushToken(userId: number, token: string): Promis
   return Boolean(row);
 }
 
+export async function deletePushTokenById(id: number): Promise<void> {
+  await query(`DELETE FROM push_tokens WHERE id = $1`, [id]);
+}
+
 export async function listPushTokensForUser(userId: number): Promise<DbPushToken[]> {
   return query<DbPushToken>(
     `SELECT id, user_id, platform, token, endpoint, keys
      FROM push_tokens WHERE user_id = $1`,
     [userId]
   );
+}
+
+async function sendWebPush(
+  row: DbPushToken,
+  payload: string
+): Promise<{ ok: boolean; shouldRemoveToken: boolean }> {
+  if (!vapidConfigured() || !row.endpoint) {
+    return { ok: false, shouldRemoveToken: false };
+  }
+
+  webpush.setVapidDetails(
+    getVapidSubject(),
+    process.env.VAPID_PUBLIC_KEY!,
+    process.env.VAPID_PRIVATE_KEY!
+  );
+
+  try {
+    await webpush.sendNotification(
+      {
+        endpoint: row.endpoint,
+        keys: row.keys as webpush.PushSubscription['keys'],
+      },
+      payload
+    );
+    return { ok: true, shouldRemoveToken: false };
+  } catch (err) {
+    const statusCode =
+      err && typeof err === 'object' && 'statusCode' in err
+        ? Number((err as { statusCode?: number }).statusCode)
+        : 0;
+    return { ok: false, shouldRemoveToken: statusCode === 404 || statusCode === 410 };
+  }
 }
 
 export async function dispatchPush(input: {
@@ -80,40 +118,32 @@ export async function dispatchPush(input: {
 
   for (const row of tokens) {
     try {
+      let result: { ok: boolean; shouldRemoveToken: boolean };
+
       if (row.platform === 'web') {
-        if (!vapidConfigured() || !row.endpoint) continue;
-        webpush.setVapidDetails(
-          getVapidSubject(),
-          process.env.VAPID_PUBLIC_KEY!,
-          process.env.VAPID_PRIVATE_KEY!
-        );
-        await webpush.sendNotification(
-          {
-            endpoint: row.endpoint,
-            keys: row.keys as webpush.PushSubscription['keys'],
-          },
-          payload
-        );
+        result = await sendWebPush(row, payload);
+      } else if (row.platform === 'ios') {
+        const apns = await sendApnsNotification({
+          deviceToken: row.token,
+          title: input.title,
+          body: input.body,
+          url: input.url,
+        });
+        result = { ok: apns.ok, shouldRemoveToken: apns.shouldRemoveToken };
       } else {
-        // iOS/Android: token stored for future FCM/APNs integration
-        if (!process.env.FCM_SERVER_KEY) continue;
-        await fetch('https://fcm.googleapis.com/fcm/send', {
-          method: 'POST',
-          headers: {
-            Authorization: `key=${process.env.FCM_SERVER_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: row.token,
-            notification: { title: input.title, body: input.body },
-            data: { url: input.url ?? '/notifications' },
-          }),
+        result = await sendFcmNotification({
+          deviceToken: row.token,
+          title: input.title,
+          body: input.body,
+          url: input.url,
         });
       }
-    } catch {
-      if (row.platform === 'web' && row.endpoint) {
-        await query(`DELETE FROM push_tokens WHERE id = $1`, [row.id]);
+
+      if (result.shouldRemoveToken) {
+        await deletePushTokenById(row.id);
       }
+    } catch {
+      // best-effort per token
     }
   }
 }

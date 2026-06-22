@@ -138,17 +138,31 @@ final class APIClient {
         text: String,
         token: String,
         replyToId: Int? = nil,
-        mediaIds: [String]? = nil
+        mediaIds: [String]? = nil,
+        scheduledAt: Date? = nil
     ) async throws -> Post {
         struct Body: Encodable {
             let text: String
             let replyToId: Int?
             let mediaIds: [String]?
+            let scheduledAt: String?
         }
+        let iso = scheduledAt.map { ISO8601DateFormatter().string(from: $0) }
         return try await request(
             "/posts",
             method: "POST",
-            body: Body(text: text, replyToId: replyToId, mediaIds: mediaIds),
+            body: Body(text: text, replyToId: replyToId, mediaIds: mediaIds, scheduledAt: iso),
+            token: token
+        )
+    }
+
+    func reportUser(username: String, reason: String, token: String) async throws {
+        struct Body: Encodable { let reason: String }
+        struct Ok: Decodable { let reported: Bool? }
+        let _: Ok = try await request(
+            "/users/\(username)/report",
+            method: "POST",
+            body: Body(reason: reason),
             token: token
         )
     }

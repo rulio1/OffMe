@@ -275,11 +275,12 @@ struct FeedView: View {
         .sheet(isPresented: $showCompose) {
             if let token = auth.accessToken {
                 NavigationStack {
-                    ComposerBar { text, mediaIds in
+                    ComposerBar { text, mediaIds, scheduledAt in
                         _ = try await APIClient.shared.createPost(
                             text: text,
                             token: token,
-                            mediaIds: mediaIds.isEmpty ? nil : mediaIds
+                            mediaIds: mediaIds.isEmpty ? nil : mediaIds,
+                            scheduledAt: scheduledAt
                         )
                         await viewModel.load(token: token, force: true)
                     }

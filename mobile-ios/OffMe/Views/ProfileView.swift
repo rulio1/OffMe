@@ -58,6 +58,8 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @State private var showEdit = false
     @State private var startingDm = false
+    @State private var reporting = false
+    @State private var showReportConfirm = false
     @State private var conversationId: Int?
 
     var body: some View {
@@ -136,10 +138,31 @@ struct ProfileView: View {
                 }
             }
         }
+        .confirmationDialog(
+            "Denunciar @\(viewModel.user?.username ?? username)?",
+            isPresented: $showReportConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Denunciar usuário", role: .destructive) {
+                Task { await reportUser() }
+            }
+            Button("Cancelar", role: .cancel) {}
+        }
         .task {
             if let token = auth.accessToken {
                 await viewModel.load(username: username, token: token)
             }
+        }
+    }
+
+    private func reportUser() async {
+        guard let token = auth.accessToken, let user = viewModel.user else { return }
+        reporting = true
+        defer { reporting = false }
+        do {
+            try await APIClient.shared.reportUser(username: user.username, reason: "abuse", token: token)
+        } catch {
+            viewModel.error = error.localizedDescription
         }
     }
 
@@ -241,6 +264,16 @@ struct ProfileView: View {
                         Text(Formatters.count(user.followerCount ?? 0)).fontWeight(.bold)
                         Text("seguidores")
                     }
+                }
+
+                if !viewModel.isOwnProfile {
+                    Button(reporting ? "..." : "Denunciar usuário") {
+                        showReportConfirm = true
+                    }
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.red)
+                    .padding(.top, 8)
+                    .disabled(reporting)
                 }
                 .font(.subheadline)
                 .foregroundStyle(OffMeTheme.muted)

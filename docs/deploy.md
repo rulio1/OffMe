@@ -85,11 +85,20 @@ No painel **Settings → Environment Variables** (Production):
 | `VAPID_PRIVATE_KEY` | Chave privada Web Push |
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Mesma chave pública (cliente web) |
 | `CRON_SECRET` | Protege `GET /api/v1/cron/publish-scheduled` |
-| `FCM_SERVER_KEY` | Opcional — push nativo iOS/Android |
+| `FCM_SERVER_KEY` | Push Android (Firebase Console → Cloud Messaging → Server key) |
+| `APNS_KEY` | Push iOS — conteúdo da chave `.p8` (com `\n` nas quebras) |
+| `APNS_KEY_ID` | Key ID da chave APNs |
+| `APNS_TEAM_ID` | Team ID Apple Developer |
+| `APNS_TOPIC` | `com.offme.app` (bundle ID) |
+| `APNS_PRODUCTION` | `true` em produção; `false` para sandbox (Sideloadly) |
 
 **JWT:** o `JWT_SECRET` da Vercel deve ser **igual** ao JWT Secret do painel Supabase (Settings → API).
 
 Gere chaves VAPID com: `npx web-push generate-vapid-keys`
+
+**Push Android:** substitua `mobile-android/app/google-services.json` pelo arquivo do Firebase Console (projeto com package `com.offme`).
+
+**CI/E2E:** `bash scripts/github-secrets-setup.sh` configura `DATABASE_URL` nos secrets do GitHub.
 
 #### 4.4 Deploy manual (alternativa à Git)
 

@@ -173,6 +173,11 @@ data class CreatePostBody(
     @SerializedName("replyToId") val replyToId: Int? = null,
     @SerializedName("mediaIds") val mediaIds: List<String>? = null,
     @SerializedName("communityId") val communityId: Int? = null,
+    @SerializedName("scheduledAt") val scheduledAt: String? = null,
+)
+
+data class ReportUserBody(
+    val reason: String = "abuse",
 )
 
 data class LoginBody(

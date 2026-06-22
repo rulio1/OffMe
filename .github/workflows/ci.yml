@@ -31,6 +31,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Unit tests
+        run: npm test
+
       - name: Build
         run: npm run build
         env:
@@ -82,12 +85,23 @@ jobs:
             exit 1
           fi
         env:
-          JWT_SECRET: ci_e2e_secret_minimum_32_chars_long
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci_e2e_secret_minimum_32_chars_long' }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DATABASE_SSL: 'true'
           NEXT_PUBLIC_DEV_AUTH: 'false'
+          CRON_SECRET: ci_e2e_cron_secret_for_tests_only
 
       - name: Run E2E tests
         run: npm run test:e2e
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3000
+          PLAYWRIGHT_API_URL: http://localhost:3000/api/v1
+          CI: 'true'
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend-web/playwright-report/
+          retention-days: 7

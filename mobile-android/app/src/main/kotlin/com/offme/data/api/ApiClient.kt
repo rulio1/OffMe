@@ -7,6 +7,7 @@ import com.offme.data.models.CreatePostBody
 import com.offme.data.models.LoginBody
 import com.offme.data.models.Post
 import com.offme.data.models.RegisterBody
+import com.offme.data.models.ReportUserBody
 import com.offme.data.models.RefreshBody
 import com.offme.data.models.SendMessageBody
 import com.offme.data.models.StartConversationBody
@@ -106,8 +107,16 @@ class ApiClient {
         text: String,
         replyToId: Int? = null,
         communityId: Int? = null,
+        scheduledAt: String? = null,
     ): Post = safeCall {
-        service.createPost(bearer(token), CreatePostBody(text, replyToId, null, communityId))
+        service.createPost(
+            bearer(token),
+            CreatePostBody(text, replyToId, null, communityId, scheduledAt),
+        )
+    }
+
+    suspend fun reportUser(token: String, username: String, reason: String = "abuse") = safeCall {
+        service.reportUser(bearer(token), username, ReportUserBody(reason))
     }
 
     suspend fun fetchPost(token: String, postId: Int): Post = safeCall {

@@ -1,11 +1,17 @@
 package com.offme.push
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
+import androidx.core.content.ContextCompat
+import com.google.firebase.messaging.FirebaseMessaging
 import com.offme.OffMeApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 object PushRegistrationHelper {
     private const val TAG = "OffMePush"
@@ -16,25 +22,21 @@ object PushRegistrationHelper {
         val api = OffMeApp.instance.apiClient
         val accessToken = authStore.session.value?.accessToken ?: return
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val granted = ContextCompat.checkSelfPermission(
+                OffMeApp.instance,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!granted) return
+        }
+
         scope.launch {
-            val token = fetchFcmToken() ?: return@launch
             runCatching {
+                val token = FirebaseMessaging.getInstance().token.await()
                 api.registerPushToken(accessToken, token)
             }.onFailure {
                 Log.d(TAG, "Push registration skipped: ${it.message}")
             }
         }
-    }
-
-    private suspend fun fetchFcmToken(): String? {
-        return runCatching {
-            val firebaseMessaging = Class.forName("com.google.firebase.messaging.FirebaseMessaging")
-            val getInstance = firebaseMessaging.getMethod("getInstance")
-            val instance = getInstance.invoke(null)
-            val getToken = instance.javaClass.getMethod("getToken")
-            val task = getToken.invoke(instance)
-            val await = task.javaClass.getMethod("await")
-            await.invoke(task) as? String
-        }.getOrNull()
     }
 }

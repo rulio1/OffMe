@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -72,6 +74,8 @@ fun ProfileScreen(
     var error by remember(username) { mutableStateOf<String?>(null) }
     var isFollowing by remember(username) { mutableStateOf(false) }
     var startingDm by remember { mutableStateOf(false) }
+    var reporting by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun load() {
@@ -154,6 +158,7 @@ fun ProfileScreen(
                                         }
                                     }
                                 },
+                                onReport = { showReportDialog = true },
                             )
                             PostDivider()
                         }
@@ -190,6 +195,39 @@ fun ProfileScreen(
             }
         }
     }
+
+    if (showReportDialog && user != null && token != null) {
+        AlertDialog(
+            onDismissRequest = { showReportDialog = false },
+            title = { Text("Denunciar usuário") },
+            text = { Text("Denunciar @${user!!.username}?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch {
+                            reporting = true
+                            try {
+                                api.reportUser(token!!, user!!.username)
+                                showReportDialog = false
+                            } catch (e: Exception) {
+                                error = e.message
+                            } finally {
+                                reporting = false
+                            }
+                        }
+                    },
+                    enabled = !reporting,
+                ) {
+                    Text(if (reporting) "..." else "Denunciar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showReportDialog = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -203,6 +241,7 @@ private fun ProfileHeader(
     onFollowingChanged: (Boolean) -> Unit,
     onEditProfile: () -> Unit,
     onMessage: () -> Unit,
+    onReport: () -> Unit,
 ) {
     Column {
         Box(
@@ -284,6 +323,12 @@ private fun ProfileHeader(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text("${Formatters.count(user.followingCount ?: 0)} seguindo")
                 Text("${Formatters.count(user.followerCount ?: 0)} seguidores")
+            }
+            if (!isOwnProfile && token != null) {
+                Spacer(Modifier.height(12.dp))
+                OutlinedButton(onClick = onReport) {
+                    Text("Denunciar usuário")
+                }
             }
         }
     }

@@ -15,6 +15,7 @@ import com.offme.data.models.Post
 import com.offme.data.models.ProfileResponse
 import com.offme.data.models.RefreshBody
 import com.offme.data.models.RegisterBody
+import com.offme.data.models.ReportUserBody
 import com.offme.data.models.RepostPostResponse
 import com.offme.data.models.SearchPostsResponse
 import com.offme.data.models.SearchUsersResponse
@@ -63,6 +64,13 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Body body: CreatePostBody,
     ): Post
+
+    @POST("users/{username}/report")
+    suspend fun reportUser(
+        @Header("Authorization") token: String,
+        @Path("username") username: String,
+        @Body body: ReportUserBody,
+    ): Map<String, Any?>
 
     @GET("posts/{postId}")
     suspend fun fetchPost(

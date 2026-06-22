@@ -1,5 +1,9 @@
 package com.offme.ui
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,12 +29,23 @@ fun RootScreen(
     val session by authStore.session.collectAsState()
     val isBootstrapping by authStore.isBootstrapping.collectAsState()
 
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { _ ->
+        PushRegistrationHelper.registerIfAvailable()
+    }
+
     LaunchedEffect(Unit) {
         authStore.restoreSession()
     }
 
     LaunchedEffect(session?.accessToken) {
-        if (session != null) PushRegistrationHelper.registerIfAvailable()
+        if (session == null) return@LaunchedEffect
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            PushRegistrationHelper.registerIfAvailable()
+        }
     }
 
     when {

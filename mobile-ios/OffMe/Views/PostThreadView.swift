@@ -47,7 +47,7 @@ struct PostThreadView: View {
                         Divider().overlay(OffMeTheme.border)
 
                         if let token = auth.accessToken {
-                            ComposerBar(placeholder: "Poste sua resposta") { text, mediaIds in
+                            ComposerBar(placeholder: "Poste sua resposta") { text, mediaIds, _ in
                                 _ = try await APIClient.shared.createPost(
                                     text: text,
                                     token: token,
