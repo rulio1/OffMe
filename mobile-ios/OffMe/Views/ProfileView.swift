@@ -265,6 +265,9 @@ struct ProfileView: View {
                         Text("seguidores")
                     }
                 }
+                .font(.subheadline)
+                .foregroundStyle(OffMeTheme.muted)
+                .padding(.top, 4)
 
                 if !viewModel.isOwnProfile {
                     Button(reporting ? "..." : "Denunciar usuário") {
@@ -275,9 +278,6 @@ struct ProfileView: View {
                     .padding(.top, 8)
                     .disabled(reporting)
                 }
-                .font(.subheadline)
-                .foregroundStyle(OffMeTheme.muted)
-                .padding(.top, 4)
             }
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
