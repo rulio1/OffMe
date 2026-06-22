@@ -458,14 +458,6 @@ final class APIClient {
         return try await request("/communities", method: "POST", body: Body(name: name), token: token)
 	}
 
-	// MARK: - Grok (AI Assistant)
-
-	func grokChat(messages: [GrokChatMessage], token: String) async throws -> GrokChatResponse {
-		struct Body: Encodable {
-			let messages: [GrokChatMessage]
-		}
-		return try await request("/grok/chat", method: "POST", body: Body(messages: messages), token: token)
-	}
 }
 
 private extension Data {

@@ -1015,25 +1015,5 @@ export async function sendMessage(
   };
 }
 
-export interface GrokChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
 
-export interface GrokChatResponse {
-  reply: string;
-  model?: string;
-  demo?: boolean;
-}
 
-export async function sendGrokMessage(
-  messages: GrokChatMessage[]
-): Promise<GrokChatResponse> {
-  const res = await apiFetch('/grok/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages }),
-  });
-  if (!res.ok) await parseError(res, 'Erro no assistente');
-  return res.json();
-}

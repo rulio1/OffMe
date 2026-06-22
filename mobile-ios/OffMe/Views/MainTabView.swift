@@ -13,21 +13,17 @@ struct MainTabView: View {
                     .opacity(selectedTab == 0 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 0)
 
-                NavigationStack { GrokView() }
+                NavigationStack { ExploreView() }
                     .opacity(selectedTab == 1 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 1)
 
-                NavigationStack { ExploreView() }
+                NavigationStack { NotificationsView() }
                     .opacity(selectedTab == 2 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 2)
 
-                NavigationStack { NotificationsView() }
+                NavigationStack { MessagesView() }
                     .opacity(selectedTab == 3 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 3)
-
-                NavigationStack { MessagesView() }
-                    .opacity(selectedTab == 4 ? 1 : 0)
-                    .allowsHitTesting(selectedTab == 4)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 

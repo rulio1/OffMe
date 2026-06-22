@@ -10,7 +10,6 @@ export type XNavIconName =
   | 'more'
   | 'lists'
   | 'communities'
-  | 'grok'
   | 'settings';
 
 interface XNavIconProps {
@@ -20,222 +19,164 @@ interface XNavIconProps {
 }
 
 /**
- * Ícones modernos e consistentes para a navegação (iOS / Android / Web).
- * Estilo limpo baseado nos ícones oficiais atuais do X/Twitter (2024+).
- * - Inativo: traço fino (1.75)
- * - Ativo: traço mais grosso (2.25) ou preenchido (home, bookmarks, grok)
+ * Ícones oficiais do X/Twitter — paths SVG reais usados na plataforma.
+ * Outline (inativo) vs Filled (ativo) exatamente como no app do X.
  */
 export function XNavIcon({ name, active = false, className }: XNavIconProps) {
-  const strokeW = active ? 2.25 : 1.75;
   const shared = clsx(
-    'h-[26px] w-[26px] shrink-0 text-offme-text transition-all duration-200 ease-out',
-    active ? 'opacity-100' : 'opacity-[0.78]',
+    'h-[1.75rem] w-[1.75rem] shrink-0 text-offme-text transition-all duration-200',
     className
   );
 
   switch (name) {
-    /* ----------------------------------------------------------------- HOME */
+    /* =============================================================== HOME */
     case 'home':
-      return active ? (
+      return (
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          {active ? (
+            <path
+              fill="currentColor"
+              d="M12 1.696L.622 8.807l1.06 1.696L3 9.679V19.5C3 20.881 4.119 22 5.5 22h13c1.381 0 2.5-1.119 2.5-2.5V9.679l1.318.824 1.06-1.696L12 1.696z"
+            />
+          ) : (
+            <path
+              fill="currentColor"
+              d="M12 9c-1.105 0-2 .9-2 2s.895 2 2 2 2-.9 2-2-.895-2-2-2zm0-6.475L2.417 8.094c-.288.179-.417.467-.417.762V19.5c0 1.93 1.57 3.5 3.5 3.5h13c1.93 0 3.5-1.57 3.5-3.5V8.855c0-.295-.129-.583-.417-.762L12 2.525zm0-2.193c.332 0 .664.092.955.275l9.629 5.927c.572.352.916.972.916 1.62V19.5c0 2.485-2.015 4.5-4.5 4.5h-13C3.015 24 1 21.985 1 19.5V8.155c0-.65.344-1.27.916-1.62L11.045.607c.29-.184.623-.275.955-.275z"
+            />
+          )}
+        </svg>
+      );
+
+    /* ============================================================= SEARCH */
+    case 'search':
+      return (
         <svg viewBox="0 0 24 24" className={shared} aria-hidden>
           <path
             fill="currentColor"
-            d="M12 1.696L.622 8.807l1.06 1.696L3 9.679V19.5C3 20.881 4.119 22 5.5 22h13c1.381 0 2.5-1.119 2.5-2.5V9.679l1.318.824 1.06-1.696L12 1.696z"
-          />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            d="M12 2.25 3.25 7.65v11.6a.5.5 0 0 0 .5.5H9.2v-6.75h5.6v6.75h5.45a.5.5 0 0 0 .5-.5V7.65L12 2.25z"
+            d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"
           />
         </svg>
       );
 
-    /* --------------------------------------------------------------- SEARCH */
-    case 'search':
-      return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          <circle
-            cx="10.5"
-            cy="10.5"
-            r="6.5"
-            stroke="currentColor"
-            strokeWidth={strokeW}
-          />
-          <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinecap="round"
-            d="m15.5 15.5 4.25 4.25"
-          />
-        </svg>
-      );
-
-    /* -------------------------------------------------------- NOTIFICATIONS */
+    /* ====================================================== NOTIFICATIONS */
     case 'notifications':
       return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            d="M12 2.75c-3.45 0-6.25 2.8-6.25 6.25v3.1l-1.5 2.6a.75.75 0 0 0 .65 1.125h14.2a.75.75 0 0 0 .65-1.125L18.25 12.1V9c0-3.45-2.8-6.25-6.25-6.25z"
-          />
-          <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinecap="round"
-            d="M9.5 19a2.5 2.5 0 0 0 5 0"
-          />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          {active ? (
+            <path
+              fill="currentColor"
+              d="M11.996 2c-3.358 0-6.221 2.108-7.332 5.252l-.004.012-.001.004-.002.006-.224.622-1.522 4.218c-.183.508.094 1.045.593 1.232l1.996.745V18a2 2 0 0 0 2 2h2v2h2v-2h2.5c1.062 0 1.928-.82 1.994-1.865l1.514-1.512a.999.999 0 0 0 .293-.708V11.5c0-5.247-4.253-9.5-9.5-9.5h-.005z"
+            />
+          ) : (
+            <path
+              fill="currentColor"
+              d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.027-7.999 7.051L2.866 18H7v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2h4.134l-.134-8.958zM17 18v2a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-2H4.866l1.872-7.617C7.183 7.027 9.35 5 11.996 5s4.813 2.027 5.258 4.383L18.866 18H17z"
+            />
+          )}
         </svg>
       );
 
-    /* ------------------------------------------------------------- MESSAGES */
+    /* ========================================================== MESSAGES */
     case 'messages':
       return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            d="M3 7.25A2.25 2.25 0 0 1 5.25 5h13.5A2.25 2.25 0 0 1 21 7.25v8.5A2.25 2.25 0 0 1 18.75 18H8.5l-3.85 3.02A.75.75 0 0 1 3.5 20.43V18h-.25A2.25 2.25 0 0 1 1 15.75v-8.5z"
-          />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          {active ? (
+            <path
+              fill="currentColor"
+              d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-8 3.636-8-3.638V18.5c0 .276.224.5.5.5h15c.276 0 .5-.224.5-.5v-8.037z"
+            />
+          ) : (
+            <path
+              fill="currentColor"
+              d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-8 3.636-8-3.638V18.5c0 .276.224.5.5.5h15c.276 0 .5-.224.5-.5v-8.037z"
+            />
+          )}
         </svg>
       );
 
-    /* ------------------------------------------------------------ BOOKMARKS */
+    /* ========================================================= BOOKMARKS */
     case 'bookmarks':
       return (
         <svg viewBox="0 0 24 24" className={shared} aria-hidden>
-          <path
-            fill={active ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinejoin="round"
-            d="M4 4.5C4 3.12 5.12 2 6.5 2h11C18.88 2 20 3.12 20 4.5v17.15l-8-5.6-8 5.6V4.5z"
-          />
+          {active ? (
+            <path
+              fill="currentColor"
+              d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z"
+            />
+          ) : (
+            <path
+              fill="currentColor"
+              d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"
+            />
+          )}
         </svg>
       );
 
-    /* -------------------------------------------------------------- PROFILE */
+    /* =========================================================== PROFILE */
     case 'profile':
       return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          <circle
-            cx="12"
-            cy="8"
-            r="4"
-            stroke="currentColor"
-            strokeWidth={strokeW}
-          />
-          <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinecap="round"
-            d="M4 20c0-3.5 3.5-6 8-6s8 2.5 8 6"
-          />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          {active ? (
+            <path
+              fill="currentColor"
+              d="M5.651 19h12.698c-.337-1.8-1.023-3.21-1.945-4.19C15.318 13.65 13.838 13 12 13s-3.317.65-4.404 1.81c-.922.98-1.608 2.39-1.945 4.19zm.486-5.56C7.627 11.85 9.648 11 12 11s4.373.85 5.863 2.44c1.477 1.58 2.366 3.8 2.632 6.46l.11 1.1H3.395l.11-1.1c.266-2.66 1.155-4.88 2.632-6.46zM12 4c-1.105 0-2 .9-2 2s.895 2 2 2 2-.9 2-2-.895-2-2-2zM8 6c0-2.21 1.791-4 4-4s4 1.79 4 4-1.791 4-4 4-4-1.79-4-4z"
+            />
+          ) : (
+            <path
+              fill="currentColor"
+              d="M5.651 19h12.698c-.337-1.8-1.023-3.21-1.945-4.19C15.318 13.65 13.838 13 12 13s-3.317.65-4.404 1.81c-.922.98-1.608 2.39-1.945 4.19zm.486-5.56C7.627 11.85 9.648 11 12 11s4.373.85 5.863 2.44c1.477 1.58 2.366 3.8 2.632 6.46l.11 1.1H3.395l.11-1.1c.266-2.66 1.155-4.88 2.632-6.46zM12 4c-1.105 0-2 .9-2 2s.895 2 2 2 2-.9 2-2-.895-2-2-2zM8 6c0-2.21 1.791-4 4-4s4 1.79 4 4-1.791 4-4 4-4-1.79-4-4z"
+            />
+          )}
         </svg>
       );
 
-    /* ---------------------------------------------------------------- MORE */
+    /* ============================================================= MORE */
     case 'more':
       return (
         <svg viewBox="0 0 24 24" className={shared} aria-hidden>
-          <circle cx="5" cy="12" r="2" fill="currentColor" />
-          <circle cx="12" cy="12" r="2" fill="currentColor" />
-          <circle cx="19" cy="12" r="2" fill="currentColor" />
+          <path
+            fill="currentColor"
+            d="M3.75 12c0-4.56 3.69-8.25 8.25-8.25c1.97 0 3.78.69 5.21 1.84l-4.46 4.47l0.01 0.02c-.43-.21-.91-.33-1.41-.33c-1.79 0-3.25 1.46-3.25 3.25c0 .51.12.98.33 1.4l-.01.02l-4.48 4.47C4.44 15.78 3.75 13.97 3.75 12zM12 20.25c-1.97 0-3.78-.69-5.21-1.84l4.47-4.47l.01.01c.43.21.91.33 1.41.33c1.79 0 3.25-1.46 3.25-3.25c0-.5-.12-.98-.33-1.4l-.01-.02l4.48-4.47C19.56 8.22 20.25 10.03 20.25 12c0 4.56-3.69 8.25-8.25 8.25zM13 12c0 .55-.45 1-1 1s-1-.45-1-1s.45-1 1-1s1 .45 1 1z"
+          />
         </svg>
       );
 
-    /* --------------------------------------------------------------- LISTS */
+    /* ============================================================ LISTS */
     case 'lists':
       return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinecap="round"
-            d="M9 6h11M9 12h11M9 18h11"
-          />
-          <circle cx="4" cy="6" r="1.5" fill="currentColor" />
-          <circle cx="4" cy="12" r="1.5" fill="currentColor" />
-          <circle cx="4" cy="18" r="1.5" fill="currentColor" />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          {active ? (
+            <path
+              fill="currentColor"
+              d="M3 4.5C3 3.12 4.12 2 5.5 2h13C19.88 2 21 3.12 21 4.5v15c0 1.38-1.12 2.5-2.5 2.5h-13C4.12 22 3 20.88 3 19.5v-15zm5.5 4.25c0 .69.56 1.25 1.25 1.25h7c.69 0 1.25-.56 1.25-1.25S17.44 7.5 16.75 7.5h-7c-.69 0-1.25.56-1.25 1.25zm0 5.5c0 .69.56 1.25 1.25 1.25h7c.69 0 1.25-.56 1.25-1.25s-.56-1.25-1.25-1.25h-7c-.69 0-1.25.56-1.25 1.25z"
+            />
+          ) : (
+            <path
+              fill="currentColor"
+              d="M5 4.5C5 3.12 6.12 2 7.5 2h9C17.88 2 19 3.12 19 4.5v15c0 1.38-1.12 2.5-2.5 2.5h-9C6.12 22 5 20.88 5 19.5v-15zm2.5-.5c-.28 0-.5.22-.5.5v15c0 .28.22.5.5.5h9c.28 0 .5-.22.5-.5v-15c0-.28-.22-.5-.5-.5h-9zM3 8.5c0-.55.45-1 1-1s1 .45 1 1v7c0 .55-.45 1-1 1s-1-.45-1-1v-7zm17 0c0-.55.45-1 1-1s1 .45 1 1v7c0 .55-.45 1-1 1s-1-.45-1-1v-7zM9 8h6v1.5H9V8zm0 5h6v1.5H9V13z"
+            />
+          )}
         </svg>
       );
 
-    /* --------------------------------------------------------- COMMUNITIES */
+    /* ==================================================== COMMUNITIES */
     case 'communities':
       return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          <circle
-            cx="9"
-            cy="8"
-            r="3.25"
-            stroke="currentColor"
-            strokeWidth={strokeW}
-          />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
           <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinecap="round"
-            d="M3.5 19.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5"
-          />
-          <circle
-            cx="17"
-            cy="9"
-            r="2.5"
-            stroke="currentColor"
-            strokeWidth={strokeW}
-          />
-          <path
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinecap="round"
-            d="M15 14.5c1-1 2-1.5 3.5-1.5 1.5 0 3 1 3.5 3"
+            fill="currentColor"
+            d="M7.501 19.917L7.551 19H7.501v-.083c.004-1.066.054-2.099.147-3.086L4.5 14.057C3.551 13.408 3 12.323 3 11.151V7.6c0-.297.13-.566.34-.75l.01-.01c.2-.18.47-.29.77-.29h7.76c.3 0 .57.11.78.3l.01.01c.21.184.34.453.34.75v3.55c0 1.173-.552 2.258-1.5 2.906l-3.198 1.774c.078.794.123 1.626.128 2.483H19v2.5H7.501v-.583zM18.5 7.6c0-.297.13-.566.34-.75.2-.19.47-.3.78-.3h2.76c.3 0 .57.11.78.3.21.184.34.453.34.75v3.55c0 1.173-.552 2.258-1.5 2.906l-2.5 1.388V7.6zM9 2c1.657 0 3 1.343 3 3s-1.343 3-3 3-3-1.343-3-3 1.343-3 3-3zm6 0c1.657 0 3 1.343 3 3s-1.343 3-3 3-3-1.343-3-3 1.343-3 3-3z"
           />
         </svg>
       );
 
-    /* ---------------------------------------------------------------- GROK */
-    case 'grok':
-      return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
-          {/* Big sparkle */}
-          <path
-            fill={active ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            strokeWidth={active ? 0 : strokeW}
-            strokeLinejoin="round"
-            d="M12 2l1.8 5.2a4 4 0 0 0 2.4 2.4L21.4 11l-5.2 1.4a4 4 0 0 0-2.4 2.4L12 20l-1.8-5.2a4 4 0 0 0-2.4-2.4L2.6 11l5.2-1.4a4 4 0 0 0 2.4-2.4L12 2z"
-          />
-          {/* Small sparkle */}
-          <path
-            fill={active ? 'currentColor' : 'none'}
-            stroke="currentColor"
-            strokeWidth={active ? 0 : strokeW}
-            strokeLinejoin="round"
-            d="M19 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2z"
-          />
-        </svg>
-      );
-
-    /* ------------------------------------------------------------ SETTINGS */
+    /* ========================================================= SETTINGS */
     case 'settings':
       return (
-        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
           <path
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={strokeW}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.21.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+            fill="currentColor"
+            d="M10.54 1.75h2.92l1.57 2.36c.11.17.32.25.53.21l2.53-.61 2.06 2.06-.61 2.53c-.05.2.04.42.21.53l2.36 1.57v2.92l-2.36 1.57c-.17.11-.26.32-.21.53l.61 2.53-2.06 2.06-2.53-.61c-.2-.05-.42.04-.53.21l-1.57 2.36h-2.92l-1.57-2.36c-.11-.17-.32-.26-.53-.21l-2.53.61-2.06-2.06.61-2.53c.05-.2-.04-.42-.21-.53l-2.36-1.57v-2.92L4.04 8.09c.17-.11.26-.32.21-.53l-.61-2.53 2.06-2.06 2.53.61c.2.05.42-.04.53-.21l1.57-2.36zm1.07 2l-.98 1.47c-.6.9-1.69 1.34-2.76 1.08l-.6-.14-.14.6c-.26 1.07.18 2.16 1.08 2.76l1.47.98v1.96l-1.47.98c-.9.6-1.34 1.69-1.08 2.76l.14.6.6-.14c1.07-.26 2.16.18 2.76 1.08l.98 1.47h1.96l.98-1.47c.6-.9 1.69-1.34 2.76-1.08l.6.14.14-.6c.26-1.07-.18-2.16-1.08-2.76l-1.47-.98v-1.96l1.47-.98c.9-.6 1.34-1.69 1.08-2.76l-.14-.6-.6.14c-1.07.26-2.16-.18-2.76-1.08l-.98-1.47h-1.96zM12 9c1.657 0 3 1.343 3 3s-1.343 3-3 3-3-1.343-3-3 1.343-3 3-3zm0 2c-.552 0-1 .448-1 1s.448 1 1 1 1-.448 1-1-.448-1-1-1z"
           />
         </svg>
       );

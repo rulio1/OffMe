@@ -20,7 +20,6 @@ const NAV_ITEMS: {
 }[] = [
   { href: '/', label: 'Início', icon: 'home', match: (p) => p === '/' },
   { href: '/explore', label: 'Explorar', icon: 'search', match: (p) => p.startsWith('/explore') },
-  { href: '/grok', label: 'Grok', icon: 'grok', match: (p) => p.startsWith('/grok') },
   { href: '/notifications', label: 'Notificações', icon: 'notifications', match: (p) => p.startsWith('/notifications') },
   { href: '/messages', label: 'Mensagens', icon: 'messages', match: (p) => p.startsWith('/messages') },
   { href: '/bookmarks', label: 'Salvos', icon: 'bookmarks', match: (p) => p.startsWith('/bookmarks') },
