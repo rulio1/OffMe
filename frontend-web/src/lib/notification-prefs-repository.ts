@@ -8,6 +8,7 @@ export interface NotificationPrefs {
   pushReposts: boolean;
   pushQuotes: boolean;
   pushDm: boolean;
+  emailDigest: boolean;
 }
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -17,6 +18,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
   pushReposts: true,
   pushQuotes: true,
   pushDm: true,
+  emailDigest: true,
 };
 
 function rowToPrefs(row: {
@@ -26,6 +28,7 @@ function rowToPrefs(row: {
   push_reposts: boolean;
   push_quotes: boolean;
   push_dm: boolean;
+  email_digest?: boolean;
 }): NotificationPrefs {
   return {
     pushLikes: row.push_likes,
@@ -34,6 +37,7 @@ function rowToPrefs(row: {
     pushReposts: row.push_reposts,
     pushQuotes: row.push_quotes,
     pushDm: row.push_dm,
+    emailDigest: row.email_digest ?? true,
   };
 }
 
@@ -45,8 +49,10 @@ export async function getNotificationPrefs(userId: number): Promise<Notification
     push_reposts: boolean;
     push_quotes: boolean;
     push_dm: boolean;
+    email_digest: boolean;
   }>(
-    `SELECT push_likes, push_replies, push_follows, push_reposts, push_quotes, push_dm
+    `SELECT push_likes, push_replies, push_follows, push_reposts, push_quotes, push_dm,
+            COALESCE(email_digest, TRUE) AS email_digest
      FROM user_notification_prefs WHERE user_id = $1`,
     [userId]
   );
@@ -62,8 +68,9 @@ export async function updateNotificationPrefs(
 
   await query(
     `INSERT INTO user_notification_prefs (
-       user_id, push_likes, push_replies, push_follows, push_reposts, push_quotes, push_dm, updated_at
-     ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       user_id, push_likes, push_replies, push_follows, push_reposts, push_quotes, push_dm,
+       email_digest, updated_at
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
      ON CONFLICT (user_id) DO UPDATE SET
        push_likes = EXCLUDED.push_likes,
        push_replies = EXCLUDED.push_replies,
@@ -71,6 +78,7 @@ export async function updateNotificationPrefs(
        push_reposts = EXCLUDED.push_reposts,
        push_quotes = EXCLUDED.push_quotes,
        push_dm = EXCLUDED.push_dm,
+       email_digest = EXCLUDED.email_digest,
        updated_at = NOW()`,
     [
       userId,
@@ -80,6 +88,7 @@ export async function updateNotificationPrefs(
       next.pushReposts,
       next.pushQuotes,
       next.pushDm,
+      next.emailDigest,
     ]
   );
 

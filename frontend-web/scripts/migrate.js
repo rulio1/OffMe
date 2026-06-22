@@ -77,6 +77,8 @@ async function main() {
     '015_user_moderation.sql',
     '016_growth_auth_prefs.sql',
     '017_beta_feedback.sql',
+    '018_feedback_status.sql',
+    '019_email_digest.sql',
   ];
 
   const root = path.join(__dirname, '..', '..');

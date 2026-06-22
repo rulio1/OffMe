@@ -6,6 +6,7 @@ import { Composer } from '@/components/composer/Composer';
 import { ComposeFab } from '@/components/composer/ComposeFab';
 import { FeedEmptyState } from '@/components/feed/FeedEmptyState';
 import { FeedHeader } from '@/components/feed/FeedHeader';
+import { OnboardingChecklist } from '@/components/onboarding/OnboardingChecklist';
 import { useCompose } from '@/components/providers/ComposeProvider';
 import { PostCard } from '@/components/post/PostCard';
 import { fetchHomeTimeline, fetchForYouTimeline } from '@/lib/api';
@@ -96,6 +97,7 @@ export function Feed() {
   return (
     <div className="min-h-dvh bg-offme-bg">
       <FeedHeader tab={tab} onTabChange={handleTabChange} />
+      <OnboardingChecklist />
 
       <div className="hidden md:block">
         <Composer onPostCreated={handlePostCreated} />

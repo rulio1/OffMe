@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { apiLogin, apiRegister, seedSession, uniqueUsername } from './helpers';
+import { apiLogin, apiRegister, setAuthSession, uniqueUsername } from './helpers';
 
 test.describe('Settings', () => {
   test('settings hub and privacy page load', async ({ page }) => {
@@ -14,7 +14,7 @@ test.describe('Settings', () => {
       displayName: 'Settings User',
     });
     const session = await apiLogin(email, password);
-    await seedSession(page, session);
+    await setAuthSession(page, session);
 
     await page.goto('/settings');
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible();
@@ -32,7 +32,7 @@ test.describe('Settings', () => {
 
     await apiRegister({ username, email, password, displayName: 'Theme User' });
     const session = await apiLogin(email, password);
-    await seedSession(page, session);
+    await setAuthSession(page, session);
 
     await page.goto('/settings/appearance');
     await page.getByRole('button', { name: 'Escuro' }).click();

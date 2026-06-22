@@ -76,3 +76,50 @@ export async function sendWelcomeEmail(input: {
 
   return res.ok;
 }
+
+export async function sendWeeklyDigestEmail(input: {
+  to: string;
+  displayName: string;
+  username: string;
+  stats: { unreadNotifications: number; newFollowers: number };
+}): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM ?? 'OffMe <onboarding@resend.dev>';
+  const siteUrl = getSiteUrl();
+
+  if (!apiKey) return false;
+
+  const lines: string[] = [];
+  if (input.stats.unreadNotifications > 0) {
+    lines.push(
+      `<li><strong>${input.stats.unreadNotifications}</strong> notificação(ões) não lida(s)</li>`
+    );
+  }
+  if (input.stats.newFollowers > 0) {
+    lines.push(
+      `<li><strong>${input.stats.newFollowers}</strong> novo(s) seguidor(es) esta semana</li>`
+    );
+  }
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: [input.to],
+      subject: 'Seu resumo semanal no OffMe',
+      html: `
+        <p>Olá, ${input.displayName} (@${input.username})!</p>
+        <p>Resumo da sua semana no OffMe:</p>
+        <ul>${lines.join('')}</ul>
+        <p><a href="${siteUrl}/notifications">Ver notificações</a> · <a href="${siteUrl}">Abrir OffMe</a></p>
+        <p style="color:#666;font-size:12px">Desative em Configurações → Notificações → Resumo por email.</p>
+      `,
+    }),
+  });
+
+  return res.ok;
+}

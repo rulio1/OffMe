@@ -61,3 +61,6 @@ export async function setAuthSession(page: Page, session: AuthSession): Promise<
     session
   );
 }
+
+/** @deprecated Use setAuthSession */
+export const seedSession = setAuthSession;

@@ -15,11 +15,12 @@ export interface DbUser {
   verified: boolean;
   follower_count: number;
   following_count: number;
+  post_count?: number;
   created_at: Date;
 }
 
 const USER_SELECT = `id, public_id, username, email, password_hash, display_name, bio,
-            avatar_url, banner_url, location, website_url, verified, follower_count, following_count, created_at`;
+            avatar_url, banner_url, location, website_url, verified, follower_count, following_count, post_count, created_at`;
 
 export interface CreateUserInput {
   username: string;
@@ -81,6 +82,7 @@ export function toPublicUser(user: DbUser, extra?: { isFollowing?: boolean }) {
     bio: user.bio,
     followerCount: Number(user.follower_count),
     followingCount: Number(user.following_count),
+    postCount: Number(user.post_count ?? 0),
     ...(extra?.isFollowing != null ? { isFollowing: extra.isFollowing } : {}),
   };
 }

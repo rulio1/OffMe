@@ -91,6 +91,16 @@ fun SettingsHubScreen(
             ) {
                 Text("Configurações completas (web)")
             }
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://offme.vercel.app/settings/feedback"))
+                    context.startActivity(intent)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Feedback beta (web)")
+            }
 
             if (username != null) {
                 Spacer(Modifier.height(16.dp))

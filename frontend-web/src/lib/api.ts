@@ -151,6 +151,7 @@ function normalizeUser(raw: Record<string, unknown>): User {
     bio: raw.bio ? String(raw.bio) : undefined,
     followerCount: raw.followerCount != null ? Number(raw.followerCount) : undefined,
     followingCount: raw.followingCount != null ? Number(raw.followingCount) : undefined,
+    postCount: raw.postCount != null ? Number(raw.postCount) : undefined,
     isFollowing: raw.isFollowing != null ? Boolean(raw.isFollowing) : undefined,
   };
 }
@@ -366,6 +367,7 @@ export interface NotificationPrefs {
   pushReposts: boolean;
   pushQuotes: boolean;
   pushDm: boolean;
+  emailDigest: boolean;
 }
 
 export async function fetchNotificationPrefs(): Promise<{ prefs: NotificationPrefs }> {
@@ -689,11 +691,15 @@ export interface VerificationRequestInfo {
 
 export type FeedbackCategory = 'bug' | 'idea' | 'general';
 
+export type FeedbackStatus = 'open' | 'resolved' | 'dismissed';
+
 export interface BetaFeedbackItem {
   id: number;
   category: FeedbackCategory;
   message: string;
   pageUrl?: string;
+  status: FeedbackStatus;
+  adminNote?: string;
   createdAt: number;
   username?: string;
   displayName?: string;
@@ -713,11 +719,42 @@ export async function submitFeedback(input: {
   return res.json();
 }
 
-export async function fetchAdminFeedback(limit = 50): Promise<{ feedback: BetaFeedbackItem[] }> {
+export async function fetchAdminFeedback(
+  limit = 50,
+  status?: FeedbackStatus
+): Promise<{ feedback: BetaFeedbackItem[] }> {
   const params = new URLSearchParams({ limit: String(limit) });
+  if (status) params.set('status', status);
   const res = await apiFetch(`/admin/feedback?${params}`);
   if (!res.ok) await parseError(res, 'Erro ao carregar feedback');
   return res.json();
+}
+
+export async function updateAdminFeedback(
+  id: number,
+  status: FeedbackStatus,
+  adminNote?: string
+): Promise<void> {
+  const res = await apiFetch(`/admin/feedback/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status, adminNote }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao atualizar feedback');
+}
+
+export async function downloadAdminFeedbackCsv(status?: FeedbackStatus): Promise<void> {
+  const params = new URLSearchParams({ limit: '500' });
+  if (status) params.set('status', status);
+  const res = await apiFetch(`/admin/feedback/export?${params}`);
+  if (!res.ok) await parseError(res, 'Erro ao exportar feedback');
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `offme-feedback-${new Date().toISOString().slice(0, 10)}.csv`;
+  anchor.click();
+  URL.revokeObjectURL(url);
 }
 
 export async function fetchAdminReports(): Promise<{ reports: AdminReport[] }> {

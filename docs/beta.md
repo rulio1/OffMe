@@ -69,7 +69,18 @@ Mensagem sugerida:
 
 ## Próximos passos pós-beta
 
-- Domínio próprio (`docs/launch.md`)
+Implementados em `docs/growth.md`:
+
+- Plausible (`NEXT_PUBLIC_PLAUSIBLE_DOMAIN`)
+- Resumo semanal por email (domingos via cron)
+- Admin feedback: resolver/dispensar + CSV
+- Onboarding checklist no feed
+- Seed de contas demo (`scripts/seed-beta-content.js`)
+- E2E feedback (`e2e/feedback.spec.ts`)
+- Mobile: link Feedback beta
+
+Pendentes (infra externa):
+
+- Domínio próprio (`docs/launch.md`, `scripts/domain-setup.sh`)
 - Push nativo iOS (Apple Developer)
 - PWA Android com Firebase
-- Métricas (PostHog/Plausible)

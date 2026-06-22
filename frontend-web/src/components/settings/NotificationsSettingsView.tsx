@@ -114,6 +114,22 @@ export function NotificationsSettingsView() {
         )}
       </div>
 
+      <div className="mt-6 rounded-2xl border border-offme-border p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-bold">Resumo por email</p>
+            <p className="mt-1 text-[15px] text-offme-muted">
+              Resumo semanal de notificações e seguidores (domingos).
+            </p>
+          </div>
+          <Toggle
+            enabled={prefs?.emailDigest ?? true}
+            disabled={!prefs}
+            onToggle={() => void handlePrefToggle('emailDigest')}
+          />
+        </div>
+      </div>
+
       <div className="mt-6 rounded-2xl border border-offme-border divide-y divide-offme-border">
         <p className="px-4 py-3 text-sm font-bold text-offme-muted">Tipos de push</p>
         {PREF_ITEMS.map(({ key, label }) => (

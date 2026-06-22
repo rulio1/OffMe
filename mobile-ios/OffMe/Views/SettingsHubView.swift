@@ -10,6 +10,7 @@ struct SettingsHubView: View {
     var onCommunities: () -> Void = {}
 
     private let webSettingsURL = URL(string: "https://offme.vercel.app/settings")!
+    private let webFeedbackURL = URL(string: "https://offme.vercel.app/settings/feedback")!
 
     var body: some View {
         NavigationStack {
@@ -25,6 +26,11 @@ struct SettingsHubView: View {
                         openURL(webSettingsURL)
                     } label: {
                         Label("Configurações completas (web)", systemImage: "globe")
+                    }
+                    Button {
+                        openURL(webFeedbackURL)
+                    } label: {
+                        Label("Feedback beta (web)", systemImage: "bubble.left.and.text.bubble.right")
                     }
                 }
 

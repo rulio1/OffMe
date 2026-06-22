@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { jsonError, jsonOk } from '@/lib/api-response';
+import { sendWeeklyDigests } from '@/lib/digest-repository';
 import { publishDuePosts } from '@/lib/post-repository';
 
 export async function GET(request: NextRequest) {
@@ -15,7 +16,15 @@ export async function GET(request: NextRequest) {
 
   try {
     const published = await publishDuePosts();
-    return jsonOk({ published });
+    const result: Record<string, unknown> = { published };
+
+    const day = new Date().getUTCDay();
+    if (day === 0) {
+      const digest = await sendWeeklyDigests();
+      result.weeklyDigest = digest;
+    }
+
+    return jsonOk(result);
   } catch (err) {
     console.error('[cron/publish-scheduled]', err);
     return jsonError('Erro ao publicar posts agendados', 500);

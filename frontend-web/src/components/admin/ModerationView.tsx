@@ -7,10 +7,13 @@ import {
   fetchAdminFeedback,
   fetchAdminReports,
   fetchAdminVerificationRequests,
+  downloadAdminFeedbackCsv,
   reviewVerificationRequest,
   suspendAdminUser,
   unsuspendAdminUser,
+  updateAdminFeedback,
   updateAdminReport,
+  type FeedbackStatus,
 } from '@/lib/api';
 import { formatPostTime } from '@/lib/format-time';
 
@@ -24,6 +27,7 @@ const FEEDBACK_LABELS: Record<string, string> = {
 
 export function ModerationView() {
   const [tab, setTab] = useState<AdminTab>('reports');
+  const [feedbackFilter, setFeedbackFilter] = useState<FeedbackStatus | 'all'>('open');
   const [busyId, setBusyId] = useState<number | null>(null);
   const [actionError, setActionError] = useState('');
 
@@ -43,10 +47,13 @@ export function ModerationView() {
 
   const {
     data: feedbackData,
+    mutate: mutateFeedback,
     error: feedbackError,
-  } = useSWR(tab === 'feedback' ? 'admin-feedback' : null, () => fetchAdminFeedback(50), {
-    revalidateOnFocus: false,
-  });
+  } = useSWR(
+    tab === 'feedback' ? `admin-feedback-${feedbackFilter}` : null,
+    () => fetchAdminFeedback(50, feedbackFilter === 'all' ? undefined : feedbackFilter),
+    { revalidateOnFocus: false }
+  );
 
   const reports = reportsData?.reports ?? [];
   const verificationRequests = verificationData?.requests ?? [];
@@ -93,6 +100,19 @@ export function ModerationView() {
       await mutateReports();
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Erro ao reativar usuário');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleFeedbackAction = async (id: number, status: FeedbackStatus) => {
+    setBusyId(id);
+    setActionError('');
+    try {
+      await updateAdminFeedback(id, status);
+      await mutateFeedback();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Erro ao atualizar feedback');
     } finally {
       setBusyId(null);
     }
@@ -264,41 +284,103 @@ export function ModerationView() {
 
       {tab === 'feedback' && (
         <div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-offme-border px-4 py-3">
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  ['open', 'Abertos'],
+                  ['resolved', 'Resolvidos'],
+                  ['dismissed', 'Dispensados'],
+                  ['all', 'Todos'],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFeedbackFilter(value)}
+                  className={
+                    feedbackFilter === value
+                      ? 'rounded-full bg-offme-accent px-3 py-1 text-xs font-bold text-white'
+                      : 'rounded-full border border-offme-border px-3 py-1 text-xs font-semibold hover:bg-offme-hover'
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                void downloadAdminFeedbackCsv(
+                  feedbackFilter === 'all' ? undefined : feedbackFilter
+                ).catch((err) =>
+                  setActionError(err instanceof Error ? err.message : 'Erro ao exportar')
+                )
+              }
+              className="text-sm font-bold text-offme-accent hover:underline"
+            >
+              Exportar CSV
+            </button>
+          </div>
           {feedbackItems.length === 0 && (
-            <p className="px-4 py-8 text-center text-offme-muted">Nenhum feedback recebido ainda.</p>
+            <p className="px-4 py-8 text-center text-offme-muted">Nenhum feedback neste filtro.</p>
           )}
           {feedbackItems.map((item) => (
             <div key={item.id} className="border-b border-offme-border px-4 py-4">
-              <p className="text-sm text-offme-muted">
-                #{item.id} · {FEEDBACK_LABELS[item.category] ?? item.category} ·{' '}
-                {formatPostTime(item.createdAt)}
-              </p>
-              {item.username ? (
-                <p className="mt-1 text-sm">
-                  De{' '}
-                  <Link
-                    href={`/profile/${item.username}`}
-                    className="font-bold text-offme-accent hover:underline"
-                  >
-                    {item.displayName ?? item.username} (@{item.username})
-                  </Link>
-                </p>
-              ) : (
-                <p className="mt-1 text-sm text-offme-muted">Anônimo / sem login</p>
-              )}
-              <p className="mt-2 whitespace-pre-wrap rounded-xl bg-offme-surface p-3 text-sm">
-                {item.message}
-              </p>
-              {item.pageUrl && (
-                <a
-                  href={item.pageUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-block text-sm text-offme-accent hover:underline"
-                >
-                  Ver página
-                </a>
-              )}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-offme-muted">
+                    #{item.id} · {FEEDBACK_LABELS[item.category] ?? item.category} ·{' '}
+                    {formatPostTime(item.createdAt)} · {item.status}
+                  </p>
+                  {item.username ? (
+                    <p className="mt-1 text-sm">
+                      De{' '}
+                      <Link
+                        href={`/profile/${item.username}`}
+                        className="font-bold text-offme-accent hover:underline"
+                      >
+                        {item.displayName ?? item.username} (@{item.username})
+                      </Link>
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-sm text-offme-muted">Anônimo / sem login</p>
+                  )}
+                  <p className="mt-2 whitespace-pre-wrap rounded-xl bg-offme-surface p-3 text-sm">
+                    {item.message}
+                  </p>
+                  {item.pageUrl && (
+                    <a
+                      href={item.pageUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-block text-sm text-offme-accent hover:underline"
+                    >
+                      Ver página
+                    </a>
+                  )}
+                </div>
+                {item.status === 'open' && (
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFeedbackAction(item.id, 'resolved')}
+                      disabled={busyId === item.id}
+                      className="rounded-full bg-offme-accent px-3 py-1.5 text-xs font-bold text-white hover:bg-offme-accentHover disabled:opacity-50"
+                    >
+                      Resolver
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleFeedbackAction(item.id, 'dismissed')}
+                      disabled={busyId === item.id}
+                      className="rounded-full border border-offme-border px-3 py-1.5 text-xs font-semibold hover:bg-offme-hover disabled:opacity-50"
+                    >
+                      Dispensar
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>

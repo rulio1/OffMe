@@ -31,6 +31,7 @@ export async function PATCH(request: NextRequest) {
       ...(body.pushReposts !== undefined ? { pushReposts: Boolean(body.pushReposts) } : {}),
       ...(body.pushQuotes !== undefined ? { pushQuotes: Boolean(body.pushQuotes) } : {}),
       ...(body.pushDm !== undefined ? { pushDm: Boolean(body.pushDm) } : {}),
+      ...(body.emailDigest !== undefined ? { emailDigest: Boolean(body.emailDigest) } : {}),
     });
 
     return jsonOk({ prefs });

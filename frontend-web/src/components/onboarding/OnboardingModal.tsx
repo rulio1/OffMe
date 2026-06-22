@@ -6,16 +6,22 @@ import { completeOnboarding, shouldShowOnboarding } from '@/lib/onboarding';
 
 const STEPS = [
   {
-    title: 'Bem-vindo ao OffMe',
-    body: 'Um feed sem ruído — siga pessoas e publique o que importa para você.',
+    title: 'Bem-vindo ao beta do OffMe',
+    body: 'Você está entre os primeiros testadores. Explore o feed e ajude a moldar o produto.',
   },
   {
-    title: 'Explore e conecte',
-    body: 'Use Explorar para buscar pessoas e posts. Curta, responda e mande mensagens diretas.',
+    title: 'Siga e publique',
+    body: 'Siga 3 pessoas em Explorar e publique seu primeiro post — assim o feed ganha vida.',
+    cta: { href: '/explore', label: 'Ir para Explorar' },
+  },
+  {
+    title: 'Envie feedback',
+    body: 'Bugs e ideias são bem-vindos. Use Feedback beta em Configurações quando quiser.',
+    cta: { href: '/settings/feedback', label: 'Enviar feedback' },
   },
   {
     title: 'Personalize',
-    body: 'Em Configurações você controla privacidade, notificações, tema e posts agendados.',
+    body: 'Privacidade, notificações, tema escuro e posts agendados estão em Configurações.',
     cta: { href: '/settings', label: 'Abrir configurações' },
   },
 ];

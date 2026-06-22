@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { PlausibleAnalytics } from '@/components/analytics/PlausibleAnalytics';
 import { AppSplash } from '@/components/layout/AppSplash';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { PwaProvider } from '@/components/providers/PwaProvider';
@@ -69,6 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
+        <PlausibleAnalytics />
         <AuthProvider>
           <ThemeProvider>
             <PwaProvider>
