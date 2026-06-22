@@ -9,6 +9,8 @@ struct SettingsHubView: View {
     var onLists: () -> Void = {}
     var onCommunities: () -> Void = {}
 
+    @State private var showFeedback = false
+
     private let webSettingsURL = URL(string: "https://offme.vercel.app/settings")!
     private let webFeedbackURL = URL(string: "https://offme.vercel.app/settings/feedback")!
 
@@ -28,9 +30,9 @@ struct SettingsHubView: View {
                         Label("Configurações completas (web)", systemImage: "globe")
                     }
                     Button {
-                        openURL(webFeedbackURL)
+                        showFeedback = true
                     } label: {
-                        Label("Feedback beta (web)", systemImage: "bubble.left.and.text.bubble.right")
+                        Label("Feedback beta", systemImage: "bubble.left.and.text.bubble.right")
                     }
                 }
 
@@ -66,6 +68,10 @@ struct SettingsHubView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Fechar") { dismiss() }
                 }
+            }
+            .sheet(isPresented: $showFeedback) {
+                FeedbackView()
+                    .environmentObject(auth)
             }
         }
     }

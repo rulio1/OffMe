@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import com.offme.OffMeApp
 import com.offme.data.auth.AuthStore
 import com.offme.ui.bookmarks.BookmarksScreen
+import com.offme.ui.components.BetaBanner
 import com.offme.ui.components.BottomNavBarWithDivider
 import com.offme.ui.components.OffMeTab
 import com.offme.ui.explore.ExploreScreen
@@ -31,6 +32,7 @@ import com.offme.ui.lists.ListDetailScreen
 import com.offme.ui.lists.ListsScreen
 import com.offme.ui.profile.EditProfileScreen
 import com.offme.ui.profile.ProfileScreen
+import com.offme.ui.settings.FeedbackScreen
 import com.offme.ui.settings.SettingsHubScreen
 import com.offme.ui.settings.VerificationSettingsScreen
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,6 +52,7 @@ fun MainScreen(
     var showSettings by remember { mutableStateOf(false) }
     var showLists by remember { mutableStateOf(false) }
     var showCommunities by remember { mutableStateOf(false) }
+    var showFeedback by remember { mutableStateOf(false) }
     var listDetailId by remember { mutableStateOf<Int?>(null) }
     var communityDetailSlug by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
@@ -84,6 +87,14 @@ fun MainScreen(
         return
     }
 
+    if (showFeedback) {
+        FeedbackScreen(
+            authStore = authStore,
+            onBack = { showFeedback = false },
+        )
+        return
+    }
+
     if (showSettings) {
         SettingsHubScreen(
             authStore = authStore,
@@ -101,6 +112,10 @@ fun MainScreen(
                 showCommunities = true
             },
             onLogout = { authStore.logout() },
+            onFeedback = {
+                showSettings = false
+                showFeedback = true
+            },
         )
         return
     }
@@ -211,6 +226,7 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
+            BetaBanner(onTap = { showFeedback = true })
             Box(modifier = Modifier.fillMaxSize()) {
                 when (selected) {
                     OffMeTab.Home -> FeedScreen(

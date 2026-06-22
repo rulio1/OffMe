@@ -456,7 +456,22 @@ final class APIClient {
     func createCommunity(name: String, token: String) async throws -> OffMeCommunity {
         struct Body: Encodable { let name: String }
         return try await request("/communities", method: "POST", body: Body(name: name), token: token)
-	}
+    }
+
+    func submitFeedback(category: String, message: String, pageUrl: String?, token: String) async throws {
+        struct Body: Encodable {
+            let category: String
+            let message: String
+            let pageUrl: String?
+        }
+        struct Ok: Decodable { let received: Bool? }
+        let _: Ok = try await request(
+            "/feedback",
+            method: "POST",
+            body: Body(category: category, message: message, pageUrl: pageUrl),
+            token: token
+        )
+    }
 
 }
 

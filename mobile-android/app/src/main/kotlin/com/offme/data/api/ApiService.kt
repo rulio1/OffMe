@@ -274,4 +274,10 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("slug") slug: String,
     ): Map<String, Any?>
+
+    @POST("feedback")
+    suspend fun submitFeedback(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, Any?>,
+    ): Map<String, Any?>
 }

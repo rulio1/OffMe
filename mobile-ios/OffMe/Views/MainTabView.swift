@@ -5,9 +5,12 @@ struct MainTabView: View {
     @StateObject private var feedVM = FeedViewModel()
     @State private var unreadCount = 0
     @State private var selectedTab = 0
+    @State private var showFeedback = false
 
     var body: some View {
         VStack(spacing: 0) {
+            BetaBanner(onTapFeedback: { showFeedback = true })
+
             ZStack {
                 NavigationStack { FeedView(viewModel: feedVM) }
                     .opacity(selectedTab == 0 ? 1 : 0)
@@ -31,6 +34,10 @@ struct MainTabView: View {
         }
         .background(OffMeTheme.bg)
         .offMeChrome()
+        .sheet(isPresented: $showFeedback) {
+            FeedbackView()
+                .environmentObject(auth)
+        }
         .task {
             await refreshUnread()
         }

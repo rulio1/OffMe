@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Feedback
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Verified
@@ -39,6 +40,7 @@ fun SettingsHubScreen(
     onLists: () -> Unit,
     onCommunities: () -> Unit,
     onLogout: () -> Unit,
+    onFeedback: () -> Unit = {},
 ) {
     val session by authStore.session.collectAsState()
     val context = LocalContext.current
@@ -93,13 +95,12 @@ fun SettingsHubScreen(
             }
             Spacer(Modifier.height(8.dp))
             Button(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://offme.vercel.app/settings/feedback"))
-                    context.startActivity(intent)
-                },
+                onClick = onFeedback,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Feedback beta (web)")
+                Icon(Icons.Default.Feedback, contentDescription = null)
+                Spacer(Modifier.height(0.dp))
+                Text("Feedback beta", modifier = Modifier.padding(start = 8.dp))
             }
 
             if (username != null) {

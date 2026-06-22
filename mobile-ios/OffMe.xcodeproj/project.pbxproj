@@ -48,6 +48,8 @@
 		A10000000000000000000081 /* CommunitiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000080 /* CommunitiesView.swift */; };
 		A10000000000000000000063 /* VerificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000062 /* VerificationSettingsView.swift */; };
 		A10000000000000000000083 /* SettingsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000082 /* SettingsHubView.swift */; };
+		A10000000000000000000084 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000085 /* FeedbackView.swift */; };
+		A10000000000000000000086 /* BetaBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000087 /* BetaBanner.swift */; };
 		A10000000000000000000065 /* PushNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000064 /* PushNotificationService.swift */; };
 /* End PBXBuildFile section */
 
@@ -95,6 +97,8 @@
 		A10000000000000000000080 /* CommunitiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunitiesView.swift; sourceTree = "<group>"; };
 		A10000000000000000000062 /* VerificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationSettingsView.swift; sourceTree = "<group>"; };
 		A10000000000000000000082 /* SettingsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHubView.swift; sourceTree = "<group>"; };
+		A10000000000000000000085 /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
+		A10000000000000000000087 /* BetaBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetaBanner.swift; sourceTree = "<group>"; };
 		A10000000000000000000064 /* PushNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -197,6 +201,8 @@
 				A10000000000000000000080 /* CommunitiesView.swift */,
 				A10000000000000000000062 /* VerificationSettingsView.swift */,
 				A10000000000000000000082 /* SettingsHubView.swift */,
+				A10000000000000000000085 /* FeedbackView.swift */,
+				A10000000000000000000087 /* BetaBanner.swift */,
 				A10000000000000000000058 /* FeaturePlaceholderView.swift */,
 				A10000000000000000000047 /* ImageCropView.swift */,
 				A1000000000000000000001E /* MainTabView.swift */,
@@ -304,6 +310,8 @@
 				A10000000000000000000081 /* CommunitiesView.swift in Sources */,
 				A10000000000000000000063 /* VerificationSettingsView.swift in Sources */,
 				A10000000000000000000083 /* SettingsHubView.swift in Sources */,
+				A10000000000000000000084 /* FeedbackView.swift in Sources */,
+				A10000000000000000000086 /* BetaBanner.swift in Sources */,
 				A10000000000000000000065 /* PushNotificationService.swift in Sources */,
 				A10000000000000000000008 /* LoginView.swift in Sources */,
 				A10000000000000000000009 /* SignupView.swift in Sources */,

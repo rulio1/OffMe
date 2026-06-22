@@ -279,4 +279,20 @@ class ApiClient {
     suspend fun joinCommunity(token: String, slug: String) = safeCall {
         service.joinCommunity(bearer(token), slug)
     }
+
+    suspend fun submitFeedback(
+        token: String,
+        category: String,
+        message: String,
+        pageUrl: String? = null,
+    ) = safeCall {
+        service.submitFeedback(
+            bearer(token),
+            mapOf(
+                "category" to category,
+                "message" to message,
+                "pageUrl" to pageUrl,
+            ),
+        )
+    }
 }
