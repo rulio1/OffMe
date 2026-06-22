@@ -392,7 +392,7 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                     return !v;
                   });
                 }}
-                className="rounded-full p-1 text-offme-muted transition-colors hover:bg-black/5 hover:text-offme-text"
+                className="rounded-full p-1 text-offme-muted transition-colors hover:bg-offme-hover hover:text-offme-text"
                 aria-label="Mais opções"
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
@@ -425,7 +425,7 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                         role="menuitem"
                         onClick={handleMute}
                         disabled={menuBusy}
-                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
                       >
                         <VolumeX className="h-4 w-4" />
                         Silenciar @{author.username}
@@ -435,7 +435,7 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                         role="menuitem"
                         onClick={handleBlock}
                         disabled={menuBusy}
-                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
                       >
                         <Ban className="h-4 w-4" />
                         Bloquear @{author.username}
@@ -448,7 +448,7 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                       role="menuitem"
                       onClick={() => setReportMode(true)}
                       disabled={menuBusy}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
                     >
                       <Flag className="h-4 w-4" />
                       Denunciar post
@@ -465,7 +465,7 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                           role="menuitem"
                           onClick={() => handleReport(item.value)}
                           disabled={menuBusy}
-                          className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                          className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
                         >
                           {item.label}
                         </button>
@@ -474,7 +474,7 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                         type="button"
                         role="menuitem"
                         onClick={() => setReportMode(false)}
-                        className="flex w-full px-4 py-2 text-left text-xs text-offme-muted hover:bg-black/5"
+                        className="flex w-full px-4 py-2 text-left text-xs text-offme-muted hover:bg-offme-hover"
                       >
                         Voltar
                       </button>

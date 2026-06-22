@@ -1,4 +1,5 @@
 import { query, queryOne } from './db';
+import { getNotificationPrefs, shouldSendPush } from './notification-prefs-repository';
 import { dispatchPush } from './push-repository';
 
 export type NotificationType = 'like' | 'reply' | 'follow' | 'repost' | 'quote';
@@ -54,6 +55,9 @@ export async function createNotification(input: {
   };
 
   const copy = pushCopy[input.type];
+  const prefs = await getNotificationPrefs(input.userId);
+  if (!shouldSendPush(input.type, prefs)) return;
+
   void dispatchPush({
     userId: input.userId,
     title: copy.title,

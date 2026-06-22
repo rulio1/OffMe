@@ -31,6 +31,7 @@ import com.offme.ui.lists.ListDetailScreen
 import com.offme.ui.lists.ListsScreen
 import com.offme.ui.profile.EditProfileScreen
 import com.offme.ui.profile.ProfileScreen
+import com.offme.ui.settings.SettingsHubScreen
 import com.offme.ui.settings.VerificationSettingsScreen
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -46,6 +47,7 @@ fun MainScreen(
     var postThreadId by remember { mutableStateOf<Int?>(null) }
     var showEditProfile by remember { mutableStateOf(false) }
     var showVerification by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
     var showLists by remember { mutableStateOf(false) }
     var showCommunities by remember { mutableStateOf(false) }
     var listDetailId by remember { mutableStateOf<Int?>(null) }
@@ -78,6 +80,27 @@ fun MainScreen(
         EditProfileScreen(
             authStore = authStore,
             onBack = { showEditProfile = false },
+        )
+        return
+    }
+
+    if (showSettings) {
+        SettingsHubScreen(
+            authStore = authStore,
+            onBack = { showSettings = false },
+            onVerification = {
+                showSettings = false
+                showVerification = true
+            },
+            onLists = {
+                showSettings = false
+                showLists = true
+            },
+            onCommunities = {
+                showSettings = false
+                showCommunities = true
+            },
+            onLogout = { authStore.logout() },
         )
         return
     }
@@ -198,6 +221,7 @@ fun MainScreen(
                         onNavigateToLists = { showLists = true },
                         onNavigateToCommunities = { showCommunities = true },
                         onNavigateToVerification = { showVerification = true },
+                        onNavigateToSettings = { showSettings = true },
                         onLogout = { authStore.logout() },
                     )
                     OffMeTab.Explore -> ExploreScreen(

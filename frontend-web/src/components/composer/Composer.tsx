@@ -338,7 +338,7 @@ export function Composer({
                     <button
                       type="button"
                       onClick={() => removePollOption(index)}
-                      className="rounded-full p-1 text-offme-muted hover:bg-black/5"
+                      className="rounded-full p-1 text-offme-muted hover:bg-offme-hover"
                       aria-label="Remover opção"
                     >
                       <X className="h-4 w-4" />
@@ -411,7 +411,7 @@ export function Composer({
                             key={emoji}
                             type="button"
                             onClick={() => handleEmojiSelect(emoji)}
-                            className="rounded p-1 text-lg hover:bg-black/5"
+                            className="rounded p-1 text-lg hover:bg-offme-hover"
                           >
                             {emoji}
                           </button>
@@ -514,7 +514,7 @@ export function Composer({
               <button
                 type="button"
                 onClick={() => setScheduleOpen(false)}
-                className="rounded-full p-1 hover:bg-black/5"
+                className="rounded-full p-1 hover:bg-offme-hover"
                 aria-label="Fechar"
               >
                 <X className="h-5 w-5" />
@@ -551,7 +551,7 @@ export function Composer({
               <button
                 type="button"
                 onClick={() => setScheduleOpen(false)}
-                className="flex-1 rounded-full border border-offme-border py-2 text-sm font-semibold hover:bg-black/5"
+                className="flex-1 rounded-full border border-offme-border py-2 text-sm font-semibold hover:bg-offme-hover"
               >
                 Cancelar
               </button>

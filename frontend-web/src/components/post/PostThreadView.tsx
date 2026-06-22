@@ -59,7 +59,7 @@ export function PostThreadView({ postId }: PostThreadViewProps) {
   return (
     <div>
       <header className="sticky top-0 z-10 flex items-center gap-6 border-b border-offme-border bg-offme-bg/80 px-4 py-2 backdrop-blur-md">
-        <Link href="/" className="rounded-full p-2 transition-colors hover:bg-black/5">
+        <Link href="/" className="rounded-full p-2 transition-colors hover:bg-offme-hover">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <h1 className="text-xl font-bold">Post</h1>

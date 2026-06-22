@@ -102,7 +102,7 @@ export function ConversationThread({ conversationId }: ConversationThreadProps) 
   return (
     <div className="flex min-h-[calc(100dvh-56px)] flex-col md:min-h-dvh">
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-offme-border bg-offme-bg/80 px-3 py-2 backdrop-blur-md">
-        <Link href="/messages" className="rounded-full p-2 transition-colors hover:bg-black/5">
+        <Link href="/messages" className="rounded-full p-2 transition-colors hover:bg-offme-hover">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         {participant ? (

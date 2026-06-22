@@ -43,8 +43,17 @@ export async function POST(request: NextRequest) {
       return jsonError('Este nome de usuário já está em uso', 409);
     }
 
+    let referredById: number | undefined;
+    const refUsername = String(body.referredBy ?? body.ref ?? '').trim().toLowerCase();
+    if (refUsername) {
+      const referrer = await findUserByUsername(refUsername);
+      if (referrer && referrer.username !== username) {
+        referredById = referrer.id;
+      }
+    }
+
     const passwordHash = await hashPassword(password);
-    const user = await createUser({ username, email, passwordHash, displayName });
+    const user = await createUser({ username, email, passwordHash, displayName, referredById });
 
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
     const tokens = await issueAuthTokens(user, ip);

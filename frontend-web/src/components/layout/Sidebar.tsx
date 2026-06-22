@@ -55,7 +55,7 @@ export function Sidebar() {
     <aside className="sticky top-0 hidden h-screen w-[72px] shrink-0 flex-col px-2 md:flex xl:w-[275px] xl:px-3">
       <Link
         href="/"
-        className="mb-2 mt-3 inline-flex rounded-full px-3 py-2 transition-colors hover:bg-black/5"
+        className="mb-2 mt-3 inline-flex rounded-full px-3 py-2 transition-colors hover:bg-offme-hover"
         aria-label="OffMe"
       >
         <OffMeLogo size="sm" />
@@ -72,7 +72,7 @@ export function Sidebar() {
               aria-current={active ? 'page' : undefined}
               title={label}
               className={clsx(
-                'group flex items-center justify-center gap-5 rounded-full px-3 py-3 text-xl transition-colors hover:bg-black/5 xl:justify-start xl:px-4',
+                'group flex items-center justify-center gap-5 rounded-full px-3 py-3 text-xl transition-colors hover:bg-offme-hover xl:justify-start xl:px-4',
                 active && 'font-bold'
               )}
             >
@@ -95,7 +95,7 @@ export function Sidebar() {
             onClick={() => setMoreOpen((v) => !v)}
             aria-expanded={moreOpen}
             aria-haspopup="menu"
-            className="group flex w-full items-center justify-center gap-5 rounded-full px-3 py-3 text-xl transition-colors hover:bg-black/5 xl:justify-start xl:px-4"
+            className="group flex w-full items-center justify-center gap-5 rounded-full px-3 py-3 text-xl transition-colors hover:bg-offme-hover xl:justify-start xl:px-4"
           >
             <XNavIcon name="more" className="h-7 w-7 group-hover:opacity-100" />
             <span className="hidden xl:inline">Mais</span>
@@ -110,7 +110,7 @@ export function Sidebar() {
                 href="/bookmarks"
                 role="menuitem"
                 onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-black/5"
+                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
                 <XNavIcon name="bookmarks" className="h-5 w-5" />
                 Salvos
@@ -119,7 +119,7 @@ export function Sidebar() {
                 href="/profile"
                 role="menuitem"
                 onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-black/5"
+                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
                 <XNavIcon name="profile" className="h-5 w-5" />
                 Configurações do perfil
@@ -128,7 +128,7 @@ export function Sidebar() {
                 href="/lists"
                 role="menuitem"
                 onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-black/5"
+                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
                 <XNavIcon name="lists" className="h-5 w-5" />
                 Listas
@@ -137,7 +137,7 @@ export function Sidebar() {
                 href="/communities"
                 role="menuitem"
                 onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-black/5"
+                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
                 <XNavIcon name="communities" className="h-5 w-5" />
                 Comunidades
@@ -187,7 +187,7 @@ export function Sidebar() {
 
       <Link
         href="/profile"
-        className="mt-auto mb-4 flex items-center justify-center gap-3 rounded-full p-2 transition-colors hover:bg-black/5 xl:justify-start xl:p-3"
+        className="mt-auto mb-4 flex items-center justify-center gap-3 rounded-full p-2 transition-colors hover:bg-offme-hover xl:justify-start xl:p-3"
       >
         <UserAvatar url={user?.avatarUrl} size="md" />
         <div className="hidden min-w-0 flex-1 xl:block">

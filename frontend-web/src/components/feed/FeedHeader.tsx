@@ -38,7 +38,7 @@ export function FeedHeader({ tab, onTabChange }: FeedHeaderProps) {
 
         <Link
           href="/profile"
-          className="flex h-8 w-8 items-center justify-center rounded-full text-offme-text transition-colors hover:bg-black/5"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-offme-text transition-colors hover:bg-offme-hover"
           aria-label="Conta"
         >
           <UserRoundPlus className="h-[22px] w-[22px] stroke-[1.75]" />

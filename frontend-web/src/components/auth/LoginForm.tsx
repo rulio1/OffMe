@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { login } from '@/lib/api';
@@ -80,12 +81,9 @@ export function LoginForm() {
       />
 
       <div className="pt-2">
-        <button
-          type="button"
-          className="text-[15px] text-offme-accent hover:underline"
-        >
+        <Link href="/forgot-password" className="text-[15px] text-offme-accent hover:underline">
           Esqueceu a senha?
-        </button>
+        </Link>
       </div>
 
       <button

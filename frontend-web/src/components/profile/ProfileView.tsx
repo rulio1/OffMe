@@ -122,7 +122,7 @@ export function ProfileView({ username }: ProfileViewProps) {
   return (
     <div>
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-offme-border bg-offme-bg/80 px-3 py-2 backdrop-blur-md sm:gap-6 sm:px-4">
-        <Link href="/" className="rounded-full p-2 transition-colors hover:bg-black/5">
+        <Link href="/" className="rounded-full p-2 transition-colors hover:bg-offme-hover">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>
@@ -144,7 +144,7 @@ export function ProfileView({ username }: ProfileViewProps) {
           {isOwnProfile ? (
             <button
               onClick={() => setShowEdit(true)}
-              className="mt-2 shrink-0 rounded-full border border-offme-border px-3 py-1.5 text-sm font-bold transition-colors hover:bg-black/5 sm:mt-3 sm:px-4 sm:py-2"
+              className="mt-2 shrink-0 rounded-full border border-offme-border px-3 py-1.5 text-sm font-bold transition-colors hover:bg-offme-hover sm:mt-3 sm:px-4 sm:py-2"
             >
               Editar perfil
             </button>
@@ -153,7 +153,7 @@ export function ProfileView({ username }: ProfileViewProps) {
               <button
                 onClick={handleMessage}
                 disabled={startingDm}
-                className="rounded-full border border-offme-border px-3 py-1.5 text-sm font-bold transition-colors hover:bg-black/5 disabled:opacity-50 sm:px-4 sm:py-2"
+                className="rounded-full border border-offme-border px-3 py-1.5 text-sm font-bold transition-colors hover:bg-offme-hover disabled:opacity-50 sm:px-4 sm:py-2"
               >
                 {startingDm ? '...' : 'Mensagem'}
               </button>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { register } from '@/lib/api';
 import { setSession } from '@/lib/auth';
@@ -13,10 +13,13 @@ import {
   validatePassword,
   validateUsername,
 } from '@/lib/validators';
+import { markOnboardingPending } from '@/lib/onboarding';
 import { AuthField } from './AuthField';
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referredBy = searchParams.get('ref')?.trim().toLowerCase() ?? '';
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -52,9 +55,11 @@ export function SignupForm() {
         username,
         normalizedEmail,
         password,
-        displayName.trim()
+        displayName.trim(),
+        referredBy || undefined
       );
       setSession(session);
+      markOnboardingPending();
       router.push('/');
       router.refresh();
     } catch (err) {
@@ -73,6 +78,12 @@ export function SignupForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-1">
+      {referredBy && (
+        <p className="mb-4 rounded-xl bg-offme-accent/10 px-4 py-3 text-[15px] text-offme-text">
+          Convidado por <span className="font-bold">@{referredBy}</span>
+        </p>
+      )}
+
       {error && (
         <p className="mb-4 text-[15px] text-red-400" role="alert">
           {error}

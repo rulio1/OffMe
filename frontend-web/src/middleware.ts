@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const AUTH_PATHS = ['/login', '/signup'];
+const AUTH_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password'];
 const PUBLIC_PATHS = ['/welcome', '/terms', '/privacy', '/about'];
 
 const PROTECTED_PREFIXES = [
@@ -68,6 +68,8 @@ export const config = {
     '/welcome',
     '/login',
     '/signup',
+    '/forgot-password',
+    '/reset-password',
     '/explore',
     '/notifications',
     '/settings',

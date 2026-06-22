@@ -79,7 +79,7 @@ export function NotificationsView() {
         <Link
           key={n.id}
           href={notificationLink(n)}
-          className={`flex gap-3 border-b border-offme-border px-4 py-4 transition-colors hover:bg-black/[0.03] ${
+          className={`flex gap-3 border-b border-offme-border px-4 py-4 transition-colors hover:bg-offme-hover ${
             !n.read ? 'bg-offme-accent/5' : ''
           }`}
         >

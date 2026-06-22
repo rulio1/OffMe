@@ -107,7 +107,7 @@ export function EditProfileModal({ user, onClose, onSaved }: EditProfileModalPro
       <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-start sm:pt-16">
         <div className="max-h-[90dvh] w-full overflow-y-auto rounded-t-2xl border border-offme-border bg-offme-bg shadow-xl sm:mx-4 sm:max-w-lg sm:rounded-2xl">
           <div className="flex items-center justify-between border-b border-offme-border px-4 py-3">
-            <button onClick={onClose} className="rounded-full p-2 hover:bg-black/5">
+            <button onClick={onClose} className="rounded-full p-2 hover:bg-offme-hover">
               <X className="h-5 w-5" />
             </button>
             <h2 className="font-bold">Editar perfil</h2>

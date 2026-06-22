@@ -2,6 +2,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { RightPanel } from '@/components/layout/RightPanel';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { ComposeProvider } from '@/components/providers/ComposeProvider';
+import { OnboardingModal } from '@/components/onboarding/OnboardingModal';
 import { PushSubscribeProvider } from '@/components/providers/PushSubscribeProvider';
 import { SupabaseRealtimeProvider } from '@/components/providers/SupabaseRealtimeProvider';
 
@@ -18,6 +19,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <RightPanel />
             <MobileNav />
           </div>
+          <OnboardingModal />
         </ComposeProvider>
       </PushSubscribeProvider>
     </SupabaseRealtimeProvider>

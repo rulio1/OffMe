@@ -120,7 +120,7 @@ export function ExploreView({ initialQuery = '' }: ExploreViewProps) {
           users.map((user) => (
             <div
               key={user.id}
-              className="flex items-center gap-3 border-b border-offme-border px-4 py-3 hover:bg-black/[0.03]"
+              className="flex items-center gap-3 border-b border-offme-border px-4 py-3 hover:bg-offme-hover"
             >
               <Link href={`/profile/${user.username}`}>
                 <UserAvatar url={user.avatarUrl} size="lg" />

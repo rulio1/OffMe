@@ -26,6 +26,7 @@ export interface CreateUserInput {
   email: string;
   passwordHash: string;
   displayName: string;
+  referredById?: number;
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser | null> {
@@ -51,10 +52,16 @@ export async function findUserById(id: number): Promise<DbUser | null> {
 
 export async function createUser(input: CreateUserInput): Promise<DbUser> {
   const row = await queryOne<DbUser>(
-    `INSERT INTO users (username, email, password_hash, display_name)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO users (username, email, password_hash, display_name, referred_by_id)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING ${USER_SELECT}`,
-    [input.username, input.email.toLowerCase(), input.passwordHash, input.displayName]
+    [
+      input.username,
+      input.email.toLowerCase(),
+      input.passwordHash,
+      input.displayName,
+      input.referredById ?? null,
+    ]
   );
 
   if (!row) throw new Error('Failed to create user');

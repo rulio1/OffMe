@@ -100,12 +100,13 @@ export async function register(
   username: string,
   email: string,
   password: string,
-  displayName: string
+  displayName: string,
+  referredBy?: string
 ): Promise<AuthSession> {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password, displayName }),
+    body: JSON.stringify({ username, email, password, displayName, referredBy }),
   });
 
   if (!res.ok) await parseError(res, 'Não foi possível criar a conta');
@@ -336,6 +337,61 @@ export async function updateScheduledPost(
 export async function deactivateAccount(): Promise<void> {
   const res = await apiFetch('/users/me', { method: 'DELETE' });
   if (!res.ok) await parseError(res, 'Erro ao excluir conta');
+}
+
+export async function requestPasswordReset(email: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao enviar solicitação');
+  return res.json();
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/auth/reset-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, password }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao redefinir senha');
+  return res.json();
+}
+
+export interface NotificationPrefs {
+  pushLikes: boolean;
+  pushReplies: boolean;
+  pushFollows: boolean;
+  pushReposts: boolean;
+  pushQuotes: boolean;
+  pushDm: boolean;
+}
+
+export async function fetchNotificationPrefs(): Promise<{ prefs: NotificationPrefs }> {
+  const res = await apiFetch('/users/me/notification-prefs');
+  if (!res.ok) await parseError(res, 'Erro ao carregar preferências');
+  return res.json();
+}
+
+export async function updateNotificationPrefs(
+  prefs: Partial<NotificationPrefs>
+): Promise<{ prefs: NotificationPrefs }> {
+  const res = await apiFetch('/users/me/notification-prefs', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(prefs),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao salvar preferências');
+  return res.json();
+}
+
+export async function fetchTrendingTopics(): Promise<{
+  topics: Array<{ tag: string; postCount: number }>;
+}> {
+  const res = await apiFetch('/trending/topics');
+  if (!res.ok) await parseError(res, 'Erro ao carregar trending');
+  return res.json();
 }
 
 export type ReportReason = 'spam' | 'abuse' | 'other';

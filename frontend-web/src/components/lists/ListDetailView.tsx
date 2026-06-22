@@ -42,7 +42,7 @@ export function ListDetailView({ listId }: ListDetailViewProps) {
   return (
     <div>
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-offme-border bg-offme-bg/80 px-3 py-2 backdrop-blur-md">
-        <Link href="/lists" className="rounded-full p-2 hover:bg-black/5">
+        <Link href="/lists" className="rounded-full p-2 hover:bg-offme-hover">
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div>

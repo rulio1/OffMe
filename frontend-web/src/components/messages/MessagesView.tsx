@@ -20,7 +20,7 @@ function ConversationRow({ conversation }: { conversation: Conversation }) {
   return (
     <Link
       href={`/messages/${conversation.id}`}
-      className="flex gap-3 border-b border-offme-border px-4 py-3 transition-colors hover:bg-black/[0.03]"
+      className="flex gap-3 border-b border-offme-border px-4 py-3 transition-colors hover:bg-offme-hover"
     >
       <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-offme-surface">
         {participant.avatarUrl ? (

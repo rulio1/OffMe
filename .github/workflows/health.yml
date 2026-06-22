@@ -1,0 +1,21 @@
+name: Production Health
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check OffMe production health
+        run: |
+          URL="${HEALTH_URL:-https://offme.vercel.app/api/v1/health}"
+          echo "Checking $URL"
+          body="$(curl -sf "$URL")"
+          echo "$body"
+          echo "$body" | grep -q '"database".*"connected"' || {
+            echo "Health check failed: database not connected"
+            exit 1
+          }

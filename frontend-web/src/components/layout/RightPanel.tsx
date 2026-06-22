@@ -8,7 +8,7 @@ import useSWR from 'swr';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import { FollowButton } from '@/components/user/FollowButton';
 import { UserAvatar } from '@/components/user/UserAvatar';
-import { fetchSuggestedUsers, fetchTrendingPosts } from '@/lib/api';
+import { fetchSuggestedUsers, fetchTrendingPosts, fetchTrendingTopics } from '@/lib/api';
 import { formatPostTime } from '@/lib/format-time';
 
 function formatCount(n: number): string {
@@ -37,6 +37,10 @@ export function RightPanel() {
     revalidateOnFocus: false,
     dedupingInterval: 120_000,
   });
+  const { data: topicsData } = useSWR('trending-topics', fetchTrendingTopics, {
+    revalidateOnFocus: false,
+    dedupingInterval: 120_000,
+  });
   const { data: suggestionsData, mutate: mutateSuggestions } = useSWR(
     'user-suggestions',
     () => fetchSuggestedUsers(5),
@@ -44,6 +48,7 @@ export function RightPanel() {
   );
 
   const trending = trendingData?.posts ?? [];
+  const topics = topicsData?.topics ?? [];
   const suggestions = suggestionsData?.users ?? [];
 
   return (
@@ -65,8 +70,25 @@ export function RightPanel() {
         />
       </div>
 
+      {topics.length > 0 && (
+        <div className="overflow-hidden rounded-2xl bg-offme-surface">
+          <h2 className="px-4 py-3 text-xl font-extrabold">Assuntos do momento</h2>
+          {topics.map((topic) => (
+            <button
+              key={topic.tag}
+              type="button"
+              onClick={() => navigateToExplore(`#${topic.tag}`)}
+              className="block w-full px-4 py-3 text-left transition-colors hover:bg-offme-hover"
+            >
+              <p className="font-bold">#{topic.tag}</p>
+              <p className="text-xs text-offme-muted">{formatCount(topic.postCount)} posts · 24h</p>
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-2xl bg-offme-surface">
-        <h2 className="px-4 py-3 text-xl font-extrabold">Trending</h2>
+        <h2 className="px-4 py-3 text-xl font-extrabold">Posts em alta</h2>
         {trending.length === 0 && (
           <p className="px-4 pb-3 text-sm text-offme-muted">Nenhum post em destaque ainda.</p>
         )}
@@ -77,7 +99,7 @@ export function RightPanel() {
             <Link
               key={post.id}
               href={`/post/${post.id}`}
-              className="block w-full px-4 py-3 text-left transition-colors hover:bg-black/[0.03]"
+              className="block w-full px-4 py-3 text-left transition-colors hover:bg-offme-hover"
             >
               <p className="text-xs text-offme-muted">
                 {author ? `@${author.username}` : 'OffMe'} · {formatPostTime(post.createdAt)}
@@ -95,7 +117,7 @@ export function RightPanel() {
           <p className="px-4 pb-3 text-sm text-offme-muted">Nenhuma sugestão no momento.</p>
         )}
         {suggestions.map((user) => (
-          <div key={user.username} className="flex items-center gap-3 px-4 py-3 hover:bg-black/[0.03]">
+          <div key={user.username} className="flex items-center gap-3 px-4 py-3 hover:bg-offme-hover">
             <Link href={`/profile/${user.username}`}>
               <UserAvatar url={user.avatarUrl} size="md" />
             </Link>

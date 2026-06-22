@@ -44,7 +44,7 @@ export function ComposeSheet({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 text-offme-text transition-colors hover:bg-black/5"
+            className="rounded-full p-2 text-offme-text transition-colors hover:bg-offme-hover"
             aria-label="Fechar"
           >
             <X className="h-5 w-5" />

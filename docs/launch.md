@@ -48,6 +48,21 @@ Metadados automáticos para:
 
 Posts e perfis são **públicos para leitura** (sem login) para crawlers e visitantes.
 
+## Recuperação de senha
+
+Configure na Vercel (opcional, [Resend](https://resend.com) grátis):
+
+| Variável | Valor |
+|----------|-------|
+| `RESEND_API_KEY` | API key do Resend |
+| `RESEND_FROM` | `OffMe <noreply@seu-dominio.com>` |
+
+Sem Resend, o link de reset só aparece nos logs em desenvolvimento.
+
+## Convites
+
+Cada usuário tem link `https://offme.vercel.app/signup?ref=@username` em **Configurações → Convidar amigos**.
+
 ## Checklist de lançamento
 
 - [ ] Domínio configurado e `NEXT_PUBLIC_SITE_URL` definido

@@ -603,6 +603,7 @@ export async function getTrendingPosts(limit = 10): Promise<DbPost[]> {
      WHERE u.deactivated_at IS NULL
        AND COALESCE(p.status, 'published') = 'published'
        AND p.reply_to_id IS NULL
+       AND p.created_at > NOW() - INTERVAL '7 days'
      ORDER BY (p.like_count + p.repost_count * 2 + p.reply_count) DESC, p.created_at DESC
      LIMIT $1`,
     [limit]

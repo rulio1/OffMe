@@ -229,7 +229,7 @@ export function ModerationView() {
                     type="button"
                     onClick={() => handleReportAction(report.id, 'dismiss')}
                     disabled={busyId === report.id}
-                    className="rounded-full border border-offme-border px-3 py-1.5 text-xs font-semibold hover:bg-black/5 disabled:opacity-50"
+                    className="rounded-full border border-offme-border px-3 py-1.5 text-xs font-semibold hover:bg-offme-hover disabled:opacity-50"
                   >
                     Dispensar
                   </button>
@@ -281,7 +281,7 @@ export function ModerationView() {
                     type="button"
                     onClick={() => handleVerificationAction(req.id, 'reject')}
                     disabled={busyId === req.id}
-                    className="rounded-full border border-offme-border px-3 py-1.5 text-xs font-semibold hover:bg-black/5 disabled:opacity-50"
+                    className="rounded-full border border-offme-border px-3 py-1.5 text-xs font-semibold hover:bg-offme-hover disabled:opacity-50"
                   >
                     Rejeitar
                   </button>

@@ -9,6 +9,7 @@ import {
   UserCircle,
   Verified,
 } from 'lucide-react';
+import { InviteCard } from './InviteCard';
 import { SettingsShell } from './SettingsShell';
 
 const SECTIONS = [
@@ -53,6 +54,9 @@ const SECTIONS = [
 export function SettingsHubView() {
   return (
     <SettingsShell title="Configurações" description="Gerencie sua experiência no OffMe">
+      <div className="mb-6">
+        <InviteCard />
+      </div>
       <div className="divide-y divide-offme-border rounded-2xl border border-offme-border">
         {SECTIONS.map(({ href, icon: Icon, title, description }) => (
           <Link

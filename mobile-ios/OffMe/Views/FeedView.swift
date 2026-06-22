@@ -207,6 +207,7 @@ struct FeedView: View {
     @State private var navigateToLists = false
     @State private var navigateToCommunities = false
     @State private var navigateToVerification = false
+    @State private var showSettingsHub = false
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -272,6 +273,14 @@ struct FeedView: View {
         .navigationDestination(isPresented: $navigateToVerification) {
             VerificationSettingsView()
         }
+        .sheet(isPresented: $showSettingsHub) {
+            SettingsHubView(
+                onVerification: { navigateToVerification = true },
+                onLists: { navigateToLists = true },
+                onCommunities: { navigateToCommunities = true }
+            )
+            .environmentObject(auth)
+        }
         .sheet(isPresented: $showCompose) {
             if let token = auth.accessToken {
                 NavigationStack {
@@ -322,6 +331,10 @@ struct FeedView: View {
                     onVerification: {
                         showSideMenu = false
                         navigateToVerification = true
+                    },
+                    onSettings: {
+                        showSideMenu = false
+                        showSettingsHub = true
                     }
                 )
                     .frame(width: 280)
@@ -408,6 +421,7 @@ private struct SideMenuView: View {
     var onLists: () -> Void = {}
     var onCommunities: () -> Void = {}
     var onVerification: () -> Void = {}
+    var onSettings: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -451,6 +465,9 @@ private struct SideMenuView: View {
                 }
                 SideMenuRow(icon: "person.2", title: "Comunidades") {
                     onCommunities()
+                }
+                SideMenuRow(icon: "gearshape", title: "Configurações") {
+                    onSettings()
                 }
                 SideMenuRow(icon: "checkmark.seal", title: "Verificação") {
                     onVerification()
