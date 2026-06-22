@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import Link from 'next/link';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
+import { SettingsShell } from './SettingsShell';
 import { fetchVerificationStatus, submitVerificationRequest } from '@/lib/api';
 import { getStoredUser } from '@/lib/auth';
 import { formatPostTime } from '@/lib/format-time';
@@ -52,15 +52,7 @@ export function VerificationSettingsView() {
     request?.status !== 'pending';
 
   return (
-    <div>
-      <header className="sticky top-0 z-10 border-b border-offme-border bg-offme-bg/80 px-4 py-3 backdrop-blur-md">
-        <h1 className="text-xl font-bold">Verificação</h1>
-        <p className="mt-1 text-sm text-offme-muted">
-          Solicite o selo de verificação para sua conta
-        </p>
-      </header>
-
-      <div className="px-4 py-6">
+    <SettingsShell title="Verificação" description="Solicite o selo de verificação para sua conta">
         <div className="rounded-2xl bg-offme-surface p-4">
           <p className="font-bold">
             {user?.displayName ?? 'Usuário'}
@@ -138,10 +130,6 @@ export function VerificationSettingsView() {
           </p>
         )}
 
-        <Link href="/profile" className="mt-8 inline-block text-sm text-offme-accent hover:underline">
-          Voltar ao perfil
-        </Link>
-      </div>
-    </div>
+    </SettingsShell>
   );
 }

@@ -188,6 +188,75 @@ export async function findPostById(id: number, viewerId?: number): Promise<DbPos
   );
 }
 
+export interface DbScheduledPost extends DbPost {
+  scheduled_at: Date;
+  status: PostStatus;
+}
+
+export async function listScheduledPosts(authorId: number): Promise<DbScheduledPost[]> {
+  return query<DbScheduledPost>(
+    `${POST_SELECT}, p.scheduled_at, p.status
+     WHERE p.author_id = $1 AND p.status = 'scheduled' AND u.deactivated_at IS NULL
+     ORDER BY p.scheduled_at ASC`,
+    [authorId]
+  );
+}
+
+export async function updateScheduledPost(
+  postId: number,
+  authorId: number,
+  input: { text?: string; scheduledAt?: Date }
+): Promise<DbScheduledPost | null> {
+  const existing = await queryOne<{ id: number; status: PostStatus }>(
+    `SELECT id, status FROM posts WHERE id = $1 AND author_id = $2`,
+    [postId, authorId]
+  );
+  if (!existing || existing.status !== 'scheduled') return null;
+
+  const sets: string[] = [];
+  const params: unknown[] = [postId, authorId];
+  let idx = 3;
+
+  if (input.text !== undefined) {
+    const text = input.text.trim();
+    if (text.length < 1 || text.length > 280) {
+      throw new Error('Post deve ter entre 1 e 280 caracteres');
+    }
+    sets.push(`text = $${idx++}`);
+    params.push(text);
+  }
+
+  if (input.scheduledAt !== undefined) {
+    if (input.scheduledAt.getTime() <= Date.now()) {
+      throw new Error('Data de agendamento deve ser no futuro');
+    }
+    sets.push(`scheduled_at = $${idx++}`);
+    params.push(input.scheduledAt);
+  }
+
+  if (sets.length === 0) {
+    return queryOne<DbScheduledPost>(
+      `${POST_SELECT}, p.scheduled_at, p.status
+       WHERE p.id = $1 AND p.author_id = $2`,
+      [postId, authorId]
+    );
+  }
+
+  const updated = await queryOne<{ id: number }>(
+    `UPDATE posts SET ${sets.join(', ')}
+     WHERE id = $1 AND author_id = $2 AND status = 'scheduled'
+     RETURNING id`,
+    params
+  );
+  if (!updated) return null;
+
+  return queryOne<DbScheduledPost>(
+    `${POST_SELECT}, p.scheduled_at, p.status
+     WHERE p.id = $1 AND p.author_id = $2`,
+    [postId, authorId]
+  );
+}
+
 export async function deletePost(postId: number, authorId: number): Promise<boolean> {
   await deleteMediaForPost(postId);
 
@@ -581,6 +650,8 @@ export function toApiPost(
     quotedPost?: Post;
     poll?: Poll;
     timelineSource?: 'following' | 'repost' | 'recommended';
+    scheduledAt?: Date;
+    status?: PostStatus;
   }
 ): Post {
   const author: DbUser = {
@@ -619,6 +690,8 @@ export function toApiPost(
     ...(extra?.quotedPost ? { quotedPost: extra.quotedPost } : {}),
     ...(extra?.poll ? { poll: extra.poll } : {}),
     ...(extra?.timelineSource ? { timelineSource: extra.timelineSource } : {}),
+    ...(extra?.scheduledAt ? { scheduledAt: extra.scheduledAt.getTime() } : {}),
+    ...(extra?.status ? { status: extra.status } : {}),
   };
 }
 

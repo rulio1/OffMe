@@ -3,6 +3,24 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-offme-bg: #ffffff;
+    --color-offme-surface: #f7f9f9;
+    --color-offme-border: #eff3f4;
+    --color-offme-text: #0f1419;
+    --color-offme-muted: #536471;
+    --color-offme-hover: rgb(0 0 0 / 0.03);
+  }
+
+  .dark {
+    --color-offme-bg: #000000;
+    --color-offme-surface: #16181c;
+    --color-offme-border: #2f3336;
+    --color-offme-text: #e7e9ea;
+    --color-offme-muted: #71767b;
+    --color-offme-hover: rgb(255 255 255 / 0.06);
+  }
+
   html {
     -webkit-tap-highlight-color: transparent;
   }
@@ -15,11 +33,11 @@
 
 @layer components {
   .offme-card {
-    @apply cursor-pointer border-b border-offme-border transition-colors hover:bg-black/[0.03];
+    @apply cursor-pointer border-b border-offme-border transition-colors hover:bg-offme-hover;
   }
 
   .feed-tab {
-    @apply text-[15px] transition-colors hover:bg-black/[0.03];
+    @apply text-[15px] transition-colors hover:bg-offme-hover;
   }
 
   .feed-tab-active {
@@ -88,7 +106,7 @@
   }
 
   .auth-outline-btn {
-    @apply flex w-full items-center justify-center gap-3 rounded-full border border-offme-border px-4 py-3 text-[15px] font-bold text-offme-text transition-colors hover:bg-black/[0.03];
+    @apply flex w-full items-center justify-center gap-3 rounded-full border border-offme-border px-4 py-3 text-[15px] font-bold text-offme-text transition-colors hover:bg-offme-hover;
   }
 
   .offme-main-column {

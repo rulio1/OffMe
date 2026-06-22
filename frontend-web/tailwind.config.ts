@@ -7,11 +7,12 @@ const config: Config = {
     extend: {
       colors: {
         offme: {
-          bg: '#ffffff',
-          surface: '#f7f9f9',
-          border: '#eff3f4',
-          text: '#0f1419',
-          muted: '#536471',
+          bg: 'var(--color-offme-bg)',
+          surface: 'var(--color-offme-surface)',
+          border: 'var(--color-offme-border)',
+          text: 'var(--color-offme-text)',
+          muted: 'var(--color-offme-muted)',
+          hover: 'var(--color-offme-hover)',
           accent: '#1d9bf0',
           accentHover: '#1a8cd8',
           like: '#f91880',

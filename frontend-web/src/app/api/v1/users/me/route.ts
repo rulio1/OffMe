@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { jsonError, jsonOk } from '@/lib/api-response';
 import { getRequestUser } from '@/lib/request-auth';
-import { toPublicUser, updateUserProfile } from '@/lib/user-repository';
+import { deactivateOwnAccount, toPublicUser, updateUserProfile } from '@/lib/user-repository';
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -43,5 +43,20 @@ export async function PATCH(request: NextRequest) {
     }
     console.error('[users/me/update]', err);
     return jsonError('Erro ao atualizar perfil', 500);
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getRequestUser(request);
+    if (!user) return jsonError('Não autenticado', 401);
+
+    const deleted = await deactivateOwnAccount(user.id);
+    if (!deleted) return jsonError('Conta não encontrada', 404);
+
+    return jsonOk({ deactivated: true });
+  } catch (err) {
+    console.error('[users/me/delete]', err);
+    return jsonError('Erro ao excluir conta', 500);
   }
 }

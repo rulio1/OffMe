@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { jsonError, jsonOk } from '@/lib/api-response';
 import { getRequestUser } from '@/lib/request-auth';
 import { enrichPost } from '@/lib/post-enrichment';
-import { deletePost, findPostById } from '@/lib/post-repository';
+import { deletePost, findPostById, toApiPost, updateScheduledPost } from '@/lib/post-repository';
 
 export async function GET(
   request: NextRequest,
@@ -10,18 +10,55 @@ export async function GET(
 ) {
   try {
     const viewer = await getRequestUser(request);
-    if (!viewer) return jsonError('Não autenticado', 401);
 
     const postId = Number(params.id);
     if (!Number.isFinite(postId)) return jsonError('Post inválido', 400);
 
-    const row = await findPostById(postId, viewer.id);
+    const row = await findPostById(postId, viewer?.id);
     if (!row) return jsonError('Post não encontrado', 404);
 
-    return jsonOk(await enrichPost(row, viewer.id));
+    return jsonOk(await enrichPost(row, viewer?.id));
   } catch (err) {
     console.error('[posts/get]', err);
     return jsonError('Erro ao carregar post', 500);
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const user = await getRequestUser(request);
+    if (!user) return jsonError('Não autenticado', 401);
+
+    const postId = Number(params.id);
+    if (!Number.isFinite(postId)) return jsonError('Post inválido', 400);
+
+    const body = await request.json();
+    const input: { text?: string; scheduledAt?: Date } = {};
+
+    if (body.text !== undefined) input.text = String(body.text);
+    if (body.scheduledAt !== undefined) {
+      const scheduledAt = new Date(String(body.scheduledAt));
+      if (Number.isNaN(scheduledAt.getTime())) {
+        return jsonError('Data de agendamento inválida', 400);
+      }
+      input.scheduledAt = scheduledAt;
+    }
+
+    const updated = await updateScheduledPost(postId, user.id, input);
+    if (!updated) return jsonError('Post agendado não encontrado', 404);
+
+    return jsonOk(
+      toApiPost(updated, { scheduledAt: updated.scheduled_at, status: updated.status })
+    );
+  } catch (err) {
+    if (err instanceof Error && (err.message.includes('caracteres') || err.message.includes('futuro'))) {
+      return jsonError(err.message, 400);
+    }
+    console.error('[posts/patch]', err);
+    return jsonError('Erro ao atualizar post', 500);
   }
 }
 

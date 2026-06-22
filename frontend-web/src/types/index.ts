@@ -48,6 +48,8 @@ export interface Post {
   bookmarkedByMe?: boolean;
   repostedByMe?: boolean;
   timelineSource?: 'following' | 'repost' | 'recommended';
+  scheduledAt?: number;
+  status?: 'draft' | 'scheduled' | 'published' | 'failed';
 }
 
 export interface TimelineEntry {

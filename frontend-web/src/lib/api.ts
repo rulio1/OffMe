@@ -196,6 +196,8 @@ function normalizePost(raw: Record<string, unknown>): Post {
     bookmarkedByMe: raw.bookmarkedByMe != null ? Boolean(raw.bookmarkedByMe) : undefined,
     repostedByMe: raw.repostedByMe != null ? Boolean(raw.repostedByMe) : undefined,
     mediaUrls: Array.isArray(raw.mediaUrls) ? raw.mediaUrls.map(String) : undefined,
+    scheduledAt: raw.scheduledAt != null ? Number(raw.scheduledAt) : undefined,
+    status: raw.status != null ? (raw.status as Post['status']) : undefined,
   };
 }
 
@@ -280,6 +282,60 @@ export async function muteUser(username: string): Promise<void> {
     method: 'POST',
   });
   if (!res.ok) await parseError(res, 'Erro ao silenciar usuário');
+}
+
+export async function unblockUser(username: string): Promise<void> {
+  const res = await apiFetch(`/users/${encodeURIComponent(username)}/block`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) await parseError(res, 'Erro ao desbloquear usuário');
+}
+
+export async function unmuteUser(username: string): Promise<void> {
+  const res = await apiFetch(`/users/${encodeURIComponent(username)}/mute`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) await parseError(res, 'Erro ao remover silêncio');
+}
+
+export async function fetchBlockedUsers(): Promise<{ users: User[] }> {
+  const res = await apiFetch('/users/me/blocks');
+  if (!res.ok) await parseError(res, 'Erro ao carregar bloqueados');
+  const data = await res.json();
+  return { users: (data.users ?? []).map(normalizeUser) };
+}
+
+export async function fetchMutedUsers(): Promise<{ users: User[] }> {
+  const res = await apiFetch('/users/me/mutes');
+  if (!res.ok) await parseError(res, 'Erro ao carregar silenciados');
+  const data = await res.json();
+  return { users: (data.users ?? []).map(normalizeUser) };
+}
+
+export async function fetchScheduledPosts(): Promise<{ posts: Post[] }> {
+  const res = await apiFetch('/posts/scheduled');
+  if (!res.ok) await parseError(res, 'Erro ao carregar posts agendados');
+  const data = await res.json();
+  return { posts: (data.posts ?? []).map(normalizePost) };
+}
+
+export async function updateScheduledPost(
+  postId: number,
+  input: { text?: string; scheduledAt?: string }
+): Promise<Post> {
+  const res = await apiFetch(`/posts/${postId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao atualizar post');
+  const data = await res.json();
+  return normalizePost(data);
+}
+
+export async function deactivateAccount(): Promise<void> {
+  const res = await apiFetch('/users/me', { method: 'DELETE' });
+  if (!res.ok) await parseError(res, 'Erro ao excluir conta');
 }
 
 export type ReportReason = 'spam' | 'abuse' | 'other';

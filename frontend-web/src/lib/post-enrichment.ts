@@ -123,9 +123,17 @@ function buildExtra(
 
 export async function enrichTimelineEntries(
   rows: (DbPost | DbTimelineRow)[],
-  viewerId: number,
+  viewerId: number | undefined,
   source: 'following' | 'recommended'
 ) {
+  if (viewerId == null) {
+    return rows.map((row) => {
+      const timelineSource =
+        'timeline_source' in row ? row.timeline_source : source;
+      return toTimelineEntry(row, source, { timelineSource });
+    });
+  }
+
   const postIds = rows.map((r) => r.id);
   const maps = await loadEnrichment(viewerId, postIds);
 
@@ -136,7 +144,10 @@ export async function enrichTimelineEntries(
   });
 }
 
-export async function enrichPost(row: DbPost, viewerId: number) {
+export async function enrichPost(row: DbPost, viewerId?: number) {
+  if (viewerId == null) {
+    return toApiPost(row);
+  }
   const maps = await loadEnrichment(viewerId, [row.id]);
   return toApiPost(row, buildExtra(row.id, maps));
 }

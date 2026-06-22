@@ -143,13 +143,13 @@ export function Sidebar() {
                 Comunidades
               </Link>
               <Link
-                href="/settings/verification"
+                href="/settings"
                 role="menuitem"
                 onClick={() => setMoreOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-black/5"
+                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
-                <XNavIcon name="profile" className="h-5 w-5" />
-                Verificação
+                <XNavIcon name="more" className="h-5 w-5" />
+                Configurações
               </Link>
               <button
                 type="button"

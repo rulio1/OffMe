@@ -202,6 +202,18 @@ export async function findUserByUsernameIncludingSuspended(
   );
 }
 
+export async function deactivateOwnAccount(userId: number): Promise<boolean> {
+  const row = await queryOne<{ id: number }>(
+    `UPDATE users
+     SET deactivated_at = NOW(),
+         updated_at = NOW()
+     WHERE id = $1 AND deactivated_at IS NULL
+     RETURNING id`,
+    [userId]
+  );
+  return Boolean(row);
+}
+
 export async function listSuggestedUsers(viewerId: number, limit = 5): Promise<DbUser[]> {
   return query<DbUser>(
     `SELECT ${USER_SELECT}

@@ -29,6 +29,37 @@ export async function unmuteUser(muterId: number, mutedId: number): Promise<void
   await query(`DELETE FROM mutes WHERE muter_id = $1 AND muted_id = $2`, [muterId, mutedId]);
 }
 
+export interface ModerationUserRow {
+  id: number;
+  username: string;
+  display_name: string;
+  avatar_url: string | null;
+  verified: boolean;
+  created_at: Date;
+}
+
+export async function listBlockedUsers(blockerId: number): Promise<ModerationUserRow[]> {
+  return query<ModerationUserRow>(
+    `SELECT u.id, u.username, u.display_name, u.avatar_url, u.verified, b.created_at
+     FROM blocks b
+     JOIN users u ON u.id = b.blocked_id
+     WHERE b.blocker_id = $1 AND u.deactivated_at IS NULL
+     ORDER BY b.created_at DESC`,
+    [blockerId]
+  );
+}
+
+export async function listMutedUsers(muterId: number): Promise<ModerationUserRow[]> {
+  return query<ModerationUserRow>(
+    `SELECT u.id, u.username, u.display_name, u.avatar_url, u.verified, m.created_at
+     FROM mutes m
+     JOIN users u ON u.id = m.muted_id
+     WHERE m.muter_id = $1 AND u.deactivated_at IS NULL
+     ORDER BY m.created_at DESC`,
+    [muterId]
+  );
+}
+
 export async function isBlocked(blockerId: number, blockedId: number): Promise<boolean> {
   const row = await queryOne<{ exists: boolean }>(
     `SELECT EXISTS(

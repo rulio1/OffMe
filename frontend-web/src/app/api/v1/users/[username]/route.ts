@@ -10,17 +10,16 @@ export async function GET(
 ) {
   try {
     const viewer = await getRequestUser(request);
-    if (!viewer) return jsonError('Não autenticado', 401);
 
     const user = await findUserByUsername(params.username);
     if (!user) return jsonError('Usuário não encontrado', 404);
 
     const following =
-      user.id !== viewer.id ? await isFollowing(viewer.id, user.id) : false;
+      viewer && user.id !== viewer.id ? await isFollowing(viewer.id, user.id) : false;
 
     return jsonOk({
       user: toPublicUser(user, { isFollowing: following }),
-      isOwnProfile: user.id === viewer.id,
+      isOwnProfile: viewer ? user.id === viewer.id : false,
     });
   } catch (err) {
     console.error('[users/get]', err);
