@@ -13,6 +13,7 @@ const NAV = [
   { href: '/settings/appearance', label: 'Aparência' },
   { href: '/settings/account', label: 'Conta' },
   { href: '/settings/verification', label: 'Verificação' },
+  { href: '/settings/feedback', label: 'Feedback' },
 ];
 
 export function SettingsShell({

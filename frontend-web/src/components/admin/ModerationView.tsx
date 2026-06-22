@@ -4,6 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import {
+  fetchAdminFeedback,
   fetchAdminReports,
   fetchAdminVerificationRequests,
   reviewVerificationRequest,
@@ -13,7 +14,13 @@ import {
 } from '@/lib/api';
 import { formatPostTime } from '@/lib/format-time';
 
-type AdminTab = 'reports' | 'verification';
+type AdminTab = 'reports' | 'verification' | 'feedback';
+
+const FEEDBACK_LABELS: Record<string, string> = {
+  bug: 'Bug',
+  idea: 'Ideia',
+  general: 'Geral',
+};
 
 export function ModerationView() {
   const [tab, setTab] = useState<AdminTab>('reports');
@@ -34,11 +41,20 @@ export function ModerationView() {
     revalidateOnFocus: false,
   });
 
+  const {
+    data: feedbackData,
+    error: feedbackError,
+  } = useSWR(tab === 'feedback' ? 'admin-feedback' : null, () => fetchAdminFeedback(50), {
+    revalidateOnFocus: false,
+  });
+
   const reports = reportsData?.reports ?? [];
   const verificationRequests = verificationData?.requests ?? [];
+  const feedbackItems = feedbackData?.feedback ?? [];
   const accessDenied =
     reportsError?.message?.includes('negado') ||
-    verificationError?.message?.includes('negado');
+    verificationError?.message?.includes('negado') ||
+    feedbackError?.message?.includes('negado');
 
   const handleReportAction = async (reportId: number, action: 'resolve' | 'dismiss') => {
     setBusyId(reportId);
@@ -114,7 +130,13 @@ export function ModerationView() {
       <header className="sticky top-0 z-10 border-b border-offme-border bg-offme-bg/80 px-4 py-3 backdrop-blur-md">
         <h1 className="text-xl font-bold">Moderação</h1>
         <div className="mt-3 flex gap-6">
-          {(['reports', 'verification'] as const).map((item) => (
+          {(
+            [
+              ['reports', 'Denúncias'],
+              ['verification', 'Verificação'],
+              ['feedback', 'Beta'],
+            ] as const
+          ).map(([item, label]) => (
             <button
               key={item}
               type="button"
@@ -125,7 +147,7 @@ export function ModerationView() {
                   : 'pb-3 text-offme-muted hover:text-offme-text'
               }
             >
-              {item === 'reports' ? 'Denúncias' : 'Verificação'}
+              {label}
             </button>
           ))}
         </div>
@@ -235,6 +257,48 @@ export function ModerationView() {
                   </button>
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'feedback' && (
+        <div>
+          {feedbackItems.length === 0 && (
+            <p className="px-4 py-8 text-center text-offme-muted">Nenhum feedback recebido ainda.</p>
+          )}
+          {feedbackItems.map((item) => (
+            <div key={item.id} className="border-b border-offme-border px-4 py-4">
+              <p className="text-sm text-offme-muted">
+                #{item.id} · {FEEDBACK_LABELS[item.category] ?? item.category} ·{' '}
+                {formatPostTime(item.createdAt)}
+              </p>
+              {item.username ? (
+                <p className="mt-1 text-sm">
+                  De{' '}
+                  <Link
+                    href={`/profile/${item.username}`}
+                    className="font-bold text-offme-accent hover:underline"
+                  >
+                    {item.displayName ?? item.username} (@{item.username})
+                  </Link>
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-offme-muted">Anônimo / sem login</p>
+              )}
+              <p className="mt-2 whitespace-pre-wrap rounded-xl bg-offme-surface p-3 text-sm">
+                {item.message}
+              </p>
+              {item.pageUrl && (
+                <a
+                  href={item.pageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block text-sm text-offme-accent hover:underline"
+                >
+                  Ver página
+                </a>
+              )}
             </div>
           ))}
         </div>

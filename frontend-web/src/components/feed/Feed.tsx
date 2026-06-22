@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import useSWRInfinite from 'swr/infinite';
 import { Composer } from '@/components/composer/Composer';
 import { ComposeFab } from '@/components/composer/ComposeFab';
+import { FeedEmptyState } from '@/components/feed/FeedEmptyState';
 import { FeedHeader } from '@/components/feed/FeedHeader';
 import { useCompose } from '@/components/providers/ComposeProvider';
 import { PostCard } from '@/components/post/PostCard';
@@ -112,10 +113,7 @@ export function Feed() {
           </div>
         )}
         {!isLoading && !error && posts.length === 0 && (
-          <div className="px-4 py-16 text-center">
-            <p className="text-xl font-extrabold text-offme-text">Nenhum post ainda</p>
-            <p className="mt-2 text-[15px] text-offme-muted">Seja o primeiro a publicar algo.</p>
-          </div>
+          <FeedEmptyState onCompose={() => openCompose({ onPostCreated: handlePostCreated })} />
         )}
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />

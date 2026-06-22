@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   Bell,
   CalendarClock,
+  MessageSquareHeart,
   Palette,
   Shield,
   UserCircle,
@@ -48,6 +49,12 @@ const SECTIONS = [
     icon: Verified,
     title: 'Verificação',
     description: 'Solicitar selo de conta verificada',
+  },
+  {
+    href: '/settings/feedback',
+    icon: MessageSquareHeart,
+    title: 'Feedback beta',
+    description: 'Reportar bugs, enviar ideias e sugestões',
   },
 ];
 

@@ -37,6 +37,10 @@ export function WelcomeView() {
       <main className="mx-auto max-w-5xl px-4 pb-20 pt-8 md:px-8 md:pt-16">
         <div className="grid gap-12 md:grid-cols-2 md:items-center">
           <div>
+            <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-offme-accent/30 bg-offme-accent/10 px-4 py-1.5 text-sm font-bold text-offme-accent">
+              <span className="h-2 w-2 rounded-full bg-offme-accent" aria-hidden />
+              Beta aberto — participe e ajude a moldar o OffMe
+            </p>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-6xl">
               Desconecte do ruído.
               <span className="block text-offme-accent">Conecte com o que importa.</span>
@@ -47,7 +51,7 @@ export function WelcomeView() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/signup" className="offme-btn-primary px-8 py-3 text-lg">
-                Começar agora
+                Entrar no beta
               </Link>
               <Link
                 href="/login"
@@ -56,6 +60,9 @@ export function WelcomeView() {
                 Já tenho conta
               </Link>
             </div>
+            <p className="mt-4 text-sm text-offme-muted">
+              Testadores podem enviar feedback em Configurações → Feedback beta após criar conta.
+            </p>
           </div>
 
           <div className="rounded-3xl border border-offme-border bg-offme-surface p-6 md:p-8">

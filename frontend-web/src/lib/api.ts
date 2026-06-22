@@ -687,6 +687,39 @@ export interface VerificationRequestInfo {
   reviewedAt?: number;
 }
 
+export type FeedbackCategory = 'bug' | 'idea' | 'general';
+
+export interface BetaFeedbackItem {
+  id: number;
+  category: FeedbackCategory;
+  message: string;
+  pageUrl?: string;
+  createdAt: number;
+  username?: string;
+  displayName?: string;
+}
+
+export async function submitFeedback(input: {
+  category: FeedbackCategory;
+  message: string;
+  pageUrl?: string;
+}): Promise<{ id: number; received: boolean }> {
+  const res = await apiFetch('/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao enviar feedback');
+  return res.json();
+}
+
+export async function fetchAdminFeedback(limit = 50): Promise<{ feedback: BetaFeedbackItem[] }> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  const res = await apiFetch(`/admin/feedback?${params}`);
+  if (!res.ok) await parseError(res, 'Erro ao carregar feedback');
+  return res.json();
+}
+
 export async function fetchAdminReports(): Promise<{ reports: AdminReport[] }> {
   const res = await apiFetch('/admin/reports');
   if (!res.ok) await parseError(res, 'Erro ao carregar denúncias');

@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /welcome
+Allow: /post/
+Allow: /profile/
+Disallow: /api/
+Disallow: /settings/
+Disallow: /messages/
+Disallow: /moderation/
+
+Sitemap: https://offme.vercel.app/sitemap.xml

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { enforceRateLimit } from '@/lib/api-guard';
 import { jsonError, jsonOk } from '@/lib/api-response';
 import { hashPassword, issueAuthTokens } from '@/lib/auth-server';
+import { sendWelcomeEmail } from '@/lib/email';
 import { createUser, findUserByEmail, findUserByUsername } from '@/lib/user-repository';
 import {
   normalizeEmail,
@@ -57,6 +58,12 @@ export async function POST(request: NextRequest) {
 
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
     const tokens = await issueAuthTokens(user, ip);
+
+    void sendWelcomeEmail({
+      to: user.email,
+      displayName: user.display_name,
+      username: user.username,
+    });
 
     return jsonOk(tokens, 201);
   } catch (err) {
