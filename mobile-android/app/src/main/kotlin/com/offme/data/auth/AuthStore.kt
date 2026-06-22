@@ -128,6 +128,8 @@ class AuthStore(
         put("bannerUrl", user.bannerUrl)
         put("verified", user.verified)
         put("bio", user.bio)
+        put("location", user.location)
+        put("websiteUrl", user.websiteUrl)
         put("followerCount", user.followerCount)
         put("followingCount", user.followingCount)
         put("isFollowing", user.isFollowing)
@@ -143,6 +145,8 @@ class AuthStore(
             bannerUrl = obj.optString("bannerUrl").ifBlank { null },
             verified = obj.optBoolean("verified"),
             bio = obj.optString("bio").ifBlank { null },
+            location = obj.optString("location").ifBlank { null },
+            websiteUrl = obj.optString("websiteUrl").ifBlank { null },
             followerCount = obj.optInt("followerCount").takeIf { obj.has("followerCount") && !obj.isNull("followerCount") },
             followingCount = obj.optInt("followingCount").takeIf { obj.has("followingCount") && !obj.isNull("followingCount") },
             isFollowing = obj.optBoolean("isFollowing").takeIf { obj.has("isFollowing") && !obj.isNull("isFollowing") },

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Image, BarChart2, Smile, Calendar, MapPin, X } from 'lucide-react';
 import { createPost, uploadImage } from '@/lib/api';
 import { getStoredUser } from '@/lib/auth';
@@ -12,6 +12,12 @@ const MAX_LENGTH = 280;
 const MAX_IMAGES = 4;
 const MIN_POLL_OPTIONS = 2;
 const MAX_POLL_OPTIONS = 4;
+
+const EMOJI_GRID = [
+  '😀', '😂', '🥰', '😍', '🤔', '😮', '😢', '😡',
+  '👍', '👏', '🙌', '🔥', '❤️', '💯', '✨', '🎉',
+  '🚀', '💡', '📍', '☕', '🌟', '😎', '🤝', '👀',
+];
 
 interface PendingImage {
   id: string;
@@ -43,8 +49,33 @@ export function Composer({
   const [uploading, setUploading] = useState(false);
   const [pollMode, setPollMode] = useState(false);
   const [pollOptions, setPollOptions] = useState(['', '']);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
+  const [locationText, setLocationText] = useState('');
+  const [scheduleToast, setScheduleToast] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const emojiRef = useRef<HTMLDivElement>(null);
+  const locationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
+        setEmojiOpen(false);
+      }
+      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+        setLocationOpen(false);
+      }
+    };
+    if (emojiOpen || locationOpen) document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [emojiOpen, locationOpen]);
+
+  useEffect(() => {
+    if (!scheduleToast) return;
+    const timer = window.setTimeout(() => setScheduleToast(''), 2500);
+    return () => window.clearTimeout(timer);
+  }, [scheduleToast]);
 
   const remaining = MAX_LENGTH - text.length;
   const expanded =
@@ -164,6 +195,41 @@ export function Composer({
     if (pollOptions.length > MIN_POLL_OPTIONS) {
       setPollOptions((prev) => prev.filter((_, i) => i !== index));
     }
+  };
+
+  const insertAtCursor = (value: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setText((prev) => prev + value);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const next = text.slice(0, start) + value + text.slice(end);
+    setText(next);
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const pos = start + value.length;
+      textarea.setSelectionRange(pos, pos);
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    });
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    insertAtCursor(emoji);
+    setEmojiOpen(false);
+  };
+
+  const handleLocationConfirm = () => {
+    const trimmed = locationText.trim();
+    if (!trimmed) return;
+    const suffix = text.length > 0 && !text.endsWith(' ') ? ' ' : '';
+    insertAtCursor(`${suffix}📍 ${trimmed}`);
+    setLocationText('');
+    setLocationOpen(false);
   };
 
   return (
@@ -301,23 +367,86 @@ export function Composer({
                 >
                   <BarChart2 className="h-5 w-5" />
                 </button>
-                <button type="button" className="post-action post-action-reply" aria-label="Emoji">
-                  <Smile className="h-5 w-5" />
-                </button>
+                <div ref={emojiRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmojiOpen((v) => !v);
+                      setLocationOpen(false);
+                    }}
+                    className={clsx('post-action post-action-reply', emojiOpen && 'text-offme-accent')}
+                    aria-label="Emoji"
+                    aria-expanded={emojiOpen}
+                  >
+                    <Smile className="h-5 w-5" />
+                  </button>
+                  {emojiOpen && (
+                    <div className="absolute bottom-full left-0 z-20 mb-2 w-56 rounded-xl border border-offme-border bg-offme-bg p-2 shadow-lg">
+                      <div className="grid grid-cols-8 gap-0.5">
+                        {EMOJI_GRID.map((emoji) => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => handleEmojiSelect(emoji)}
+                            className="rounded p-1 text-lg hover:bg-black/5"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
+                  onClick={() => setScheduleToast('Em breve')}
                   className="post-action post-action-reply hidden md:inline-flex"
                   aria-label="Agendar"
+                  title="Em breve"
                 >
                   <Calendar className="h-5 w-5" />
                 </button>
-                <button
-                  type="button"
-                  className="post-action post-action-reply hidden lg:inline-flex"
-                  aria-label="Localização"
-                >
-                  <MapPin className="h-5 w-5" />
-                </button>
+                <div ref={locationRef} className="relative hidden lg:block">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocationOpen((v) => !v);
+                      setEmojiOpen(false);
+                    }}
+                    className={clsx('post-action post-action-reply', locationOpen && 'text-offme-accent')}
+                    aria-label="Localização"
+                    aria-expanded={locationOpen}
+                  >
+                    <MapPin className="h-5 w-5" />
+                  </button>
+                  {locationOpen && (
+                    <div className="absolute bottom-full left-0 z-20 mb-2 w-64 rounded-xl border border-offme-border bg-offme-bg p-3 shadow-lg">
+                      <label className="text-xs font-semibold text-offme-muted">Localização</label>
+                      <input
+                        value={locationText}
+                        onChange={(e) => setLocationText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleLocationConfirm();
+                          }
+                        }}
+                        placeholder="Cidade, lugar..."
+                        maxLength={80}
+                        className="mt-1 w-full rounded-lg border border-offme-border bg-offme-surface px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-offme-accent"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={handleLocationConfirm}
+                        disabled={!locationText.trim()}
+                        className="mt-2 w-full rounded-full bg-offme-accent py-1.5 text-sm font-bold text-white hover:bg-offme-accentHover disabled:opacity-50"
+                      >
+                        Adicionar
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-3">
@@ -351,6 +480,12 @@ export function Composer({
           )}
         </div>
       </div>
+
+      {scheduleToast && (
+        <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-offme-text px-4 py-2 text-sm font-medium text-offme-bg shadow-lg">
+          {scheduleToast}
+        </div>
+      )}
     </div>
   );
 }

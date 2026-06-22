@@ -275,7 +275,9 @@ export async function muteUser(username: string): Promise<void> {
   if (!res.ok) await parseError(res, 'Erro ao silenciar usuário');
 }
 
-export async function reportPost(postId: number, reason = 'spam'): Promise<void> {
+export type ReportReason = 'spam' | 'abuse' | 'other';
+
+export async function reportPost(postId: number, reason: ReportReason): Promise<void> {
   const res = await apiFetch(`/posts/${postId}/report`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -530,6 +532,92 @@ export async function fetchMessages(
       isMine: Boolean(m.isMine),
     })),
   };
+}
+
+export interface AdminReport {
+  id: number;
+  reporterId: number;
+  reporterUsername: string;
+  reporterDisplayName: string;
+  targetType: 'post' | 'user';
+  targetId: number;
+  reason: string;
+  status: string;
+  createdAt: number;
+  postText?: string;
+  postAuthorUsername?: string;
+}
+
+export interface VerificationRequestInfo {
+  id: number;
+  status: 'pending' | 'approved' | 'rejected';
+  reason: string;
+  createdAt: number;
+  reviewedAt?: number;
+}
+
+export async function fetchAdminReports(): Promise<{ reports: AdminReport[] }> {
+  const res = await apiFetch('/admin/reports');
+  if (!res.ok) await parseError(res, 'Erro ao carregar denúncias');
+  return res.json();
+}
+
+export async function updateAdminReport(
+  reportId: number,
+  action: 'resolve' | 'dismiss'
+): Promise<void> {
+  const res = await apiFetch(`/admin/reports/${reportId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao atualizar denúncia');
+}
+
+export async function fetchVerificationStatus(): Promise<{
+  request: VerificationRequestInfo | null;
+  verified?: boolean;
+}> {
+  const res = await apiFetch('/verification/request');
+  if (!res.ok) await parseError(res, 'Erro ao carregar verificação');
+  return res.json();
+}
+
+export async function submitVerificationRequest(reason: string): Promise<void> {
+  const res = await apiFetch('/verification/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao enviar solicitação');
+}
+
+export async function fetchAdminVerificationRequests(): Promise<{
+  requests: Array<{
+    id: number;
+    userId: number;
+    username: string;
+    displayName: string;
+    reason: string;
+    status: string;
+    createdAt: number;
+  }>;
+}> {
+  const res = await apiFetch('/admin/verification');
+  if (!res.ok) await parseError(res, 'Erro ao carregar solicitações');
+  return res.json();
+}
+
+export async function reviewVerificationRequest(
+  requestId: number,
+  action: 'approve' | 'reject'
+): Promise<void> {
+  const res = await apiFetch(`/admin/verification/${requestId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao revisar solicitação');
 }
 
 export async function sendMessage(

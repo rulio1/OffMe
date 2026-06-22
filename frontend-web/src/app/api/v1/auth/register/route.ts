@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { enforceRateLimit } from '@/lib/api-guard';
 import { jsonError, jsonOk } from '@/lib/api-response';
 import { hashPassword, issueAuthTokens } from '@/lib/auth-server';
 import { createUser, findUserByEmail, findUserByUsername } from '@/lib/user-repository';
@@ -11,6 +12,9 @@ import {
 } from '@/lib/validators';
 
 export async function POST(request: NextRequest) {
+  const limited = enforceRateLimit(request, 'auth-register', 10, 60_000);
+  if (limited) return limited;
+
   try {
     const body = await request.json();
     const username = String(body.username ?? '').trim().toLowerCase();

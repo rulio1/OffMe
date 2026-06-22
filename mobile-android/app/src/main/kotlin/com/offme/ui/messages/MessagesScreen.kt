@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,7 +34,9 @@ import com.offme.OffMeApp
 import com.offme.data.api.ApiClient
 import com.offme.data.auth.AuthStore
 import com.offme.data.models.ConversationSummary
+import com.offme.data.realtime.SupabaseRealtimeClient
 import com.offme.ui.components.UserAvatar
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +44,7 @@ import kotlinx.coroutines.launch
 fun MessagesScreen(
     authStore: AuthStore,
     api: ApiClient = OffMeApp.instance.apiClient,
-    onNavigateToProfile: (String) -> Unit,
+    onNavigateToConversation: (Int) -> Unit,
 ) {
     val token = authStore.session.collectAsState().value?.accessToken
     var conversations by remember { mutableStateOf<List<ConversationSummary>>(emptyList()) }
@@ -65,6 +68,26 @@ fun MessagesScreen(
     }
 
     LaunchedEffect(token) { load() }
+
+    DisposableEffect(token) {
+        val t = token
+        if (t != null && SupabaseRealtimeClient.isConfigured) {
+            SupabaseRealtimeClient.instance.subscribe(
+                channelKey = "messages",
+                table = "direct_messages",
+                filter = "",
+                accessToken = t,
+            ) {
+                scope.launch {
+                    delay(400)
+                    load()
+                }
+            }
+        }
+        onDispose {
+            SupabaseRealtimeClient.instance.unsubscribe("messages")
+        }
+    }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Mensagens") }) }) { padding ->
         when {
@@ -99,7 +122,7 @@ fun MessagesScreen(
                         items(conversations, key = { it.id }) { conversation ->
                             ConversationRow(
                                 conversation = conversation,
-                                onClick = { onNavigateToProfile(conversation.participant.username) },
+                                onClick = { onNavigateToConversation(conversation.id) },
                             )
                         }
                     }

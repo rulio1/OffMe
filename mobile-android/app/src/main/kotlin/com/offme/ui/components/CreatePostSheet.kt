@@ -27,6 +27,7 @@ fun CreatePostSheet(
     visible: Boolean,
     api: ApiClient,
     token: String,
+    replyToId: Int? = null,
     onDismiss: () -> Unit,
     onCreated: () -> Unit,
 ) {
@@ -44,7 +45,7 @@ fun CreatePostSheet(
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Text(
-                text = "Novo post",
+                text = if (replyToId == null) "Novo post" else "Responder",
                 style = MaterialTheme.typography.titleLarge,
             )
 
@@ -78,7 +79,7 @@ fun CreatePostSheet(
                         posting = true
                         error = null
                         try {
-                            api.createPost(token, trimmed)
+                            api.createPost(token, trimmed, replyToId)
                             text = ""
                             onCreated()
                             onDismiss()

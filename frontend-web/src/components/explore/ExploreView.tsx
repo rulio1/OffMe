@@ -13,9 +13,13 @@ import type { Post, User } from '@/types';
 
 type SearchTab = 'top' | 'people';
 
-export function ExploreView() {
-  const [query, setQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+interface ExploreViewProps {
+  initialQuery?: string;
+}
+
+export function ExploreView({ initialQuery = '' }: ExploreViewProps) {
+  const [query, setQuery] = useState(initialQuery);
+  const [debouncedQuery, setDebouncedQuery] = useState(initialQuery.trim());
   const [tab, setTab] = useState<SearchTab>('top');
 
   useEffect(() => {

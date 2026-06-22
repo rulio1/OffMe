@@ -10,6 +10,7 @@ import com.offme.data.models.RegisterBody
 import com.offme.data.models.RefreshBody
 import com.offme.data.models.SendMessageBody
 import com.offme.data.models.StartConversationBody
+import com.offme.data.models.UpdateProfileBody
 import com.offme.data.models.User
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -104,6 +105,26 @@ class ApiClient {
         service.createPost(bearer(token), CreatePostBody(text, replyToId, null))
     }
 
+    suspend fun fetchPost(token: String, postId: Int): Post = safeCall {
+        service.fetchPost(bearer(token), postId)
+    }
+
+    suspend fun fetchPostReplies(token: String, postId: Int, cursor: String? = null) = safeCall {
+        service.fetchPostReplies(bearer(token), postId, cursor)
+    }
+
+    suspend fun deletePost(token: String, postId: Int) = safeCall {
+        service.deletePost(bearer(token), postId)
+    }
+
+    suspend fun searchPosts(token: String, query: String): List<Post> = safeCall {
+        service.searchPosts(bearer(token), query).posts
+    }
+
+    suspend fun fetchTrendingPosts(token: String): List<Post> = safeCall {
+        service.fetchTrendingPosts(bearer(token)).posts
+    }
+
     suspend fun fetchBookmarks(token: String, cursor: String? = null) = safeCall {
         service.fetchBookmarks(bearer(token), cursor)
     }
@@ -114,6 +135,24 @@ class ApiClient {
 
     suspend fun userProfile(token: String, username: String) = safeCall {
         service.userProfile(bearer(token), username)
+    }
+
+    suspend fun updateProfile(
+        token: String,
+        displayName: String?,
+        bio: String?,
+        location: String? = null,
+        websiteUrl: String? = null,
+    ): User = safeCall {
+        service.updateProfile(
+            bearer(token),
+            UpdateProfileBody(
+                displayName = displayName,
+                bio = bio,
+                location = location,
+                websiteUrl = websiteUrl,
+            ),
+        ).user
     }
 
     suspend fun userPosts(token: String, username: String) = safeCall {
@@ -142,6 +181,14 @@ class ApiClient {
 
     suspend fun unrepostPost(token: String, postId: Int) = safeCall {
         service.unrepostPost(bearer(token), postId)
+    }
+
+    suspend fun bookmarkPost(token: String, postId: Int) = safeCall {
+        service.bookmarkPost(bearer(token), postId)
+    }
+
+    suspend fun unbookmarkPost(token: String, postId: Int) = safeCall {
+        service.unbookmarkPost(bearer(token), postId)
     }
 
     suspend fun fetchNotifications(token: String) = safeCall {

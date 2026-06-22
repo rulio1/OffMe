@@ -20,7 +20,7 @@ function getConfig() {
   return { endpoint, accessKey, secretKey, bucket, publicUrl };
 }
 
-function useLocalUploads(): boolean {
+function shouldUseLocalUploads(): boolean {
   if (process.env.USE_LOCAL_UPLOADS === 'true') {
     return true;
   }
@@ -32,7 +32,7 @@ function useLocalUploads(): boolean {
   return process.env.S3_ENDPOINT === 'local';
 }
 
-function useImgBB(): boolean {
+function shouldUseImgBB(): boolean {
   return !!process.env.IMGBB_API_KEY;
 }
 
@@ -138,11 +138,11 @@ export async function uploadImage(
   buffer: Buffer,
   mimeType: string
 ): Promise<{ url: string; storageKey: string }> {
-  if (useLocalUploads()) {
+  if (shouldUseLocalUploads()) {
     return uploadImageLocal(userId, buffer, mimeType);
   }
 
-  if (useImgBB()) {
+  if (shouldUseImgBB()) {
     return uploadImageImgBB(userId, buffer, mimeType);
   }
 

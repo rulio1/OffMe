@@ -58,3 +58,47 @@ export async function createReport(input: {
   if (!row) throw new Error('Falha ao criar denúncia');
   return row;
 }
+
+export interface DbReport {
+  id: number;
+  reporter_id: number;
+  target_type: 'post' | 'user';
+  target_id: number;
+  reason: string;
+  status: 'open' | 'resolved' | 'dismissed';
+  created_at: Date;
+  reporter_username: string;
+  reporter_display_name: string;
+  post_text?: string | null;
+  post_author_username?: string | null;
+}
+
+export async function listOpenReports(limit = 50): Promise<DbReport[]> {
+  return query<DbReport>(
+    `SELECT r.id, r.reporter_id, r.target_type, r.target_id, r.reason, r.status, r.created_at,
+            ru.username AS reporter_username, ru.display_name AS reporter_display_name,
+            p.text AS post_text, au.username AS post_author_username
+     FROM reports r
+     JOIN users ru ON ru.id = r.reporter_id
+     LEFT JOIN posts p ON r.target_type = 'post' AND p.id = r.target_id
+     LEFT JOIN users au ON p.author_id = au.id
+     WHERE r.status = 'open'
+     ORDER BY r.created_at DESC
+     LIMIT $1`,
+    [limit]
+  );
+}
+
+export async function updateReportStatus(
+  reportId: number,
+  status: 'resolved' | 'dismissed'
+): Promise<boolean> {
+  const row = await queryOne<{ id: number }>(
+    `UPDATE reports
+     SET status = $2, resolved_at = NOW()
+     WHERE id = $1 AND status = 'open'
+     RETURNING id`,
+    [reportId, status]
+  );
+  return Boolean(row);
+}

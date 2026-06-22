@@ -10,6 +10,8 @@ data class User(
     @SerializedName("bannerUrl") val bannerUrl: String? = null,
     val verified: Boolean = false,
     val bio: String? = null,
+    val location: String? = null,
+    @SerializedName("websiteUrl") val websiteUrl: String? = null,
     @SerializedName("followerCount") val followerCount: Int? = null,
     @SerializedName("followingCount") val followingCount: Int? = null,
     @SerializedName("isFollowing") val isFollowing: Boolean? = null,
@@ -60,6 +62,19 @@ data class ProfileResponse(
 
 data class SearchUsersResponse(
     val users: List<User> = emptyList(),
+)
+
+data class SearchPostsResponse(
+    val posts: List<Post> = emptyList(),
+)
+
+data class UpdateProfileBody(
+    @SerializedName("displayName") val displayName: String? = null,
+    val bio: String? = null,
+    @SerializedName("avatarUrl") val avatarUrl: String? = null,
+    @SerializedName("bannerUrl") val bannerUrl: String? = null,
+    val location: String? = null,
+    @SerializedName("websiteUrl") val websiteUrl: String? = null,
 )
 
 data class FollowUserResponse(

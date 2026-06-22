@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { enforceRateLimit } from '@/lib/api-guard';
 import { jsonError, jsonOk } from '@/lib/api-response';
 import { getRequestUser } from '@/lib/request-auth';
 import { createReport } from '@/lib/moderation-repository';
@@ -8,6 +9,9 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const limited = enforceRateLimit(request, 'posts-report', 20, 60_000);
+  if (limited) return limited;
+
   try {
     const user = await getRequestUser(request);
     if (!user) return jsonError('Não autenticado', 401);

@@ -41,6 +41,9 @@
 		A10000000000000000000053 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000052 /* SupabaseConfig.swift */; };
 		A10000000000000000000055 /* SupabaseRealtimeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000054 /* SupabaseRealtimeClient.swift */; };
 		A10000000000000000000057 /* AuthScreenLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000056 /* AuthScreenLayout.swift */; };
+		A10000000000000000000059 /* FeaturePlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000058 /* FeaturePlaceholderView.swift */; };
+		A1000000000000000000005B /* ListsPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005A /* ListsPlaceholderView.swift */; };
+		A1000000000000000000005D /* CommunitiesPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005C /* CommunitiesPlaceholderView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -80,6 +83,9 @@
 		A10000000000000000000052 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		A10000000000000000000054 /* SupabaseRealtimeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseRealtimeClient.swift; sourceTree = "<group>"; };
 		A10000000000000000000056 /* AuthScreenLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthScreenLayout.swift; sourceTree = "<group>"; };
+		A10000000000000000000058 /* FeaturePlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturePlaceholderView.swift; sourceTree = "<group>"; };
+		A1000000000000000000005A /* ListsPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListsPlaceholderView.swift; sourceTree = "<group>"; };
+		A1000000000000000000005C /* CommunitiesPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunitiesPlaceholderView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -174,6 +180,9 @@
 				A10000000000000000000045 /* BottomTabBar.swift */,
 				A1000000000000000000004B /* XNavIcons.swift */,
 				A1000000000000000000004D /* BookmarksView.swift */,
+				A1000000000000000000005A /* ListsPlaceholderView.swift */,
+				A1000000000000000000005C /* CommunitiesPlaceholderView.swift */,
+				A10000000000000000000058 /* FeaturePlaceholderView.swift */,
 				A10000000000000000000047 /* ImageCropView.swift */,
 				A1000000000000000000001E /* MainTabView.swift */,
 				A1000000000000000000001F /* ProfileView.swift */,
@@ -273,6 +282,9 @@
 				A1000000000000000000002E /* LiquidGlass.swift in Sources */,
 				A10000000000000000000007 /* RootView.swift in Sources */,
 				A10000000000000000000057 /* AuthScreenLayout.swift in Sources */,
+				A10000000000000000000059 /* FeaturePlaceholderView.swift in Sources */,
+				A1000000000000000000005B /* ListsPlaceholderView.swift in Sources */,
+				A1000000000000000000005D /* CommunitiesPlaceholderView.swift in Sources */,
 				A10000000000000000000008 /* LoginView.swift in Sources */,
 				A10000000000000000000009 /* SignupView.swift in Sources */,
 				A1000000000000000000000A /* FeedView.swift in Sources */,

@@ -6,12 +6,13 @@ const AUTH_PATHS = ['/login', '/signup'];
 const PROTECTED_PREFIXES = [
   '/',
   '/explore',
-
   '/notifications',
   '/messages',
   '/bookmarks',
   '/profile',
   '/post',
+  '/settings',
+  '/moderation',
 ];
 
 export function middleware(request: NextRequest) {
@@ -43,8 +44,10 @@ export const config = {
     '/login',
     '/signup',
     '/explore',
-  
     '/notifications',
+    '/settings',
+    '/settings/:path*',
+    '/moderation',
     '/messages',
     '/messages/:path*',
     '/bookmarks',

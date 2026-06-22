@@ -11,8 +11,8 @@ OffMe/
 ├── backend-rust/            # High-performance recs serving
 ├── backend-python/          # ML model training
 ├── frontend-web/            # Next.js 14 web client
-├── mobile-ios/              # Swift iOS (stub)
-├── mobile-android/          # Kotlin Android (stub)
+├── mobile-ios/              # SwiftUI iOS client (feed, auth, profile, …)
+├── mobile-android/          # Kotlin Android client (mirrors iOS core flows)
 └── infra/                   # Docker Compose, Prometheus, Grafana
 ```
 
@@ -188,10 +188,63 @@ Engineering practices from real X:
 - **Dashboards**: Grafana at `:3001` (admin/offme)
 - **Logging**: Structured JSON → ELK (configure in production)
 
-## Mobile (Stubs)
+## Production (MVP)
 
-- `mobile-ios/` — Swift native client (URLSession + WebSocket)
-- `mobile-android/` — Kotlin native client (OkHttp + WebSocket)
+The live MVP runs on **Next.js API Routes** + **PostgreSQL** (Supabase/Neon), deployed to Vercel:
+
+| | |
+|---|---|
+| **Web** | https://offme.vercel.app |
+| **API** | https://offme.vercel.app/api/v1 |
+| **Health** | `GET /api/v1/health` |
+
+### Deploy
+
+```bash
+# Guided setup (env + Vercel)
+make deploy-wizard
+
+# Or manual: see docs/deploy.md
+make migrate-prod          # apply SQL migrations to production DB
+make deploy-vercel           # deploy frontend-web to Vercel
+make deploy-check URL=https://offme.vercel.app
+```
+
+**Important:** In Vercel, set **Root Directory** to `frontend-web` (monorepo). Full guide: [docs/deploy.md](docs/deploy.md).
+
+### Database migrations
+
+```bash
+export DATABASE_URL="postgresql://...@...-pooler.../offme?sslmode=require"
+make migrate-prod
+```
+
+Migrations live in `schemas/postgres/`. Run after every schema change and before first deploy.
+
+## Mobile
+
+Native clients consume the same REST API as the web app.
+
+### iOS (`mobile-ios/`)
+
+SwiftUI app with auth, feed (For You / Following), compose, bookmarks, explore, notifications, messages, and profile. Production API: `https://offme.vercel.app/api/v1`.
+
+```bash
+make ios          # simulator (auto-detects Mac IP for local dev)
+make ios-ipa      # production IPA build
+```
+
+See [mobile-ios/README.md](mobile-ios/README.md).
+
+### Android (`mobile-android/`)
+
+Kotlin + Jetpack Compose client mirroring iOS core flows (auth, feed, explore, bookmarks, notifications, messages, profile).
+
+```bash
+cd mobile-android && ./gradlew :app:assembleDebug
+```
+
+See [mobile-android/README.md](mobile-android/README.md).
 
 ## Development
 

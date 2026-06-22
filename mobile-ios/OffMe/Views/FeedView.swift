@@ -204,6 +204,8 @@ struct FeedView: View {
     @State private var showSideMenu = false
     @State private var navigateToBookmarks = false
     @State private var navigateToProfile = false
+    @State private var navigateToLists = false
+    @State private var navigateToCommunities = false
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -260,6 +262,12 @@ struct FeedView: View {
                 ProfileView(username: username)
             }
         }
+        .navigationDestination(isPresented: $navigateToLists) {
+            ListsPlaceholderView()
+        }
+        .navigationDestination(isPresented: $navigateToCommunities) {
+            CommunitiesPlaceholderView()
+        }
         .sheet(isPresented: $showCompose) {
             if let token = auth.accessToken {
                 NavigationStack {
@@ -297,6 +305,14 @@ struct FeedView: View {
                     onBookmarks: {
                         showSideMenu = false
                         navigateToBookmarks = true
+                    },
+                    onLists: {
+                        showSideMenu = false
+                        navigateToLists = true
+                    },
+                    onCommunities: {
+                        showSideMenu = false
+                        navigateToCommunities = true
                     }
                 )
                     .frame(width: 280)
@@ -380,6 +396,8 @@ private struct SideMenuView: View {
     @Environment(\.dismiss) private var dismiss
     var onProfile: () -> Void = {}
     var onBookmarks: () -> Void = {}
+    var onLists: () -> Void = {}
+    var onCommunities: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -419,10 +437,10 @@ private struct SideMenuView: View {
                     onBookmarks()
                 }
                 SideMenuRow(icon: "list.bullet", title: "Listas") {
-                    dismiss()
+                    onLists()
                 }
                 SideMenuRow(icon: "person.2", title: "Comunidades") {
-                    dismiss()
+                    onCommunities()
                 }
             }
             .padding(.vertical, 8)

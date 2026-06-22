@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import useSWR from 'swr';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
@@ -16,6 +18,21 @@ function formatCount(n: number): string {
 }
 
 export function RightPanel() {
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
+
+  const navigateToExplore = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    router.push(`/explore?q=${encodeURIComponent(trimmed)}`);
+  };
+
   const { data: trendingData } = useSWR('trending-posts', fetchTrendingPosts, {
     revalidateOnFocus: false,
     dedupingInterval: 120_000,
@@ -35,6 +52,14 @@ export function RightPanel() {
         <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-offme-muted" />
         <input
           type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              navigateToExplore(debouncedQuery || searchQuery);
+            }
+          }}
           placeholder="Buscar no OffMe"
           className="w-full rounded-full bg-offme-surface py-3 pl-12 pr-4 text-offme-text outline-none ring-1 ring-transparent focus:ring-offme-accent"
         />
@@ -91,7 +116,20 @@ export function RightPanel() {
       </div>
 
       <footer className="px-4 text-xs text-offme-muted">
-        <p>© 2026 OffMe · Privacidade · Termos · Sobre</p>
+        <p>
+          © 2026 OffMe ·{' '}
+          <Link href="/privacy" className="hover:underline">
+            Privacidade
+          </Link>{' '}
+          ·{' '}
+          <Link href="/terms" className="hover:underline">
+            Termos
+          </Link>{' '}
+          ·{' '}
+          <Link href="/about" className="hover:underline">
+            Sobre
+          </Link>
+        </p>
       </footer>
     </aside>
   );

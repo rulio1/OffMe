@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     if (!user) return jsonError('Não autenticado', 401);
 
     const cursor = request.nextUrl.searchParams.get('cursor') ?? undefined;
-    const { rows, nextCursor } = await listForYou(cursor);
+    const { rows, nextCursor } = await listForYou(user.id, cursor);
     const entries = await enrichTimelineEntries(rows, user.id, 'recommended');
     return jsonOk({ entries, nextCursor });
   } catch (err) {

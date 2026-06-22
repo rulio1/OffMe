@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { register } from '@/lib/api';
@@ -147,9 +148,18 @@ export function SignupForm() {
 
       <p className="mt-4 text-[11px] leading-relaxed text-offme-muted">
         Ao se inscrever, você concorda com os{' '}
-        <span className="text-offme-accent">Termos de Serviço</span> e a{' '}
-        <span className="text-offme-accent">Política de Privacidade</span>, incluindo o{' '}
-        <span className="text-offme-accent">Uso de Cookies</span>.
+        <Link href="/terms" className="text-offme-accent hover:underline">
+          Termos de Serviço
+        </Link>{' '}
+        e a{' '}
+        <Link href="/privacy" className="text-offme-accent hover:underline">
+          Política de Privacidade
+        </Link>
+        , incluindo o{' '}
+        <Link href="/privacy#cookies" className="text-offme-accent hover:underline">
+          Uso de Cookies
+        </Link>
+        .
       </p>
     </form>
   );

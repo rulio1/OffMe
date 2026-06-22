@@ -21,8 +21,11 @@ import com.offme.ui.components.BottomNavBarWithDivider
 import com.offme.ui.components.OffMeTab
 import com.offme.ui.explore.ExploreScreen
 import com.offme.ui.feed.FeedScreen
+import com.offme.ui.messages.ConversationThreadScreen
 import com.offme.ui.messages.MessagesScreen
 import com.offme.ui.notifications.NotificationsScreen
+import com.offme.ui.post.PostThreadScreen
+import com.offme.ui.profile.EditProfileScreen
 import com.offme.ui.profile.ProfileScreen
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -34,6 +37,9 @@ fun MainScreen(
     var selected by rememberSaveable { mutableStateOf(OffMeTab.Home) }
     var unreadNotifications by remember { mutableIntStateOf(0) }
     var profileUsername by remember { mutableStateOf<String?>(null) }
+    var conversationId by remember { mutableStateOf<Int?>(null) }
+    var postThreadId by remember { mutableStateOf<Int?>(null) }
+    var showEditProfile by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -50,12 +56,51 @@ fun MainScreen(
         profileUsername = username
     }
 
+    val navigateToConversation: (Int) -> Unit = { id ->
+        conversationId = id
+    }
+
+    val navigateToPost: (Int) -> Unit = { id ->
+        postThreadId = id
+    }
+
+    if (showEditProfile) {
+        EditProfileScreen(
+            authStore = authStore,
+            onBack = { showEditProfile = false },
+        )
+        return
+    }
+
+    if (conversationId != null) {
+        ConversationThreadScreen(
+            conversationId = conversationId!!,
+            authStore = authStore,
+            onBack = { conversationId = null },
+        )
+        return
+    }
+
+    if (postThreadId != null) {
+        PostThreadScreen(
+            postId = postThreadId!!,
+            authStore = authStore,
+            onBack = { postThreadId = null },
+            onNavigateToProfile = navigateToProfile,
+            onNavigateToPost = navigateToPost,
+        )
+        return
+    }
+
     if (profileUsername != null) {
         ProfileScreen(
             username = profileUsername!!,
             authStore = authStore,
             onBack = { profileUsername = null },
             onNavigateToProfile = { profileUsername = it },
+            onNavigateToConversation = navigateToConversation,
+            onNavigateToPost = navigateToPost,
+            onEditProfile = { showEditProfile = true },
         )
         return
     }
@@ -92,14 +137,19 @@ fun MainScreen(
                     OffMeTab.Home -> FeedScreen(
                         authStore = authStore,
                         onNavigateToProfile = navigateToProfile,
+                        onNavigateToPost = navigateToPost,
+                        onNavigateToBookmarks = { selected = OffMeTab.Bookmarks },
+                        onLogout = { authStore.logout() },
                     )
                     OffMeTab.Explore -> ExploreScreen(
                         authStore = authStore,
                         onNavigateToProfile = navigateToProfile,
+                        onNavigateToPost = navigateToPost,
                     )
                     OffMeTab.Bookmarks -> BookmarksScreen(
                         authStore = authStore,
                         onNavigateToProfile = navigateToProfile,
+                        onNavigateToPost = navigateToPost,
                     )
                     OffMeTab.Notifications -> NotificationsScreen(
                         authStore = authStore,
@@ -108,7 +158,7 @@ fun MainScreen(
                     )
                     OffMeTab.Messages -> MessagesScreen(
                         authStore = authStore,
-                        onNavigateToProfile = navigateToProfile,
+                        onNavigateToConversation = navigateToConversation,
                     )
                 }
             }

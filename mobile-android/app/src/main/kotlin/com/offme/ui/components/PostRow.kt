@@ -1,7 +1,9 @@
 package com.offme.ui.components
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,15 +14,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -33,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -49,19 +61,34 @@ fun PostRow(
     post: Post,
     api: ApiClient,
     token: String?,
+    currentUserId: Int? = null,
     onAuthorClick: (String) -> Unit = {},
+    onPostClick: (Int) -> Unit = {},
+    onDeleted: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
+    var dismissed by remember(post.id) { mutableStateOf(false) }
+    if (dismissed) return
+
     var liked by remember(post.id) { mutableStateOf(post.likedByMe ?: false) }
     var likeCount by remember(post.id) { mutableIntStateOf(post.likeCount) }
     var reposted by remember(post.id) { mutableStateOf(post.repostedByMe ?: false) }
     var repostCount by remember(post.id) { mutableIntStateOf(post.repostCount) }
+    var bookmarked by remember(post.id) { mutableStateOf(post.bookmarkedByMe ?: false) }
     var liking by remember(post.id) { mutableStateOf(false) }
     var reposting by remember(post.id) { mutableStateOf(false) }
+    var bookmarking by remember(post.id) { mutableStateOf(false) }
+    var deleting by remember(post.id) { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val authorName = post.author?.resolvedDisplayName ?: "Usuário"
     val username = post.author?.username ?: "usuario"
+    val isOwnPost = currentUserId != null &&
+        (post.authorId == currentUserId || post.author?.id == currentUserId)
+    val shareUrl = "https://offme.vercel.app/post/${post.id}"
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (post.timelineSource == "repost") {
@@ -103,6 +130,36 @@ fun PostRow(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
+                    Spacer(Modifier.weight(1f))
+                    Box {
+                        IconButton(onClick = { showMenu = true }, modifier = Modifier.size(32.dp)) {
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "Mais opções",
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            )
+                        }
+                        DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                            if (isOwnPost) {
+                                DropdownMenuItem(
+                                    text = { Text("Excluir post") },
+                                    onClick = {
+                                        showMenu = false
+                                        showDeleteConfirm = true
+                                    },
+                                    enabled = !deleting,
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text("Ocultar post") },
+                                onClick = {
+                                    showMenu = false
+                                    dismissed = true
+                                },
+                            )
+                        }
+                    }
                 }
 
                 if (post.text.isNotBlank()) {
@@ -127,6 +184,7 @@ fun PostRow(
                         icon = Icons.Outlined.ChatBubbleOutline,
                         count = post.replyCount,
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        onClick = { onPostClick(post.id) },
                     )
 
                     PostAction(
@@ -188,9 +246,88 @@ fun PostRow(
                             }
                         } else null,
                     )
+
+                    PostAction(
+                        icon = Icons.Default.Share,
+                        count = 0,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        onClick = {
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, shareUrl)
+                            }
+                            context.startActivity(Intent.createChooser(intent, "Compartilhar post"))
+                        },
+                    )
+
+                    PostAction(
+                        icon = if (bookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                        count = 0,
+                        tint = if (bookmarked) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        },
+                        onClick = if (token != null && !bookmarking) {
+                            {
+                                scope.launch {
+                                    bookmarking = true
+                                    val wasBookmarked = bookmarked
+                                    bookmarked = !wasBookmarked
+                                    try {
+                                        val result = if (wasBookmarked) {
+                                            api.unbookmarkPost(token, post.id)
+                                        } else {
+                                            api.bookmarkPost(token, post.id)
+                                        }
+                                        bookmarked = result.bookmarkedByMe
+                                    } catch (_: Exception) {
+                                        bookmarked = wasBookmarked
+                                    } finally {
+                                        bookmarking = false
+                                    }
+                                }
+                            }
+                        } else null,
+                    )
                 }
             }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Excluir este post?") },
+            text = { Text("Esta ação não pode ser desfeita.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirm = false
+                        val t = token ?: return@TextButton
+                        scope.launch {
+                            deleting = true
+                            try {
+                                api.deletePost(t, post.id)
+                                dismissed = true
+                                onDeleted()
+                            } catch (_: Exception) {
+                                // Keep post visible on failure.
+                            } finally {
+                                deleting = false
+                            }
+                        }
+                    },
+                ) {
+                    Text("Excluir", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
     }
 }
 

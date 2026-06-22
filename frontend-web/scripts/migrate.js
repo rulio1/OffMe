@@ -70,6 +70,7 @@ async function main() {
     '008_supabase_realtime.sql',
     '009_perf_indexes.sql',
     '010_moderation_polls_quotes.sql',
+    '011_verification_admin.sql',
   ];
 
   const root = path.join(__dirname, '..', '..');

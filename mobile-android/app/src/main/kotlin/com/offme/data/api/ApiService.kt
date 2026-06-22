@@ -16,11 +16,14 @@ import com.offme.data.models.ProfileResponse
 import com.offme.data.models.RefreshBody
 import com.offme.data.models.RegisterBody
 import com.offme.data.models.RepostPostResponse
+import com.offme.data.models.SearchPostsResponse
 import com.offme.data.models.SearchUsersResponse
 import com.offme.data.models.SendMessageBody
 import com.offme.data.models.StartConversationBody
 import com.offme.data.models.StartConversationResponse
 import com.offme.data.models.TimelineResponse
+import com.offme.data.models.UpdateProfileBody
+import com.offme.data.models.UpdateUserResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -66,6 +69,31 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("postId") postId: Int,
     ): Post
+
+    @GET("posts/{postId}/replies")
+    suspend fun fetchPostReplies(
+        @Header("Authorization") token: String,
+        @Path("postId") postId: Int,
+        @Query("cursor") cursor: String? = null,
+    ): TimelineResponse
+
+    @DELETE("posts/{postId}")
+    suspend fun deletePost(
+        @Header("Authorization") token: String,
+        @Path("postId") postId: Int,
+    ): Map<String, Any?>
+
+    @GET("posts/search")
+    suspend fun searchPosts(
+        @Header("Authorization") token: String,
+        @Query("q") query: String,
+    ): SearchPostsResponse
+
+    @GET("posts/search")
+    suspend fun fetchTrendingPosts(
+        @Header("Authorization") token: String,
+        @Query("trending") trending: String = "1",
+    ): SearchPostsResponse
 
     @POST("posts/{postId}/like")
     suspend fun likePost(
@@ -120,6 +148,12 @@ interface ApiService {
         @Header("Authorization") token: String,
         @Path("username") username: String,
     ): ProfileResponse
+
+    @PATCH("users/me")
+    suspend fun updateProfile(
+        @Header("Authorization") token: String,
+        @Body body: UpdateProfileBody,
+    ): UpdateUserResponse
 
     @GET("users/{username}/posts")
     suspend fun userPosts(

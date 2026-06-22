@@ -14,6 +14,8 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         buildConfigField("String", "API_BASE_URL", "\"https://offme.vercel.app/api/v1\"")
+        buildConfigField("String", "SUPABASE_URL", "\"https://mojmkhuafptpvwrprxqg.supabase.co\"")
+        buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable__3x5fSHfdWSMtQ3xAKNB9A_u25kjxIA\"")
     }
 
     buildFeatures {

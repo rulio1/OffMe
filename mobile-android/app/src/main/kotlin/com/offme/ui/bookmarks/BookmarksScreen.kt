@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -42,8 +43,10 @@ fun BookmarksScreen(
     authStore: AuthStore,
     api: ApiClient = OffMeApp.instance.apiClient,
     onNavigateToProfile: (String) -> Unit,
+    onNavigateToPost: (Int) -> Unit = {},
 ) {
-    val token = authStore.session.collectAsState().value?.accessToken
+    val session by authStore.session.collectAsState()
+    val token = session?.accessToken
     var posts by remember { mutableStateOf<List<Post>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var isLoadingMore by remember { mutableStateOf(false) }
@@ -154,7 +157,9 @@ fun BookmarksScreen(
                                 post = post,
                                 api = api,
                                 token = token,
+                                currentUserId = session?.user?.id,
                                 onAuthorClick = onNavigateToProfile,
+                                onPostClick = onNavigateToPost,
                             )
                             PostDivider()
                         }

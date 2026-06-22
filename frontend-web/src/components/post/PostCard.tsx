@@ -166,7 +166,14 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
   const [dismissed, setDismissed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
+  const [reportMode, setReportMode] = useState(false);
   const [shareLabel, setShareLabel] = useState('');
+
+  const REPORT_REASONS = [
+    { value: 'spam' as const, label: 'Spam' },
+    { value: 'abuse' as const, label: 'Abuso ou assédio' },
+    { value: 'other' as const, label: 'Outro' },
+  ];
 
   const timeLabel = formatPostTime(post.createdAt);
   const viewCount = Math.max(post.likeCount * 3 + post.replyCount * 2, post.likeCount);
@@ -317,12 +324,13 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
     }
   };
 
-  const handleReport = async () => {
+  const handleReport = async (reason: 'spam' | 'abuse' | 'other') => {
     if (menuBusy) return;
     setMenuBusy(true);
     try {
-      await reportPost(post.id);
+      await reportPost(post.id, reason);
       setMenuOpen(false);
+      setReportMode(false);
     } catch {
       // ignore
     } finally {
@@ -379,7 +387,10 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setMenuOpen((v) => !v);
+                  setMenuOpen((v) => {
+                    if (v) setReportMode(false);
+                    return !v;
+                  });
                 }}
                 className="rounded-full p-1 text-offme-muted transition-colors hover:bg-black/5 hover:text-offme-text"
                 aria-label="Mais opções"
@@ -431,16 +442,44 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                       </button>
                     </>
                   )}
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={handleReport}
-                    disabled={menuBusy}
-                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
-                  >
-                    <Flag className="h-4 w-4" />
-                    Denunciar post
-                  </button>
+                  {!reportMode ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => setReportMode(true)}
+                      disabled={menuBusy}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                    >
+                      <Flag className="h-4 w-4" />
+                      Denunciar post
+                    </button>
+                  ) : (
+                    <>
+                      <p className="px-4 py-2 text-xs font-semibold text-offme-muted">
+                        Motivo da denúncia
+                      </p>
+                      {REPORT_REASONS.map((item) => (
+                        <button
+                          key={item.value}
+                          type="button"
+                          role="menuitem"
+                          onClick={() => handleReport(item.value)}
+                          disabled={menuBusy}
+                          className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => setReportMode(false)}
+                        className="flex w-full px-4 py-2 text-left text-xs text-offme-muted hover:bg-black/5"
+                      >
+                        Voltar
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>

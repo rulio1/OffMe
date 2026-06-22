@@ -20,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -58,14 +59,19 @@ fun ProfileScreen(
     api: ApiClient = OffMeApp.instance.apiClient,
     onBack: () -> Unit,
     onNavigateToProfile: (String) -> Unit,
+    onNavigateToConversation: (Int) -> Unit = {},
+    onNavigateToPost: (Int) -> Unit = {},
+    onEditProfile: () -> Unit = {},
 ) {
-    val token = authStore.session.collectAsState().value?.accessToken
+    val session by authStore.session.collectAsState()
+    val token = session?.accessToken
     var user by remember(username) { mutableStateOf<User?>(null) }
     var isOwnProfile by remember(username) { mutableStateOf(false) }
     var posts by remember(username) { mutableStateOf<List<Post>>(emptyList()) }
     var isLoading by remember(username) { mutableStateOf(false) }
     var error by remember(username) { mutableStateOf<String?>(null) }
     var isFollowing by remember(username) { mutableStateOf(false) }
+    var startingDm by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun load() {
@@ -129,9 +135,25 @@ fun ProfileScreen(
                                 user = profileUser,
                                 isOwnProfile = isOwnProfile,
                                 isFollowing = isFollowing,
+                                startingDm = startingDm,
                                 api = api,
                                 token = token,
                                 onFollowingChanged = { isFollowing = it },
+                                onEditProfile = onEditProfile,
+                                onMessage = {
+                                    val t = token ?: return@ProfileHeader
+                                    scope.launch {
+                                        startingDm = true
+                                        try {
+                                            val conversation = api.startConversation(t, profileUser.username)
+                                            onNavigateToConversation(conversation.id)
+                                        } catch (e: Exception) {
+                                            error = e.message
+                                        } finally {
+                                            startingDm = false
+                                        }
+                                    }
+                                },
                             )
                             PostDivider()
                         }
@@ -155,7 +177,10 @@ fun ProfileScreen(
                                     post = post,
                                     api = api,
                                     token = token,
+                                    currentUserId = session?.user?.id,
                                     onAuthorClick = onNavigateToProfile,
+                                    onPostClick = onNavigateToPost,
+                                    onDeleted = { load() },
                                 )
                                 PostDivider()
                             }
@@ -172,9 +197,12 @@ private fun ProfileHeader(
     user: User,
     isOwnProfile: Boolean,
     isFollowing: Boolean,
+    startingDm: Boolean,
     api: ApiClient,
     token: String?,
     onFollowingChanged: (Boolean) -> Unit,
+    onEditProfile: () -> Unit,
+    onMessage: () -> Unit,
 ) {
     Column {
         Box(
@@ -206,15 +234,31 @@ private fun ProfileHeader(
                 modifier = Modifier.offset(y = (-36).dp),
             )
 
-            if (!isOwnProfile && token != null) {
-                FollowButton(
-                    username = user.username,
-                    isFollowing = isFollowing,
-                    api = api,
-                    token = token,
-                    onUserUpdated = onFollowingChanged,
+            if (isOwnProfile) {
+                OutlinedButton(
+                    onClick = onEditProfile,
                     modifier = Modifier.padding(top = 8.dp),
-                )
+                ) {
+                    Text("Editar perfil")
+                }
+            } else if (token != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = onMessage,
+                        enabled = !startingDm,
+                        modifier = Modifier.padding(top = 8.dp),
+                    ) {
+                        Text(if (startingDm) "..." else "Mensagem")
+                    }
+                    FollowButton(
+                        username = user.username,
+                        isFollowing = isFollowing,
+                        api = api,
+                        token = token,
+                        onUserUpdated = onFollowingChanged,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
             }
         }
 
@@ -227,6 +271,14 @@ private fun ProfileHeader(
             user.bio?.takeIf { it.isNotBlank() }?.let {
                 Spacer(Modifier.height(8.dp))
                 Text(it)
+            }
+            user.location?.takeIf { it.isNotBlank() }?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(it, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            }
+            user.websiteUrl?.takeIf { it.isNotBlank() }?.let {
+                Spacer(Modifier.height(4.dp))
+                Text(it, color = MaterialTheme.colorScheme.primary)
             }
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {

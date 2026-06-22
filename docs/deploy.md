@@ -2,6 +2,10 @@
 
 O MVP roda inteiro no **Next.js** (API Routes + PostgreSQL + S3). Duas opções:
 
+**Produção atual:** https://offme.vercel.app — API em `/api/v1`.
+
+> **Monorepo:** na Vercel, o **Root Directory** deve ser `frontend-web` (não a raiz do repositório). Sem isso o build falha.
+
 ## Opção A — Vercel + Neon + Cloudflare R2 (recomendado)
 
 | Serviço | Função | Plano gratuito |

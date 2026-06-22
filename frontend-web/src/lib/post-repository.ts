@@ -176,14 +176,26 @@ export async function listReplies(
   };
 }
 
-export async function listForYou(cursor?: string, limit = PAGE_SIZE): Promise<PaginatedPosts> {
-  const { sql, params } = buildCursorClause(cursor, 2);
+export async function listForYou(
+  viewerId: number,
+  cursor?: string,
+  limit = PAGE_SIZE
+): Promise<PaginatedPosts> {
+  const { sql, params } = buildCursorClause(cursor, 3);
   const rows = await query<DbPost>(
     `${POST_SELECT}
-     WHERE u.deactivated_at IS NULL${sql}
+     WHERE u.deactivated_at IS NULL
+       AND p.author_id NOT IN (
+         SELECT blocked_id FROM blocks WHERE blocker_id = $1
+         UNION
+         SELECT blocker_id FROM blocks WHERE blocked_id = $1
+       )
+       AND p.author_id NOT IN (
+         SELECT muted_id FROM mutes WHERE muter_id = $1
+       )${sql}
      ORDER BY p.created_at DESC, p.id DESC
-     LIMIT $1`,
-    [limit, ...params]
+     LIMIT $2`,
+    [viewerId, limit, ...params]
   );
 
   const last = rows[rows.length - 1];
