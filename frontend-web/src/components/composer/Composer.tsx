@@ -5,10 +5,13 @@ import { Image, BarChart2, Smile, Calendar, MapPin, X } from 'lucide-react';
 import { createPost, uploadImage } from '@/lib/api';
 import { getStoredUser } from '@/lib/auth';
 import { UserAvatar } from '@/components/user/UserAvatar';
+import type { Post } from '@/types';
 import clsx from 'clsx';
 
 const MAX_LENGTH = 280;
 const MAX_IMAGES = 4;
+const MIN_POLL_OPTIONS = 2;
+const MAX_POLL_OPTIONS = 4;
 
 interface PendingImage {
   id: string;
@@ -19,12 +22,16 @@ interface PendingImage {
 interface ComposerProps {
   onPostCreated?: () => void;
   replyToId?: number;
+  quoteOfId?: number;
+  quotedPost?: Post;
   placeholder?: string;
 }
 
 export function Composer({
   onPostCreated,
   replyToId,
+  quoteOfId,
+  quotedPost,
   placeholder = 'O que está acontecendo?',
 }: ComposerProps) {
   const user = getStoredUser();
@@ -34,13 +41,18 @@ export function Composer({
   const [error, setError] = useState('');
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [pollMode, setPollMode] = useState(false);
+  const [pollOptions, setPollOptions] = useState(['', '']);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const remaining = MAX_LENGTH - text.length;
-  const expanded = focused || text.length > 0 || pendingImages.length > 0;
+  const expanded =
+    focused || text.length > 0 || pendingImages.length > 0 || pollMode || Boolean(quotedPost);
+  const validPollOptions = pollOptions.map((o) => o.trim()).filter(Boolean);
+  const hasValidPoll = pollMode && validPollOptions.length >= MIN_POLL_OPTIONS;
   const canPost =
-    (text.trim().length > 0 || pendingImages.length > 0) &&
+    (text.trim().length > 0 || pendingImages.length > 0 || hasValidPoll || Boolean(quoteOfId)) &&
     remaining >= 0 &&
     !isSubmitting &&
     !uploading;
@@ -50,9 +62,19 @@ export function Composer({
     setIsSubmitting(true);
     setError('');
     try {
-      await createPost(text.trim(), replyToId, pendingImages.map((img) => img.id));
+      await createPost(
+        text.trim(),
+        replyToId,
+        pollMode ? undefined : pendingImages.map((img) => img.id),
+        {
+          quoteOfId,
+          pollOptions: hasValidPoll ? validPollOptions : undefined,
+        }
+      );
       setText('');
       setFocused(false);
+      setPollMode(false);
+      setPollOptions(['', '']);
       setPendingImages((prev) => {
         prev.forEach((img) => URL.revokeObjectURL(img.preview));
         return [];
@@ -115,6 +137,35 @@ export function Composer({
     });
   };
 
+  const togglePollMode = () => {
+    if (pollMode) {
+      setPollMode(false);
+      setPollOptions(['', '']);
+    } else {
+      setPollMode(true);
+      setPendingImages((prev) => {
+        prev.forEach((img) => URL.revokeObjectURL(img.preview));
+        return [];
+      });
+    }
+  };
+
+  const updatePollOption = (index: number, value: string) => {
+    setPollOptions((prev) => prev.map((o, i) => (i === index ? value : o)));
+  };
+
+  const addPollOption = () => {
+    if (pollOptions.length < MAX_POLL_OPTIONS) {
+      setPollOptions((prev) => [...prev, '']);
+    }
+  };
+
+  const removePollOption = (index: number) => {
+    if (pollOptions.length > MIN_POLL_OPTIONS) {
+      setPollOptions((prev) => prev.filter((_, i) => i !== index));
+    }
+  };
+
   return (
     <div className="border-b border-offme-border px-4 py-3">
       <div className="flex gap-3">
@@ -127,15 +178,31 @@ export function Composer({
             </div>
           )}
 
+          {quotedPost && (
+            <div className="mb-3 rounded-xl border border-offme-border p-3 text-sm">
+              <p className="font-bold">
+                {quotedPost.author?.displayName ?? 'Usuário'}
+                <span className="ml-1 font-normal text-offme-muted">
+                  @{quotedPost.author?.username ?? 'user'}
+                </span>
+              </p>
+              <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-offme-muted">
+                {quotedPost.text}
+              </p>
+            </div>
+          )}
+
           <textarea
             ref={textareaRef}
             value={text}
             onChange={handleInput}
             onFocus={() => setFocused(true)}
             onBlur={() => {
-              if (!text.trim() && pendingImages.length === 0) setFocused(false);
+              if (!text.trim() && pendingImages.length === 0 && !pollMode && !quotedPost) {
+                setFocused(false);
+              }
             }}
-            placeholder={placeholder}
+            placeholder={quoteOfId ? 'Adicione um comentário' : placeholder}
             rows={expanded ? 3 : 1}
             maxLength={MAX_LENGTH + 50}
             className={clsx(
@@ -167,6 +234,41 @@ export function Composer({
             </div>
           )}
 
+          {pollMode && (
+            <div className="mt-3 space-y-2 rounded-xl border border-offme-border p-3">
+              {pollOptions.map((option, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    value={option}
+                    onChange={(e) => updatePollOption(index, e.target.value)}
+                    maxLength={25}
+                    placeholder={`Opção ${index + 1}`}
+                    className="flex-1 rounded-lg border border-offme-border bg-offme-surface px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-offme-accent"
+                  />
+                  {pollOptions.length > MIN_POLL_OPTIONS && (
+                    <button
+                      type="button"
+                      onClick={() => removePollOption(index)}
+                      className="rounded-full p-1 text-offme-muted hover:bg-black/5"
+                      aria-label="Remover opção"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {pollOptions.length < MAX_POLL_OPTIONS && (
+                <button
+                  type="button"
+                  onClick={addPollOption}
+                  className="text-sm font-semibold text-offme-accent hover:underline"
+                >
+                  Adicionar opção
+                </button>
+              )}
+            </div>
+          )}
+
           {expanded && (
             <div className="mt-3 flex items-center justify-between border-t border-offme-border pt-3">
               <div className="flex text-offme-accent">
@@ -181,7 +283,7 @@ export function Composer({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading || pendingImages.length >= MAX_IMAGES}
+                  disabled={uploading || pendingImages.length >= MAX_IMAGES || pollMode}
                   className="post-action post-action-reply disabled:opacity-40"
                   aria-label="Adicionar imagem"
                 >
@@ -189,7 +291,12 @@ export function Composer({
                 </button>
                 <button
                   type="button"
-                  className="post-action post-action-reply hidden sm:inline-flex"
+                  onClick={togglePollMode}
+                  disabled={Boolean(quoteOfId)}
+                  className={clsx(
+                    'post-action post-action-reply hidden sm:inline-flex',
+                    pollMode && 'text-offme-accent'
+                  )}
                   aria-label="Enquete"
                 >
                   <BarChart2 className="h-5 w-5" />

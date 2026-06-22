@@ -4,7 +4,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Link2, MapPin } from 'lucide-react';
 import { PostCard } from '@/components/post/PostCard';
 import { FollowButton } from '@/components/user/FollowButton';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
@@ -153,6 +153,28 @@ export function ProfileView({ username }: ProfileViewProps) {
           </h2>
           <p className="text-offme-muted">@{user.username}</p>
           {user.bio && <p className="mt-3 text-[15px]">{user.bio}</p>}
+          {(user.location || user.websiteUrl) && (
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-offme-muted">
+              {user.location && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-4 w-4" />
+                  {user.location}
+                </span>
+              )}
+              {user.websiteUrl && (
+                <a
+                  href={user.websiteUrl.startsWith('http') ? user.websiteUrl : `https://${user.websiteUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-offme-accent hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Link2 className="h-4 w-4" />
+                  {user.websiteUrl.replace(/^https?:\/\//, '')}
+                </a>
+              )}
+            </div>
+          )}
           <div className="mt-3 flex gap-4 text-sm text-offme-muted">
             <span>
               <strong className="text-offme-text">{formatCount(user.followingCount ?? 0)}</strong>{' '}

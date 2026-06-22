@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,24 +11,37 @@ import {
   BarChart2,
   Bookmark,
   Share,
-  X,
+  MoreHorizontal,
+  Trash2,
+  Ban,
+  VolumeX,
+  Flag,
+  Quote,
 } from 'lucide-react';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
-import type { Post } from '@/types';
+import { useCompose } from '@/components/providers/ComposeProvider';
+import type { Poll, Post } from '@/types';
 import clsx from 'clsx';
 import {
+  blockUser,
   bookmarkPost,
+  deletePost,
   likePost,
+  muteUser,
+  reportPost,
   repostPost,
   unbookmarkPost,
   unlikePost,
   unrepostPost,
+  votePoll,
 } from '@/lib/api';
+import { getStoredUser } from '@/lib/auth';
 import { formatPostTime } from '@/lib/format-time';
 import { UserAvatar } from '@/components/user/UserAvatar';
 
 interface PostCardProps {
   post: Post;
+  onDeleted?: (postId: number) => void;
 }
 
 function formatCount(n: number): string {
@@ -37,14 +50,108 @@ function formatCount(n: number): string {
   return n.toString();
 }
 
-function PostCardInner({ post }: PostCardProps) {
+function QuotedPostPreview({ quoted }: { quoted: Post }) {
+  const author = quoted.author ?? {
+    id: quoted.authorId,
+    username: 'user',
+    displayName: 'OffMe User',
+    verified: false,
+  };
+
+  return (
+    <div className="mt-3 rounded-xl border border-offme-border p-3 text-sm">
+      <p className="font-bold">
+        {author.displayName}
+        {author.verified && <VerifiedBadge className="ml-1 inline-block" />}
+        <span className="ml-1 font-normal text-offme-muted">@{author.username}</span>
+      </p>
+      {quoted.text.trim().length > 0 && (
+        <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-offme-muted">{quoted.text}</p>
+      )}
+    </div>
+  );
+}
+
+function PollBlock({
+  postId,
+  poll: initialPoll,
+}: {
+  postId: number;
+  poll: Poll;
+}) {
+  const [poll, setPoll] = useState(initialPoll);
+  const [voting, setVoting] = useState(false);
+
+  const handleVote = async (optionId: number) => {
+    if (poll.ended || voting) return;
+    setVoting(true);
+    try {
+      const updated = await votePoll(postId, optionId);
+      setPoll(updated);
+    } catch {
+      // keep current state
+    } finally {
+      setVoting(false);
+    }
+  };
+
+  const showResults = poll.ended || poll.votedOptionId != null || poll.totalVotes > 0;
+
+  return (
+    <div className="mt-3 space-y-2" onClick={(e) => e.stopPropagation()}>
+      {poll.options.map((option) => {
+        const pct =
+          poll.totalVotes > 0 ? Math.round((option.voteCount / poll.totalVotes) * 100) : 0;
+        const selected = poll.votedOptionId === option.id;
+
+        return (
+          <button
+            key={option.id}
+            type="button"
+            disabled={poll.ended || voting}
+            onClick={() => handleVote(option.id)}
+            className={clsx(
+              'relative w-full overflow-hidden rounded-lg border px-3 py-2 text-left text-sm transition-colors',
+              selected
+                ? 'border-offme-accent text-offme-accent'
+                : 'border-offme-border hover:border-offme-accent/50'
+            )}
+          >
+            {showResults && (
+              <span
+                className="absolute inset-y-0 left-0 bg-offme-accent/10"
+                style={{ width: `${pct}%` }}
+              />
+            )}
+            <span className="relative flex items-center justify-between gap-2">
+              <span>{option.label}</span>
+              {showResults && <span className="text-xs text-offme-muted">{pct}%</span>}
+            </span>
+          </button>
+        );
+      })}
+      <p className="text-xs text-offme-muted">
+        {poll.totalVotes} voto{poll.totalVotes !== 1 ? 's' : ''}
+        {poll.ended ? ' · Encerrada' : ''}
+      </p>
+    </div>
+  );
+}
+
+function PostCardInner({ post, onDeleted }: PostCardProps) {
   const router = useRouter();
+  const { openCompose } = useCompose();
+  const currentUser = getStoredUser();
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const author = post.author ?? {
     id: post.authorId,
     username: 'user',
     displayName: 'OffMe User',
     verified: false,
   };
+
+  const isOwnPost = currentUser?.id === post.authorId;
 
   const [liked, setLiked] = useState(Boolean(post.likedByMe));
   const [likeCount, setLikeCount] = useState(post.likeCount);
@@ -57,9 +164,22 @@ function PostCardInner({ post }: PostCardProps) {
   const [bookmarked, setBookmarked] = useState(Boolean(post.bookmarkedByMe));
   const [bookmarking, setBookmarking] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuBusy, setMenuBusy] = useState(false);
+  const [shareLabel, setShareLabel] = useState('');
 
   const timeLabel = formatPostTime(post.createdAt);
   const viewCount = Math.max(post.likeCount * 3 + post.replyCount * 2, post.likeCount);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [menuOpen]);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -123,6 +243,93 @@ function PostCardInner({ post }: PostCardProps) {
     }
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const url = `${window.location.origin}/post/${post.id}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'OffMe', url });
+        return;
+      }
+    } catch {
+      // fall through to copy
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareLabel('Link copiado');
+      setTimeout(() => setShareLabel(''), 2000);
+    } catch {
+      setShareLabel('Erro ao copiar');
+      setTimeout(() => setShareLabel(''), 2000);
+    }
+  };
+
+  const handleQuote = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openCompose({ quoteOfId: post.id, quotedPost: post });
+  };
+
+  const handleDelete = async () => {
+    if (menuBusy) return;
+    setMenuBusy(true);
+    try {
+      await deletePost(post.id);
+      setDismissed(true);
+      onDeleted?.(post.id);
+    } catch {
+      // keep post visible on error
+    } finally {
+      setMenuBusy(false);
+      setMenuOpen(false);
+    }
+  };
+
+  const handleBlock = async () => {
+    if (menuBusy) return;
+    setMenuBusy(true);
+    try {
+      await blockUser(author.username);
+      setDismissed(true);
+    } catch {
+      // ignore
+    } finally {
+      setMenuBusy(false);
+      setMenuOpen(false);
+    }
+  };
+
+  const handleMute = async () => {
+    if (menuBusy) return;
+    setMenuBusy(true);
+    try {
+      await muteUser(author.username);
+      setDismissed(true);
+    } catch {
+      // ignore
+    } finally {
+      setMenuBusy(false);
+      setMenuOpen(false);
+    }
+  };
+
+  const handleReport = async () => {
+    if (menuBusy) return;
+    setMenuBusy(true);
+    try {
+      await reportPost(post.id);
+      setMenuOpen(false);
+    } catch {
+      // ignore
+    } finally {
+      setMenuBusy(false);
+    }
+  };
+
   const openThread = () => router.push(`/post/${post.id}`);
 
   if (dismissed) return null;
@@ -167,17 +374,76 @@ function PostCardInner({ post }: PostCardProps) {
               <time className="shrink-0 text-offme-muted hover:underline">{timeLabel}</time>
             </div>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDismissed(true);
-              }}
-              className="absolute right-0 top-0 rounded-full p-1 text-offme-muted transition-colors hover:bg-black/5 hover:text-offme-text"
-              aria-label="Ocultar post"
-            >
-              <X className="h-[17px] w-[17px] stroke-[2]" />
-            </button>
+            <div ref={menuRef} className="absolute right-0 top-0">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuOpen((v) => !v);
+                }}
+                className="rounded-full p-1 text-offme-muted transition-colors hover:bg-black/5 hover:text-offme-text"
+                aria-label="Mais opções"
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
+              >
+                <MoreHorizontal className="h-[17px] w-[17px] stroke-[2]" />
+              </button>
+
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-xl border border-offme-border bg-offme-bg py-1 shadow-lg"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {isOwnPost && (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={handleDelete}
+                      disabled={menuBusy}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Excluir post
+                    </button>
+                  )}
+                  {!isOwnPost && (
+                    <>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleMute}
+                        disabled={menuBusy}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                      >
+                        <VolumeX className="h-4 w-4" />
+                        Silenciar @{author.username}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleBlock}
+                        disabled={menuBusy}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                      >
+                        <Ban className="h-4 w-4" />
+                        Bloquear @{author.username}
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleReport}
+                    disabled={menuBusy}
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-black/5 disabled:opacity-50"
+                  >
+                    <Flag className="h-4 w-4" />
+                    Denunciar post
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {post.text.trim().length > 0 && (
@@ -185,6 +451,8 @@ function PostCardInner({ post }: PostCardProps) {
               {post.text}
             </p>
           )}
+
+          {post.quotedPost && <QuotedPostPreview quoted={post.quotedPost} />}
 
           {post.mediaUrls && post.mediaUrls.length > 0 && (
             <div
@@ -208,6 +476,8 @@ function PostCardInner({ post }: PostCardProps) {
               ))}
             </div>
           )}
+
+          {post.poll && <PollBlock postId={post.id} poll={post.poll} />}
 
           <div
             className="post-engagement mt-3 flex max-w-[425px] justify-between text-offme-muted"
@@ -256,10 +526,21 @@ function PostCardInner({ post }: PostCardProps) {
 
             <button
               type="button"
+              onClick={handleShare}
               className="post-action post-action-share"
-              aria-label="Compartilhar"
+              aria-label={shareLabel || 'Compartilhar'}
+              title={shareLabel || undefined}
             >
               <Share className="h-[18px] w-[18px] stroke-[1.75]" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleQuote}
+              className="post-action post-action-share hidden sm:inline-flex"
+              aria-label="Citar"
+            >
+              <Quote className="h-[18px] w-[18px] stroke-[1.75]" />
             </button>
 
             <button
@@ -267,7 +548,7 @@ function PostCardInner({ post }: PostCardProps) {
               onClick={handleBookmark}
               disabled={bookmarking}
               className={clsx(
-                'post-action post-action-bookmark hidden md:inline-flex',
+                'post-action post-action-bookmark',
                 bookmarked && 'text-offme-accent'
               )}
             >

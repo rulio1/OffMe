@@ -8,6 +8,7 @@ import clsx from 'clsx';
 import { OffMeLogo } from '@/components/auth/OffMeLogo';
 import { XNavIcon, type XNavIconName } from '@/components/icons/XNavIcons';
 import { UserAvatar } from '@/components/user/UserAvatar';
+import { useCompose } from '@/components/providers/ComposeProvider';
 import { getStoredUser, clearSession } from '@/lib/auth';
 import { logout } from '@/lib/api';
 
@@ -28,6 +29,7 @@ const NAV_ITEMS: {
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { openCompose } = useCompose();
   const user = getStoredUser();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -139,15 +141,20 @@ export function Sidebar() {
         </div>
       </nav>
 
-      <Link
-        href="/"
+      <button
+        type="button"
+        onClick={() => openCompose()}
         className="offme-btn-primary mt-4 flex h-12 w-12 items-center justify-center self-center p-0 xl:hidden"
         aria-label="Postar"
       >
         <PenLine className="h-5 w-5" />
-      </Link>
+      </button>
 
-      <button className="offme-btn-primary mt-4 hidden w-[90%] py-3 text-lg xl:block">
+      <button
+        type="button"
+        onClick={() => openCompose()}
+        className="offme-btn-primary mt-4 hidden w-[90%] py-3 text-lg xl:block"
+      >
         Postar
       </button>
 

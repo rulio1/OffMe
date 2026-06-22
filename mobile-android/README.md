@@ -1,22 +1,42 @@
 # OffMe Android
 
-Native Kotlin client for OffMe.
+Native Kotlin client for OffMe — mirrors iOS core flows.
 
-## Status
+## Features
 
-Scaffold funcional — `MainActivity` + `MainScreen` com `BottomNavBar` (ícones estilo X).
-API base configurável em `app/build.gradle.kts` (`API_BASE_URL`, padrão emulador → `10.0.2.2:3000`).
+- Auth: login, signup, session restore + token refresh
+- Feed: For you / Following tabs, pull-to-refresh, create post, like/repost
+- Explore: user search + follow
+- Bookmarks, Notifications, Messages lists
+- Profile view with posts + follow
+
+API: `https://offme.vercel.app/api/v1` (see `API_BASE_URL` in `app/build.gradle.kts`).
+
+## Build
 
 ```bash
 cd mobile-android
 ./gradlew :app:assembleDebug
 ```
 
-## Planned structure
+Requires Android SDK + JDK 17 (Android Studio recommended).
+
+## Structure
 
 ```
 app/src/main/kotlin/com/offme/
-├── ui/
 ├── data/
-└── domain/
+│   ├── api/          # Retrofit client
+│   ├── auth/         # AuthStore (SharedPreferences)
+│   └── models/
+├── ui/
+│   ├── auth/         # Login, Signup
+│   ├── feed/         # FeedScreen
+│   ├── explore/
+│   ├── bookmarks/
+│   ├── notifications/
+│   ├── messages/
+│   ├── profile/
+│   └── components/   # BottomNavBar, PostRow, XNavIcons, …
+└── util/
 ```

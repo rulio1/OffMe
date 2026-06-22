@@ -14,6 +14,8 @@ export async function PATCH(request: NextRequest) {
       bio?: string;
       avatarUrl?: string | null;
       bannerUrl?: string | null;
+      location?: string | null;
+      websiteUrl?: string | null;
     } = {};
 
     if (body.displayName !== undefined) input.displayName = String(body.displayName);
@@ -23,6 +25,12 @@ export async function PATCH(request: NextRequest) {
     }
     if (body.bannerUrl !== undefined) {
       input.bannerUrl = body.bannerUrl == null ? null : String(body.bannerUrl);
+    }
+    if (body.location !== undefined) {
+      input.location = body.location == null ? null : String(body.location);
+    }
+    if (body.websiteUrl !== undefined) {
+      input.websiteUrl = body.websiteUrl == null ? null : String(body.websiteUrl);
     }
 
     const updated = await updateUserProfile(user.id, input);

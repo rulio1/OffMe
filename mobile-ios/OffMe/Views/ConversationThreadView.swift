@@ -35,6 +35,7 @@ struct ConversationThreadView: View {
     @StateObject private var viewModel = ConversationThreadViewModel()
     @State private var draft = ""
     @State private var sending = false
+    @State private var reloadTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -79,12 +80,37 @@ struct ConversationThreadView: View {
         .task {
             if let token = auth.accessToken {
                 await viewModel.load(conversationId: conversationId, token: token)
+                subscribeRealtime(token: token)
             }
+        }
+        .onDisappear {
+            SupabaseRealtimeClient.shared.unsubscribe(channelKey: "conversation-\(conversationId)")
         }
         .refreshable {
             if let token = auth.accessToken {
                 await viewModel.load(conversationId: conversationId, token: token)
             }
+        }
+    }
+
+    private func subscribeRealtime(token: String) {
+        guard SupabaseConfig.isConfigured else { return }
+        SupabaseRealtimeClient.shared.subscribe(
+            channelKey: "conversation-\(conversationId)",
+            table: "direct_messages",
+            filter: "conversation_id=eq.\(conversationId)",
+            accessToken: token
+        ) {
+            scheduleReload(token: token)
+        }
+    }
+
+    private func scheduleReload(token: String) {
+        reloadTask?.cancel()
+        reloadTask = Task {
+            try? await Task.sleep(nanoseconds: 400_000_000)
+            guard !Task.isCancelled else { return }
+            await viewModel.load(conversationId: conversationId, token: token)
         }
     }
 

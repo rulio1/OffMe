@@ -1,23 +1,34 @@
 'use client';
 
+import Link from 'next/link';
 import { Search } from 'lucide-react';
+import useSWR from 'swr';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
+import { FollowButton } from '@/components/user/FollowButton';
+import { UserAvatar } from '@/components/user/UserAvatar';
+import { fetchSuggestedUsers, fetchTrendingPosts } from '@/lib/api';
+import { formatPostTime } from '@/lib/format-time';
 
-const TRENDING = [
-  { category: 'Technology · Trending', topic: '#OffMe', posts: '12.4K' },
-  { category: 'Sports · Trending', topic: 'World Cup', posts: '89.2K' },
-  { category: 'Trending', topic: 'Scala', posts: '5.1K' },
-  { category: 'Technology · Trending', topic: 'Finagle', posts: '2.8K' },
-  { category: 'Trending in Japan', topic: '東京', posts: '18.7K' },
-];
-
-const SUGGESTIONS = [
-  { name: 'Jane Architect', handle: '@jane_arch', verified: true },
-  { name: 'Rust Dev', handle: '@rustacean', verified: false },
-  { name: 'ML Engineer', handle: '@ml_pipelines', verified: true },
-];
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+  return n.toString();
+}
 
 export function RightPanel() {
+  const { data: trendingData } = useSWR('trending-posts', fetchTrendingPosts, {
+    revalidateOnFocus: false,
+    dedupingInterval: 120_000,
+  });
+  const { data: suggestionsData, mutate: mutateSuggestions } = useSWR(
+    'user-suggestions',
+    () => fetchSuggestedUsers(5),
+    { revalidateOnFocus: false }
+  );
+
+  const trending = trendingData?.posts ?? [];
+  const suggestions = suggestionsData?.users ?? [];
+
   return (
     <aside className="sticky top-0 hidden h-screen w-[350px] flex-col gap-4 overflow-y-auto px-6 py-2 lg:flex">
       <div className="relative">
@@ -31,36 +42,50 @@ export function RightPanel() {
 
       <div className="overflow-hidden rounded-2xl bg-offme-surface">
         <h2 className="px-4 py-3 text-xl font-extrabold">Trending</h2>
-        {TRENDING.map((item) => (
-          <button
-            key={item.topic}
-            className="w-full px-4 py-3 text-left transition-colors hover:bg-black/[0.03]"
-          >
-            <p className="text-xs text-offme-muted">{item.category}</p>
-            <p className="font-bold">{item.topic}</p>
-            <p className="text-xs text-offme-muted">{item.posts} posts</p>
-          </button>
-        ))}
-        <button className="w-full px-4 py-3 text-left text-offme-accent hover:bg-black/[0.03]">
-          Show more
-        </button>
+        {trending.length === 0 && (
+          <p className="px-4 pb-3 text-sm text-offme-muted">Nenhum post em destaque ainda.</p>
+        )}
+        {trending.map((post) => {
+          const author = post.author;
+          const engagement = post.likeCount + post.repostCount + post.replyCount;
+          return (
+            <Link
+              key={post.id}
+              href={`/post/${post.id}`}
+              className="block w-full px-4 py-3 text-left transition-colors hover:bg-black/[0.03]"
+            >
+              <p className="text-xs text-offme-muted">
+                {author ? `@${author.username}` : 'OffMe'} · {formatPostTime(post.createdAt)}
+              </p>
+              <p className="line-clamp-2 font-bold">{post.text || 'Post com mídia'}</p>
+              <p className="text-xs text-offme-muted">{formatCount(engagement)} interações</p>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="overflow-hidden rounded-2xl bg-offme-surface">
-        <h2 className="px-4 py-3 text-xl font-extrabold">Who to follow</h2>
-        {SUGGESTIONS.map((user) => (
-          <div key={user.handle} className="flex items-center gap-3 px-4 py-3 hover:bg-black/[0.03]">
-            <div className="h-10 w-10 shrink-0 rounded-full bg-offme-border" />
+        <h2 className="px-4 py-3 text-xl font-extrabold">Quem seguir</h2>
+        {suggestions.length === 0 && (
+          <p className="px-4 pb-3 text-sm text-offme-muted">Nenhuma sugestão no momento.</p>
+        )}
+        {suggestions.map((user) => (
+          <div key={user.username} className="flex items-center gap-3 px-4 py-3 hover:bg-black/[0.03]">
+            <Link href={`/profile/${user.username}`}>
+              <UserAvatar url={user.avatarUrl} size="md" />
+            </Link>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-bold">
-                {user.name}
+              <Link href={`/profile/${user.username}`} className="block truncate font-bold hover:underline">
+                {user.displayName}
                 {user.verified && <VerifiedBadge className="ml-1 inline-block" label="Verified" />}
-              </p>
-              <p className="truncate text-sm text-offme-muted">{user.handle}</p>
+              </Link>
+              <p className="truncate text-sm text-offme-muted">@{user.username}</p>
             </div>
-            <button className="shrink-0 rounded-full bg-offme-text px-4 py-1.5 text-sm font-bold text-offme-bg hover:bg-offme-muted">
-              Follow
-            </button>
+            <FollowButton
+              user={user}
+              size="sm"
+              onUpdate={() => mutateSuggestions()}
+            />
           </div>
         ))}
       </div>

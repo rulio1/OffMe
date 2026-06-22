@@ -10,6 +10,8 @@ struct EditProfileView: View {
 
     @State private var displayName: String
     @State private var bio: String
+    @State private var location: String
+    @State private var websiteUrl: String
     @State private var avatarUrl: String
     @State private var bannerUrl: String
     @State private var avatarPreview: UIImage?
@@ -28,6 +30,8 @@ struct EditProfileView: View {
         self.onSaved = onSaved
         _displayName = State(initialValue: user.displayName)
         _bio = State(initialValue: user.bio ?? "")
+        _location = State(initialValue: user.location ?? "")
+        _websiteUrl = State(initialValue: user.websiteUrl ?? "")
         _avatarUrl = State(initialValue: user.avatarUrl ?? "")
         _bannerUrl = State(initialValue: user.bannerUrl ?? "")
     }
@@ -59,6 +63,17 @@ struct EditProfileView: View {
                     Text("\(160 - bio.count) restantes")
                         .font(.caption)
                         .foregroundStyle(OffMeTheme.muted)
+                }
+
+                Section("Localização") {
+                    TextField("Cidade, país", text: $location)
+                }
+
+                Section("Site") {
+                    TextField("https://", text: $websiteUrl)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                        .autocorrectionDisabled()
                 }
             }
             .scrollContentBackground(.hidden)
@@ -254,12 +269,16 @@ struct EditProfileView: View {
         do {
             let trimmedAvatar = avatarUrl.trimmingCharacters(in: .whitespacesAndNewlines)
             let trimmedBanner = bannerUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedLocation = location.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedWebsite = websiteUrl.trimmingCharacters(in: .whitespacesAndNewlines)
             let updated = try await APIClient.shared.updateProfile(
                 token: token,
                 displayName: displayName.trimmingCharacters(in: .whitespacesAndNewlines),
                 bio: bio.trimmingCharacters(in: .whitespacesAndNewlines),
                 avatarUrl: trimmedAvatar.isEmpty ? nil : trimmedAvatar,
-                bannerUrl: trimmedBanner.isEmpty ? nil : trimmedBanner
+                bannerUrl: trimmedBanner.isEmpty ? nil : trimmedBanner,
+                location: trimmedLocation.isEmpty ? nil : trimmedLocation,
+                websiteUrl: trimmedWebsite.isEmpty ? nil : trimmedWebsite
             )
             auth.updateUser(updated)
             onSaved(updated)

@@ -1,6 +1,6 @@
 import { query, queryOne } from './db';
 
-export type NotificationType = 'like' | 'reply' | 'follow' | 'repost';
+export type NotificationType = 'like' | 'reply' | 'follow' | 'repost' | 'quote';
 
 export interface DbNotification {
   id: number;

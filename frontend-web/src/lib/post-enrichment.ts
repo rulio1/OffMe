@@ -1,8 +1,11 @@
+import type { Poll, Post } from '@/types';
 import { query } from './db';
 import { getMediaUrlsByPostIds } from './media-repository';
+import { getPollByPostId, toApiPoll } from './poll-repository';
 import {
   type DbPost,
   type DbTimelineRow,
+  findPostById,
   toApiPost,
   toTimelineEntry,
 } from './post-repository';
@@ -12,6 +15,8 @@ type EnrichExtra = {
   bookmarkedByMe: boolean;
   repostedByMe: boolean;
   mediaUrls?: string[];
+  quotedPost?: Post;
+  poll?: Poll;
   timelineSource?: 'following' | 'repost' | 'recommended';
 };
 
@@ -27,6 +32,8 @@ async function loadEnrichment(
   bookmarkedIds: Set<number>;
   repostedIds: Set<number>;
   mediaMap: Map<number, string[]>;
+  quotedMap: Map<number, Post>;
+  pollMap: Map<number, Poll>;
 }> {
   if (postIds.length === 0) {
     return {
@@ -34,10 +41,12 @@ async function loadEnrichment(
       bookmarkedIds: new Set(),
       repostedIds: new Set(),
       mediaMap: new Map(),
+      quotedMap: new Map(),
+      pollMap: new Map(),
     };
   }
 
-  const [flags, mediaMap] = await Promise.all([
+  const [flags, mediaMap, quoteRows] = await Promise.all([
     query<{
       liked_ids: number[] | null;
       bookmarked_ids: number[] | null;
@@ -53,7 +62,37 @@ async function loadEnrichment(
       [viewerId, postIds]
     ),
     getMediaUrlsByPostIds(postIds),
+    query<{ id: number; quote_of_id: number | null }>(
+      `SELECT id, quote_of_id FROM posts WHERE id = ANY($1::bigint[]) AND quote_of_id IS NOT NULL`,
+      [postIds]
+    ),
   ]);
+
+  const quoteIds = quoteRows.map((r) => r.quote_of_id).filter((id): id is number => id != null);
+  const quotedMap = new Map<number, Post>();
+
+  if (quoteIds.length > 0) {
+    const quotedPosts = await Promise.all(quoteIds.map((id) => findPostById(id)));
+    const quotedMediaMap = await getMediaUrlsByPostIds(quoteIds);
+    for (const row of quoteRows) {
+      if (row.quote_of_id == null) continue;
+      const quoted = quotedPosts.find((p) => p?.id === row.quote_of_id);
+      if (quoted) {
+        quotedMap.set(
+          row.id,
+          toApiPost(quoted, { mediaUrls: quotedMediaMap.get(quoted.id) })
+        );
+      }
+    }
+  }
+
+  const pollMap = new Map<number, Poll>();
+  await Promise.all(
+    postIds.map(async (postId) => {
+      const poll = await getPollByPostId(postId, viewerId);
+      if (poll) pollMap.set(postId, toApiPoll(poll));
+    })
+  );
 
   const row = flags[0];
   return {
@@ -61,6 +100,8 @@ async function loadEnrichment(
     bookmarkedIds: toIdSet(row?.bookmarked_ids),
     repostedIds: toIdSet(row?.reposted_ids),
     mediaMap,
+    quotedMap,
+    pollMap,
   };
 }
 
@@ -74,6 +115,8 @@ function buildExtra(
     bookmarkedByMe: maps.bookmarkedIds.has(rowId),
     repostedByMe: maps.repostedIds.has(rowId),
     mediaUrls: maps.mediaMap.get(rowId),
+    quotedPost: maps.quotedMap.get(rowId),
+    poll: maps.pollMap.get(rowId),
     timelineSource,
   };
 }

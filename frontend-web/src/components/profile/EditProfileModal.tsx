@@ -18,6 +18,8 @@ type PendingCrop = { src: string; mode: CropMode };
 export function EditProfileModal({ user, onClose, onSaved }: EditProfileModalProps) {
   const [displayName, setDisplayName] = useState(user.displayName);
   const [bio, setBio] = useState(user.bio ?? '');
+  const [location, setLocation] = useState(user.location ?? '');
+  const [websiteUrl, setWebsiteUrl] = useState(user.websiteUrl ?? '');
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl ?? '');
   const [bannerUrl, setBannerUrl] = useState(user.bannerUrl ?? '');
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl ?? null);
@@ -85,6 +87,8 @@ export function EditProfileModal({ user, onClose, onSaved }: EditProfileModalPro
         bio: bio.trim(),
         avatarUrl: avatarUrl.trim() || null,
         bannerUrl: bannerUrl.trim() || null,
+        location: location.trim() || null,
+        websiteUrl: websiteUrl.trim() || null,
       });
       updateStoredUser(updated);
       onSaved(updated);
@@ -212,6 +216,28 @@ export function EditProfileModal({ user, onClose, onSaved }: EditProfileModalPro
                 className="mt-1 w-full resize-none rounded-lg border border-offme-border bg-offme-surface px-3 py-2 outline-none focus:ring-1 focus:ring-offme-accent"
               />
               <span className="text-xs text-offme-muted">{160 - bio.length} restantes</span>
+            </label>
+
+            <label className="block">
+              <span className="text-sm text-offme-muted">Localização</span>
+              <input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                maxLength={30}
+                placeholder="Cidade, país"
+                className="mt-1 w-full rounded-lg border border-offme-border bg-offme-surface px-3 py-2 outline-none focus:ring-1 focus:ring-offme-accent"
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-sm text-offme-muted">Site</span>
+              <input
+                value={websiteUrl}
+                onChange={(e) => setWebsiteUrl(e.target.value)}
+                maxLength={200}
+                placeholder="https://"
+                className="mt-1 w-full rounded-lg border border-offme-border bg-offme-surface px-3 py-2 outline-none focus:ring-1 focus:ring-offme-accent"
+              />
             </label>
           </div>
         </div>

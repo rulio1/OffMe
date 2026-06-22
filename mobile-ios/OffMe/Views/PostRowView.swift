@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct PostRowView: View {
     private static let timeFormatter: RelativeDateTimeFormatter = {
@@ -19,7 +20,13 @@ struct PostRowView: View {
     @State private var repostCount: Int
     @State private var reposting = false
 
+    @State private var bookmarked: Bool
+    @State private var bookmarking = false
+
     @State private var dismissed = false
+    @State private var showShareSheet = false
+    @State private var showDeleteConfirm = false
+    @State private var deleting = false
 
     init(post: Post) {
         self.post = post
@@ -27,6 +34,7 @@ struct PostRowView: View {
         _likeCount = State(initialValue: post.likeCount)
         _reposted = State(initialValue: post.repostedByMe ?? false)
         _repostCount = State(initialValue: post.repostCount)
+        _bookmarked = State(initialValue: post.bookmarkedByMe ?? false)
     }
 
     private var authorName: String {
@@ -35,6 +43,16 @@ struct PostRowView: View {
 
     private var username: String {
         post.author?.username ?? "usuario"
+    }
+
+    private var isOwnPost: Bool {
+        guard let currentUserId = auth.session?.user.id else { return false }
+        if post.authorId == currentUserId { return true }
+        return post.author?.id == currentUserId
+    }
+
+    private var shareURL: URL {
+        URL(string: "https://offme.vercel.app/post/\(post.id)")!
     }
 
     private var timeAgo: String {
@@ -104,15 +122,7 @@ struct PostRowView: View {
 
                         Spacer(minLength: 0)
 
-                        Button {
-                            dismissed = true
-                        } label: {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(OffMeTheme.muted)
-                                .padding(6)
-                        }
-                        .buttonStyle(.plain)
+                        postMenu
                     }
 
                     if !post.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -166,10 +176,28 @@ struct PostRowView: View {
                             color: OffMeTheme.muted
                         )
 
-                        Image(systemName: "square.and.arrow.up")
-                            .font(.system(size: 16))
-                            .foregroundStyle(OffMeTheme.muted)
-                            .frame(maxWidth: .infinity)
+                        Button {
+                            showShareSheet = true
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16))
+                                .foregroundStyle(OffMeTheme.muted)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Compartilhar")
+
+                        Button {
+                            Task { await toggleBookmark() }
+                        } label: {
+                            Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
+                                .font(.system(size: 16))
+                                .foregroundStyle(bookmarked ? OffMeTheme.accent : OffMeTheme.muted)
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(bookmarking)
+                        .accessibilityLabel(bookmarked ? "Remover dos salvos" : "Salvar post")
                     }
                     .padding(.top, 8)
                 }
@@ -178,6 +206,48 @@ struct PostRowView: View {
             .padding(.vertical, 12)
         }
         .background(OffMeTheme.bg)
+        .sheet(isPresented: $showShareSheet) {
+            ShareSheet(items: [shareURL])
+                .presentationDetents([.medium, .large])
+        }
+        .confirmationDialog(
+            "Excluir este post?",
+            isPresented: $showDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Excluir", role: .destructive) {
+                Task { await deletePost() }
+            }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text("Esta ação não pode ser desfeita.")
+        }
+    }
+
+    @ViewBuilder
+    private var postMenu: some View {
+        Menu {
+            if isOwnPost {
+                Button(role: .destructive) {
+                    showDeleteConfirm = true
+                } label: {
+                    Label("Excluir post", systemImage: "trash")
+                }
+                .disabled(deleting)
+            }
+
+            Button {
+                dismissed = true
+            } label: {
+                Label("Ocultar post", systemImage: "xmark")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(OffMeTheme.muted)
+                .padding(6)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -252,6 +322,48 @@ struct PostRowView: View {
         }
     }
 
+    private func toggleBookmark() async {
+        guard let token = auth.accessToken, !bookmarking else { return }
+        bookmarking = true
+        let wasBookmarked = bookmarked
+        bookmarked = !wasBookmarked
+        defer { bookmarking = false }
+
+        do {
+            let result: BookmarkPostResponse
+            if wasBookmarked {
+                result = try await APIClient.shared.unbookmarkPost(postId: post.id, token: token)
+            } else {
+                result = try await APIClient.shared.bookmarkPost(postId: post.id, token: token)
+            }
+            bookmarked = result.bookmarkedByMe
+        } catch {
+            bookmarked = wasBookmarked
+        }
+    }
+
+    private func deletePost() async {
+        guard let token = auth.accessToken, !deleting else { return }
+        deleting = true
+        defer { deleting = false }
+
+        do {
+            try await APIClient.shared.deletePost(postId: post.id, token: token)
+            dismissed = true
+        } catch {
+            // Keep post visible on failure
+        }
+    }
+}
+
+private struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 private struct PostMediaGrid: View {

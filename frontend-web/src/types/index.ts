@@ -4,11 +4,30 @@ export interface User {
   displayName: string;
   avatarUrl?: string;
   bannerUrl?: string;
+  location?: string;
+  websiteUrl?: string;
   verified: boolean;
   bio?: string;
   followerCount?: number;
   followingCount?: number;
   isFollowing?: boolean;
+}
+
+export interface PollOption {
+  id: number;
+  position: number;
+  label: string;
+  voteCount: number;
+}
+
+export interface Poll {
+  postId: number;
+  durationSecs: number;
+  endsAt: number;
+  totalVotes: number;
+  ended: boolean;
+  votedOptionId?: number;
+  options: PollOption[];
 }
 
 export interface Post {
@@ -23,6 +42,8 @@ export interface Post {
   mediaUrls?: string[];
   replyToId?: number;
   quoteOfId?: number;
+  quotedPost?: Post;
+  poll?: Poll;
   likedByMe?: boolean;
   bookmarkedByMe?: boolean;
   repostedByMe?: boolean;
@@ -44,7 +65,7 @@ export interface TimelineResponse {
 
 export type FeedTab = 'for-you' | 'following';
 
-export type NotificationType = 'like' | 'reply' | 'follow' | 'repost';
+export type NotificationType = 'like' | 'reply' | 'follow' | 'repost' | 'quote';
 
 export interface Conversation {
   id: number;

@@ -144,11 +144,35 @@ function normalizeUser(raw: Record<string, unknown>): User {
       raw.bannerUrl != null && String(raw.bannerUrl).trim() !== ''
         ? String(raw.bannerUrl)
         : undefined,
+    location: raw.location ? String(raw.location) : undefined,
+    websiteUrl: raw.websiteUrl ? String(raw.websiteUrl) : undefined,
     verified: Boolean(raw.verified),
     bio: raw.bio ? String(raw.bio) : undefined,
     followerCount: raw.followerCount != null ? Number(raw.followerCount) : undefined,
     followingCount: raw.followingCount != null ? Number(raw.followingCount) : undefined,
     isFollowing: raw.isFollowing != null ? Boolean(raw.isFollowing) : undefined,
+  };
+}
+
+function normalizePoll(raw: Record<string, unknown>) {
+  return {
+    postId: Number(raw.postId),
+    durationSecs: Number(raw.durationSecs ?? 86400),
+    endsAt: Number(raw.endsAt),
+    totalVotes: Number(raw.totalVotes ?? 0),
+    ended: Boolean(raw.ended),
+    votedOptionId: raw.votedOptionId != null ? Number(raw.votedOptionId) : undefined,
+    options: Array.isArray(raw.options)
+      ? raw.options.map((o) => {
+          const opt = o as Record<string, unknown>;
+          return {
+            id: Number(opt.id),
+            position: Number(opt.position),
+            label: String(opt.label),
+            voteCount: Number(opt.voteCount ?? 0),
+          };
+        })
+      : [],
   };
 }
 
@@ -163,6 +187,11 @@ function normalizePost(raw: Record<string, unknown>): Post {
     repostCount: Number(raw.repostCount ?? 0),
     replyCount: Number(raw.replyCount ?? 0),
     replyToId: raw.replyToId != null ? Number(raw.replyToId) : undefined,
+    quoteOfId: raw.quoteOfId != null ? Number(raw.quoteOfId) : undefined,
+    quotedPost: raw.quotedPost
+      ? normalizePost(raw.quotedPost as Record<string, unknown>)
+      : undefined,
+    poll: raw.poll ? normalizePoll(raw.poll as Record<string, unknown>) : undefined,
     likedByMe: raw.likedByMe != null ? Boolean(raw.likedByMe) : undefined,
     bookmarkedByMe: raw.bookmarkedByMe != null ? Boolean(raw.bookmarkedByMe) : undefined,
     repostedByMe: raw.repostedByMe != null ? Boolean(raw.repostedByMe) : undefined,
@@ -208,15 +237,70 @@ export async function uploadImage(file: File): Promise<UploadedMedia> {
 export async function createPost(
   text: string,
   replyToId?: number,
-  mediaIds?: string[]
+  mediaIds?: string[],
+  options?: { quoteOfId?: number; pollOptions?: string[] }
 ): Promise<Post> {
   const res = await apiFetch('/posts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text, replyToId, mediaIds }),
+    body: JSON.stringify({
+      text,
+      replyToId,
+      mediaIds,
+      quoteOfId: options?.quoteOfId,
+      pollOptions: options?.pollOptions,
+    }),
   });
   if (!res.ok) await parseError(res, 'Erro ao publicar');
-  return res.json();
+  const data = await res.json();
+  return normalizePost(data);
+}
+
+export async function deletePost(postId: number): Promise<void> {
+  const res = await apiFetch(`/posts/${postId}`, { method: 'DELETE' });
+  if (!res.ok) await parseError(res, 'Erro ao excluir post');
+}
+
+export async function blockUser(username: string): Promise<void> {
+  const res = await apiFetch(`/users/${encodeURIComponent(username)}/block`, {
+    method: 'POST',
+  });
+  if (!res.ok) await parseError(res, 'Erro ao bloquear usuário');
+}
+
+export async function muteUser(username: string): Promise<void> {
+  const res = await apiFetch(`/users/${encodeURIComponent(username)}/mute`, {
+    method: 'POST',
+  });
+  if (!res.ok) await parseError(res, 'Erro ao silenciar usuário');
+}
+
+export async function reportPost(postId: number, reason = 'spam'): Promise<void> {
+  const res = await apiFetch(`/posts/${postId}/report`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao denunciar post');
+}
+
+export async function votePoll(postId: number, optionId: number) {
+  const res = await apiFetch(`/posts/${postId}/poll/vote`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ optionId }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao votar');
+  const data = await res.json();
+  return normalizePoll(data.poll as Record<string, unknown>);
+}
+
+export async function fetchSuggestedUsers(limit = 5): Promise<{ users: User[] }> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  const res = await apiFetch(`/users/suggestions?${params}`);
+  if (!res.ok) await parseError(res, 'Erro ao carregar sugestões');
+  const data = await res.json();
+  return { users: (data.users ?? []).map(normalizeUser) };
 }
 
 export async function searchUsers(query: string): Promise<{ users: User[] }> {
@@ -345,6 +429,8 @@ export async function updateProfile(input: {
   bio?: string;
   avatarUrl?: string | null;
   bannerUrl?: string | null;
+  location?: string | null;
+  websiteUrl?: string | null;
 }): Promise<User> {
   const res = await apiFetch('/users/me', {
     method: 'PATCH',

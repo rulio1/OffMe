@@ -34,6 +34,8 @@ function participantFromRow(row: DbConversationListItem) {
     bio: '',
     avatar_url: row.participant_avatar_url,
     banner_url: null,
+    location: null,
+    website_url: null,
     verified: row.participant_verified,
     follower_count: 0,
     following_count: 0,

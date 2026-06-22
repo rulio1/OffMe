@@ -8,12 +8,14 @@ struct User: Codable, Identifiable, Hashable {
     let bannerUrl: String?
     let verified: Bool
     let bio: String?
+    let location: String?
+    let websiteUrl: String?
     let followerCount: Int?
     let followingCount: Int?
     let isFollowing: Bool?
 
     enum CodingKeys: String, CodingKey {
-        case id, username, displayName, avatarUrl, bannerUrl, verified, bio
+        case id, username, displayName, avatarUrl, bannerUrl, verified, bio, location, websiteUrl
         case followerCount, followingCount, isFollowing
     }
 
@@ -26,6 +28,8 @@ struct User: Codable, Identifiable, Hashable {
         bannerUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .bannerUrl)
         verified = FlexibleDecoding.boolIfPresent(from: c, forKey: .verified) ?? false
         bio = FlexibleDecoding.stringIfPresent(from: c, forKey: .bio)
+        location = FlexibleDecoding.stringIfPresent(from: c, forKey: .location)
+        websiteUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .websiteUrl)
         followerCount = FlexibleDecoding.intIfPresent(from: c, forKey: .followerCount)
         followingCount = FlexibleDecoding.intIfPresent(from: c, forKey: .followingCount)
         isFollowing = FlexibleDecoding.boolIfPresent(from: c, forKey: .isFollowing)
@@ -40,6 +44,8 @@ struct User: Codable, Identifiable, Hashable {
         try c.encodeIfPresent(bannerUrl, forKey: .bannerUrl)
         try c.encode(verified, forKey: .verified)
         try c.encodeIfPresent(bio, forKey: .bio)
+        try c.encodeIfPresent(location, forKey: .location)
+        try c.encodeIfPresent(websiteUrl, forKey: .websiteUrl)
         try c.encodeIfPresent(followerCount, forKey: .followerCount)
         try c.encodeIfPresent(followingCount, forKey: .followingCount)
         try c.encodeIfPresent(isFollowing, forKey: .isFollowing)
@@ -52,6 +58,8 @@ struct User: Codable, Identifiable, Hashable {
     func with(
         displayName: String? = nil,
         bio: String? = nil,
+        location: String? = nil,
+        websiteUrl: String? = nil,
         avatarUrl: String?? = nil,
         bannerUrl: String?? = nil,
         isFollowing: Bool? = nil
@@ -64,6 +72,8 @@ struct User: Codable, Identifiable, Hashable {
             bannerUrl: bannerUrl ?? self.bannerUrl,
             verified: verified,
             bio: bio ?? self.bio,
+            location: location ?? self.location,
+            websiteUrl: websiteUrl ?? self.websiteUrl,
             followerCount: followerCount,
             followingCount: followingCount,
             isFollowing: isFollowing ?? self.isFollowing
@@ -78,6 +88,8 @@ struct User: Codable, Identifiable, Hashable {
         bannerUrl: String?,
         verified: Bool,
         bio: String?,
+        location: String?,
+        websiteUrl: String?,
         followerCount: Int?,
         followingCount: Int?,
         isFollowing: Bool?
@@ -89,6 +101,8 @@ struct User: Codable, Identifiable, Hashable {
         self.bannerUrl = bannerUrl
         self.verified = verified
         self.bio = bio
+        self.location = location
+        self.websiteUrl = websiteUrl
         self.followerCount = followerCount
         self.followingCount = followingCount
         self.isFollowing = isFollowing
@@ -183,6 +197,11 @@ struct ProfileResponse: Codable {
 
 struct SearchUsersResponse: Codable {
     let users: [User]
+}
+
+struct SearchPostsResponse: Codable {
+    let posts: [Post]
+    let trending: Bool?
 }
 
 struct FollowUserResponse: Codable {

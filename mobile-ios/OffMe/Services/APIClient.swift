@@ -224,6 +224,42 @@ final class APIClient {
         return res.users
     }
 
+    func searchPosts(query: String, token: String) async throws -> [Post] {
+        let url = try getURL(path: "/posts/search", query: [URLQueryItem(name: "q", value: query)])
+        let data = try await getData(url: url, token: token)
+        let res = try decoder.decode(SearchPostsResponse.self, from: data)
+        return res.posts
+    }
+
+    func fetchTrendingPosts(token: String) async throws -> [Post] {
+        let url = try getURL(path: "/posts/search", query: [URLQueryItem(name: "trending", value: "1")])
+        let data = try await getData(url: url, token: token)
+        let res = try decoder.decode(SearchPostsResponse.self, from: data)
+        return res.posts
+    }
+
+    func deletePost(postId: Int, token: String) async throws {
+        guard let url = URL(string: APIConfig.baseURL + "/posts/\(postId)") else {
+            throw APIError.invalidURL
+        }
+
+        var req = URLRequest(url: url)
+        req.httpMethod = "DELETE"
+        req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        let (data, response) = try await session.data(for: req)
+        guard let http = response as? HTTPURLResponse else {
+            throw APIError.server("Sem resposta do servidor")
+        }
+        if http.statusCode == 401 { throw APIError.unauthorized }
+        if !(200...299).contains(http.statusCode) {
+            if let errBody = try? decoder.decode(APIErrorBody.self, from: data) {
+                throw APIError.server(errBody.message)
+            }
+            throw APIError.server("Erro HTTP \(http.statusCode)")
+        }
+    }
+
     func userProfile(username: String, token: String) async throws -> ProfileResponse {
         let encoded = username.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? username
         return try await request("/users/\(encoded)", token: token)
@@ -239,13 +275,17 @@ final class APIClient {
         displayName: String?,
         bio: String?,
         avatarUrl: String?,
-        bannerUrl: String? = nil
+        bannerUrl: String? = nil,
+        location: String? = nil,
+        websiteUrl: String? = nil
     ) async throws -> User {
         struct Body: Encodable {
             let displayName: String?
             let bio: String?
             let avatarUrl: String?
             let bannerUrl: String?
+            let location: String?
+            let websiteUrl: String?
         }
         let res: UpdateUserResponse = try await request(
             "/users/me",
@@ -254,7 +294,9 @@ final class APIClient {
                 displayName: displayName,
                 bio: bio,
                 avatarUrl: avatarUrl,
-                bannerUrl: bannerUrl
+                bannerUrl: bannerUrl,
+                location: location,
+                websiteUrl: websiteUrl
             ),
             token: token
         )

@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import useSWRInfinite from 'swr/infinite';
 import { Composer } from '@/components/composer/Composer';
 import { ComposeFab } from '@/components/composer/ComposeFab';
-import { ComposeSheet } from '@/components/composer/ComposeSheet';
 import { FeedHeader } from '@/components/feed/FeedHeader';
+import { useCompose } from '@/components/providers/ComposeProvider';
 import { PostCard } from '@/components/post/PostCard';
 import { fetchHomeTimeline, fetchForYouTimeline } from '@/lib/api';
 import type { FeedTab, Post, TimelineEntry } from '@/types';
@@ -32,7 +32,7 @@ function entryToPost(entry: TimelineEntry): Post {
 
 export function Feed() {
   const [tab, setTab] = useState<FeedTab>('for-you');
-  const [composeOpen, setComposeOpen] = useState(false);
+  const { openCompose } = useCompose();
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const getKey = (pageIndex: number, previousPageData: { nextCursor?: string } | null) => {
@@ -130,12 +130,7 @@ export function Feed() {
         )}
       </div>
 
-      <ComposeFab onClick={() => setComposeOpen(true)} />
-      <ComposeSheet
-        open={composeOpen}
-        onClose={() => setComposeOpen(false)}
-        onPostCreated={handlePostCreated}
-      />
+      <ComposeFab onClick={() => openCompose({ onPostCreated: handlePostCreated })} />
     </div>
   );
 }

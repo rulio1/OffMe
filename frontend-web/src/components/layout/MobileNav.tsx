@@ -15,9 +15,9 @@ type NavItem = {
 const ITEMS: NavItem[] = [
   { href: '/', label: 'Início', icon: 'home', match: (p) => p === '/' },
   { href: '/explore', label: 'Explorar', icon: 'search', match: (p) => p.startsWith('/explore') },
-  { href: '/bookmarks', label: 'Salvos', icon: 'bookmarks', match: (p) => p.startsWith('/bookmarks') },
   { href: '/notifications', label: 'Notificações', icon: 'notifications', match: (p) => p.startsWith('/notifications') },
   { href: '/messages', label: 'Mensagens', icon: 'messages', match: (p) => p.startsWith('/messages') },
+  { href: '/profile', label: 'Perfil', icon: 'profile', match: (p) => p.startsWith('/profile') },
 ];
 
 export function MobileNav() {

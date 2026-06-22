@@ -91,6 +91,7 @@ private struct FeedHeaderView: View {
     var avatarUrl: String?
     var profileUsername: String?
     var onAvatarTap: (() -> Void)? = nil
+    var onComposeTap: (() -> Void)? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -165,7 +166,9 @@ private struct FeedHeaderView: View {
                     .buttonStyle(.plain)
                 }
 
-                Button {} label: {
+                Button {
+                    onComposeTap?()
+                } label: {
                     VStack(spacing: 0) {
                         HStack(spacing: 6) {
                             Text("Add +")
@@ -182,6 +185,7 @@ private struct FeedHeaderView: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Novo post")
             }
         }
         .background(OffMeTheme.bg.opacity(0.92))
@@ -208,7 +212,8 @@ struct FeedView: View {
                     tab: $viewModel.tab,
                     avatarUrl: auth.session?.user.avatarUrl,
                     profileUsername: auth.session?.user.username,
-                    onAvatarTap: { showSideMenu = true }
+                    onAvatarTap: { showSideMenu = true },
+                    onComposeTap: { showCompose = true }
                 )
 
                 if let token = auth.accessToken {

@@ -3,14 +3,23 @@
 import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Composer } from './Composer';
+import type { Post } from '@/types';
 
 interface ComposeSheetProps {
   open: boolean;
   onClose: () => void;
   onPostCreated?: () => void;
+  quoteOfId?: number;
+  quotedPost?: Post;
 }
 
-export function ComposeSheet({ open, onClose, onPostCreated }: ComposeSheetProps) {
+export function ComposeSheet({
+  open,
+  onClose,
+  onPostCreated,
+  quoteOfId,
+  quotedPost,
+}: ComposeSheetProps) {
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -43,6 +52,8 @@ export function ComposeSheet({ open, onClose, onPostCreated }: ComposeSheetProps
         </div>
         <div className="flex-1 overflow-y-auto">
           <Composer
+            quoteOfId={quoteOfId}
+            quotedPost={quotedPost}
             onPostCreated={() => {
               onPostCreated?.();
               onClose();

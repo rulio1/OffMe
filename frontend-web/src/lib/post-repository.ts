@@ -1,3 +1,4 @@
+import type { Poll, Post } from '@/types';
 import { query, queryOne } from './db';
 import { encodeCursor, PAGE_SIZE, parseCursor } from './cursor';
 import { linkMediaToPost } from './media-repository';
@@ -9,6 +10,7 @@ export interface DbPost {
   author_id: number;
   text: string;
   reply_to_id: number | null;
+  quote_of_id: number | null;
   like_count: number;
   repost_count: number;
   reply_count: number;
@@ -26,7 +28,7 @@ export interface DbTimelineRow extends DbPost {
 }
 
 const POST_SELECT = `
-  SELECT p.id, p.author_id, p.text, p.reply_to_id, p.like_count, p.repost_count,
+  SELECT p.id, p.author_id, p.text, p.reply_to_id, p.quote_of_id, p.like_count, p.repost_count,
          p.reply_count, p.created_at,
          u.username, u.display_name, u.avatar_url, u.verified
   FROM posts p
@@ -55,7 +57,8 @@ export async function createPost(
   authorId: number,
   text: string,
   replyToId?: number,
-  mediaIds?: string[]
+  mediaIds?: string[],
+  quoteOfId?: number
 ): Promise<DbPost> {
   if (replyToId != null) {
     const parent = await queryOne<{ id: number; author_id: number }>(
@@ -65,11 +68,19 @@ export async function createPost(
     if (!parent) throw new Error('Post original não encontrado');
   }
 
+  if (quoteOfId != null) {
+    const quoted = await queryOne<{ id: number }>(
+      `SELECT id FROM posts WHERE id = $1`,
+      [quoteOfId]
+    );
+    if (!quoted) throw new Error('Post citado não encontrado');
+  }
+
   const inserted = await queryOne<{ id: number }>(
-    `INSERT INTO posts (author_id, text, reply_to_id)
-     VALUES ($1, $2, $3)
+    `INSERT INTO posts (author_id, text, reply_to_id, quote_of_id)
+     VALUES ($1, $2, $3, $4)
      RETURNING id`,
-    [authorId, text, replyToId ?? null]
+    [authorId, text, replyToId ?? null, quoteOfId ?? null]
   );
 
   if (!inserted) throw new Error('Failed to create post');
@@ -93,6 +104,19 @@ export async function createPost(
         postId: inserted.id,
       });
     }
+  } else if (quoteOfId != null) {
+    const quoted = await queryOne<{ author_id: number }>(
+      `SELECT author_id FROM posts WHERE id = $1`,
+      [quoteOfId]
+    );
+    if (quoted && quoted.author_id !== authorId) {
+      await createNotification({
+        userId: quoted.author_id,
+        actorId: authorId,
+        type: 'quote',
+        postId: inserted.id,
+      });
+    }
   }
 
   if (mediaIds && mediaIds.length > 0) {
@@ -106,6 +130,28 @@ export async function createPost(
 
 export async function findPostById(id: number): Promise<DbPost | null> {
   return queryOne<DbPost>(`${POST_SELECT} WHERE p.id = $1 AND u.deactivated_at IS NULL`, [id]);
+}
+
+export async function deletePost(postId: number, authorId: number): Promise<boolean> {
+  const row = await queryOne<{ id: number; reply_to_id: number | null }>(
+    `DELETE FROM posts WHERE id = $1 AND author_id = $2 RETURNING id, reply_to_id`,
+    [postId, authorId]
+  );
+  if (!row) return false;
+
+  await query(
+    `UPDATE users SET post_count = GREATEST(post_count - 1, 0), updated_at = NOW() WHERE id = $1`,
+    [authorId]
+  );
+
+  if (row.reply_to_id != null) {
+    await query(
+      `UPDATE posts SET reply_count = GREATEST(reply_count - 1, 0) WHERE id = $1`,
+      [row.reply_to_id]
+    );
+  }
+
+  return true;
 }
 
 export async function listReplies(
@@ -167,7 +213,7 @@ const HOME_TIMELINE_SQL = `
     UNION
     SELECT following_id FROM follows WHERE follower_id = $1
   )
-  SELECT p.id, p.author_id, p.text, p.reply_to_id, p.like_count, p.repost_count,
+  SELECT p.id, p.author_id, p.text, p.reply_to_id, p.quote_of_id, p.like_count, p.repost_count,
          p.reply_count, p.created_at,
          u.username, u.display_name, u.avatar_url, u.verified,
          timeline_source, timeline_at, event_id
@@ -233,7 +279,7 @@ export async function listBookmarks(
 ): Promise<PaginatedPosts> {
   const { sql, params } = buildBookmarkCursorClause(cursor, 3);
   const rows = await query<DbPost & { bookmarked_at: Date }>(
-    `SELECT p.id, p.author_id, p.text, p.reply_to_id, p.like_count, p.repost_count,
+    `SELECT p.id, p.author_id, p.text, p.reply_to_id, p.quote_of_id, p.like_count, p.repost_count,
             p.reply_count, p.created_at,
             u.username, u.display_name, u.avatar_url, u.verified,
             b.created_at AS bookmarked_at
@@ -321,9 +367,11 @@ export function toApiPost(
     bookmarkedByMe?: boolean;
     repostedByMe?: boolean;
     mediaUrls?: string[];
+    quotedPost?: Post;
+    poll?: Poll;
     timelineSource?: 'following' | 'repost' | 'recommended';
   }
-) {
+): Post {
   const author: DbUser = {
     id: Number(row.author_id),
     public_id: '',
@@ -334,6 +382,8 @@ export function toApiPost(
     bio: '',
     avatar_url: row.avatar_url,
     banner_url: null,
+    location: null,
+    website_url: null,
     verified: row.verified,
     follower_count: 0,
     following_count: 0,
@@ -350,10 +400,13 @@ export function toApiPost(
     repostCount: row.repost_count,
     replyCount: row.reply_count,
     replyToId: row.reply_to_id != null ? Number(row.reply_to_id) : undefined,
+    quoteOfId: row.quote_of_id != null ? Number(row.quote_of_id) : undefined,
     ...(extra?.likedByMe != null ? { likedByMe: extra.likedByMe } : {}),
     ...(extra?.bookmarkedByMe != null ? { bookmarkedByMe: extra.bookmarkedByMe } : {}),
     ...(extra?.repostedByMe != null ? { repostedByMe: extra.repostedByMe } : {}),
     ...(extra?.mediaUrls && extra.mediaUrls.length > 0 ? { mediaUrls: extra.mediaUrls } : {}),
+    ...(extra?.quotedPost ? { quotedPost: extra.quotedPost } : {}),
+    ...(extra?.poll ? { poll: extra.poll } : {}),
     ...(extra?.timelineSource ? { timelineSource: extra.timelineSource } : {}),
   };
 }
@@ -366,6 +419,8 @@ export function toTimelineEntry(
     bookmarkedByMe?: boolean;
     repostedByMe?: boolean;
     mediaUrls?: string[];
+    quotedPost?: Post;
+    poll?: Poll;
     timelineSource?: 'following' | 'repost' | 'recommended';
   }
 ) {

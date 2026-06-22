@@ -216,6 +216,22 @@ struct ProfileView: View {
                         .padding(.top, 4)
                 }
 
+                if let location = user.location, !location.isEmpty {
+                    Label(location, systemImage: "mappin.and.ellipse")
+                        .font(.subheadline)
+                        .foregroundStyle(OffMeTheme.muted)
+                        .padding(.top, 4)
+                }
+
+                if let website = user.websiteUrl, !website.isEmpty,
+                   let url = URL(string: website.hasPrefix("http") ? website : "https://\(website)") {
+                    Link(destination: url) {
+                        Label(website, systemImage: "link")
+                            .font(.subheadline)
+                    }
+                    .padding(.top, 2)
+                }
+
                 HStack(spacing: 16) {
                     HStack(spacing: 4) {
                         Text(Formatters.count(user.followingCount ?? 0)).fontWeight(.bold)

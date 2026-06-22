@@ -34,7 +34,7 @@ private val tabs = listOf(
     TabSpec(OffMeTab.Messages, XNavIconKind.Messages),
 )
 
-/** Barra inferior — Material Symbols, sem legendas. */
+/** Barra inferior estilo X — ícones Figma Side Navigation, sem legendas. */
 @Composable
 fun BottomNavBar(
     selected: OffMeTab,

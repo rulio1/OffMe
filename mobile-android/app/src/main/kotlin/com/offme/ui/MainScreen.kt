@@ -1,29 +1,84 @@
 package com.offme.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.offme.OffMeApp
+import com.offme.data.auth.AuthStore
+import com.offme.ui.bookmarks.BookmarksScreen
 import com.offme.ui.components.BottomNavBarWithDivider
 import com.offme.ui.components.OffMeTab
+import com.offme.ui.explore.ExploreScreen
+import com.offme.ui.feed.FeedScreen
+import com.offme.ui.messages.MessagesScreen
+import com.offme.ui.notifications.NotificationsScreen
+import com.offme.ui.profile.ProfileScreen
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    authStore: AuthStore = OffMeApp.instance.authStore,
+) {
     var selected by rememberSaveable { mutableStateOf(OffMeTab.Home) }
+    var unreadNotifications by remember { mutableIntStateOf(0) }
+    var profileUsername by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        val token = authStore.accessToken ?: return@LaunchedEffect
+        try {
+            val res = OffMeApp.instance.apiClient.fetchNotifications(token)
+            unreadNotifications = res.unreadCount
+        } catch (_: Exception) {
+            unreadNotifications = 0
+        }
+    }
+
+    val navigateToProfile: (String) -> Unit = { username ->
+        profileUsername = username
+    }
+
+    if (profileUsername != null) {
+        ProfileScreen(
+            username = profileUsername!!,
+            authStore = authStore,
+            onBack = { profileUsername = null },
+            onNavigateToProfile = { profileUsername = it },
+        )
+        return
+    }
 
     Scaffold(
         bottomBar = {
             BottomNavBarWithDivider(
                 selected = selected,
-                onSelect = { selected = it },
+                onSelect = { tab ->
+                    selected = tab
+                    if (tab == OffMeTab.Notifications) {
+                        scope.launch {
+                            val token = authStore.accessToken ?: return@launch
+                            try {
+                                val res = OffMeApp.instance.apiClient.fetchNotifications(token)
+                                unreadNotifications = res.unreadCount
+                            } catch (_: Exception) {
+                                unreadNotifications = 0
+                            }
+                        }
+                    }
+                },
+                unreadNotifications = unreadNotifications,
             )
         },
     ) { padding ->
@@ -32,27 +87,31 @@ fun MainScreen() {
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            PlaceholderScreen(tab = selected)
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (selected) {
+                    OffMeTab.Home -> FeedScreen(
+                        authStore = authStore,
+                        onNavigateToProfile = navigateToProfile,
+                    )
+                    OffMeTab.Explore -> ExploreScreen(
+                        authStore = authStore,
+                        onNavigateToProfile = navigateToProfile,
+                    )
+                    OffMeTab.Bookmarks -> BookmarksScreen(
+                        authStore = authStore,
+                        onNavigateToProfile = navigateToProfile,
+                    )
+                    OffMeTab.Notifications -> NotificationsScreen(
+                        authStore = authStore,
+                        onNavigateToProfile = navigateToProfile,
+                        onUnreadCountChanged = { unreadNotifications = it },
+                    )
+                    OffMeTab.Messages -> MessagesScreen(
+                        authStore = authStore,
+                        onNavigateToProfile = navigateToProfile,
+                    )
+                }
+            }
         }
-    }
-}
-
-@Composable
-private fun PlaceholderScreen(tab: OffMeTab) {
-    val title = when (tab) {
-        OffMeTab.Home -> "Início"
-        OffMeTab.Explore -> "Explorar"
-        OffMeTab.Bookmarks -> "Salvos"
-        OffMeTab.Notifications -> "Notificações"
-        OffMeTab.Messages -> "Mensagens"
-    }
-
-    Column(modifier = Modifier.padding(24.dp)) {
-        Text(text = title, style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
-        Text(
-            text = "Tela $title — conecte à API em BuildConfig.API_BASE_URL",
-            style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp),
-        )
     }
 }

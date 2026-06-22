@@ -13,9 +13,9 @@ interface FeedHeaderProps {
   onTabChange: (tab: FeedTab) => void;
 }
 
-const TABS: { id: FeedTab; label: string }[] = [
-  { id: 'for-you', label: 'For you' },
-  { id: 'following', label: 'Following' },
+const TABS: { id: FeedTab; label: string; subtitle?: string }[] = [
+  { id: 'for-you', label: 'Recentes', subtitle: 'Posts mais novos da rede' },
+  { id: 'following', label: 'Seguindo' },
 ];
 
 export function FeedHeader({ tab, onTabChange }: FeedHeaderProps) {
@@ -46,7 +46,7 @@ export function FeedHeader({ tab, onTabChange }: FeedHeaderProps) {
       </div>
 
       <div className="flex h-[53px]">
-        {TABS.map(({ id, label }) => {
+        {TABS.map(({ id, label, subtitle }) => {
           const active = tab === id;
           return (
             <button
@@ -62,6 +62,9 @@ export function FeedHeader({ tab, onTabChange }: FeedHeaderProps) {
                 {label}
                 {active && <ChevronDown className="h-4 w-4 stroke-[2.5]" />}
               </span>
+              {active && subtitle && (
+                <span className="text-[11px] font-normal text-offme-muted">{subtitle}</span>
+              )}
               {active && <span className="feed-tab-indicator" />}
             </button>
           );
