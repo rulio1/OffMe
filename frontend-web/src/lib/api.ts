@@ -238,7 +238,12 @@ export async function createPost(
   text: string,
   replyToId?: number,
   mediaIds?: string[],
-  options?: { quoteOfId?: number; pollOptions?: string[] }
+  options?: {
+    quoteOfId?: number;
+    pollOptions?: string[];
+    scheduledAt?: string;
+    communityId?: number;
+  }
 ): Promise<Post> {
   const res = await apiFetch('/posts', {
     method: 'POST',
@@ -249,6 +254,8 @@ export async function createPost(
       mediaIds,
       quoteOfId: options?.quoteOfId,
       pollOptions: options?.pollOptions,
+      scheduledAt: options?.scheduledAt,
+      communityId: options?.communityId,
     }),
   });
   if (!res.ok) await parseError(res, 'Erro ao publicar');
@@ -284,6 +291,15 @@ export async function reportPost(postId: number, reason: ReportReason): Promise<
     body: JSON.stringify({ reason }),
   });
   if (!res.ok) await parseError(res, 'Erro ao denunciar post');
+}
+
+export async function reportUser(username: string, reason: ReportReason): Promise<void> {
+  const res = await apiFetch(`/users/${encodeURIComponent(username)}/report`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao denunciar usuário');
 }
 
 export async function votePoll(postId: number, optionId: number) {
@@ -546,6 +562,9 @@ export interface AdminReport {
   createdAt: number;
   postText?: string;
   postAuthorUsername?: string;
+  targetUsername?: string;
+  targetDisplayName?: string;
+  targetSuspended?: boolean;
 }
 
 export interface VerificationRequestInfo {
@@ -572,6 +591,154 @@ export async function updateAdminReport(
     body: JSON.stringify({ action }),
   });
   if (!res.ok) await parseError(res, 'Erro ao atualizar denúncia');
+}
+
+export async function suspendAdminUser(
+  userId: number,
+  reason: string
+): Promise<void> {
+  const res = await apiFetch(`/admin/users/${userId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'suspend', reason }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao suspender usuário');
+}
+
+export async function unsuspendAdminUser(userId: number): Promise<void> {
+  const res = await apiFetch(`/admin/users/${userId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'unsuspend' }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao reativar usuário');
+}
+
+export interface OffMeList {
+  id: number;
+  ownerId: number;
+  name: string;
+  description?: string;
+  isPrivate: boolean;
+  memberCount: number;
+  createdAt: number;
+}
+
+export interface OffMeCommunity {
+  id: number;
+  slug: string;
+  name: string;
+  description?: string;
+  creatorId?: number;
+  memberCount: number;
+  createdAt: number;
+}
+
+export async function fetchLists(): Promise<{ lists: OffMeList[] }> {
+  const res = await apiFetch('/lists');
+  if (!res.ok) await parseError(res, 'Erro ao carregar listas');
+  return res.json();
+}
+
+export async function createList(
+  name: string,
+  description?: string,
+  isPrivate = false
+): Promise<OffMeList> {
+  const res = await apiFetch('/lists', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, description, isPrivate }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao criar lista');
+  return res.json();
+}
+
+export async function fetchList(
+  listId: number
+): Promise<{ list: OffMeList; members: User[] }> {
+  const res = await apiFetch(`/lists/${listId}`);
+  if (!res.ok) await parseError(res, 'Erro ao carregar lista');
+  const data = await res.json();
+  return {
+    list: data.list,
+    members: (data.members ?? []).map(normalizeUser),
+  };
+}
+
+export async function addListMember(listId: number, username: string): Promise<void> {
+  const res = await apiFetch(`/lists/${listId}/members`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao adicionar membro');
+}
+
+export async function fetchCommunities(): Promise<{ communities: OffMeCommunity[] }> {
+  const res = await apiFetch('/communities');
+  if (!res.ok) await parseError(res, 'Erro ao carregar comunidades');
+  return res.json();
+}
+
+export async function createCommunity(
+  name: string,
+  description?: string
+): Promise<OffMeCommunity> {
+  const res = await apiFetch('/communities', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, description }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao criar comunidade');
+  return res.json();
+}
+
+export async function fetchCommunity(slug: string): Promise<{ community: OffMeCommunity }> {
+  const res = await apiFetch(`/communities/${encodeURIComponent(slug)}`);
+  if (!res.ok) await parseError(res, 'Erro ao carregar comunidade');
+  return res.json();
+}
+
+export async function joinCommunity(slug: string): Promise<void> {
+  const res = await apiFetch(`/communities/${encodeURIComponent(slug)}`, {
+    method: 'POST',
+  });
+  if (!res.ok) await parseError(res, 'Erro ao entrar na comunidade');
+}
+
+export async function fetchCommunityTimeline(
+  slug: string,
+  cursor?: string
+): Promise<TimelineResponse & { community: { id: number; slug: string; name: string } }> {
+  const params = new URLSearchParams();
+  if (cursor) params.set('cursor', cursor);
+  const res = await apiFetch(`/communities/${encodeURIComponent(slug)}/timeline?${params}`);
+  if (!res.ok) await parseError(res, 'Erro ao carregar timeline');
+  return res.json();
+}
+
+export async function registerPushSubscription(subscription: PushSubscriptionJSON): Promise<void> {
+  const res = await apiFetch('/push/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      platform: 'web',
+      token: subscription.endpoint,
+      endpoint: subscription.endpoint,
+      keys: subscription.keys,
+    }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao registrar notificações push');
+}
+
+export async function unregisterPushSubscription(endpoint: string): Promise<void> {
+  const res = await apiFetch('/push/unregister', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: endpoint }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao remover notificações push');
 }
 
 export async function fetchVerificationStatus(): Promise<{

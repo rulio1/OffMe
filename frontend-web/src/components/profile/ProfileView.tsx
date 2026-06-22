@@ -9,7 +9,7 @@ import { PostCard } from '@/components/post/PostCard';
 import { FollowButton } from '@/components/user/FollowButton';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
-import { fetchUserPosts, fetchUserProfile, startConversation } from '@/lib/api';
+import { fetchUserPosts, fetchUserProfile, reportUser, startConversation } from '@/lib/api';
 import type { Post, TimelineEntry, User } from '@/types';
 
 interface ProfileViewProps {
@@ -58,6 +58,7 @@ export function ProfileView({ username }: ProfileViewProps) {
   const router = useRouter();
   const [showEdit, setShowEdit] = useState(false);
   const [startingDm, setStartingDm] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const { data: profileData, error: profileError, mutate: mutateProfile } = useSWR(
     `profile-${username}`,
     () => fetchUserProfile(username)
@@ -90,6 +91,21 @@ export function ProfileView({ username }: ProfileViewProps) {
 
   const handleProfileSaved = (updated: User) => {
     mutateProfile({ user: updated, isOwnProfile }, false);
+  };
+
+  const handleReportUser = async () => {
+    if (!user || reporting) return;
+    const confirmed = window.confirm(`Denunciar @${user.username}?`);
+    if (!confirmed) return;
+    setReporting(true);
+    try {
+      await reportUser(user.username, 'abuse');
+      window.alert('Denúncia enviada. Obrigado.');
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : 'Erro ao denunciar');
+    } finally {
+      setReporting(false);
+    }
   };
 
   const handleMessage = async () => {
@@ -133,7 +149,7 @@ export function ProfileView({ username }: ProfileViewProps) {
               Editar perfil
             </button>
           ) : (
-            <div className="mt-2 flex shrink-0 gap-2 sm:mt-3">
+            <div className="mt-2 flex shrink-0 flex-wrap gap-2 sm:mt-3">
               <button
                 onClick={handleMessage}
                 disabled={startingDm}
@@ -142,6 +158,13 @@ export function ProfileView({ username }: ProfileViewProps) {
                 {startingDm ? '...' : 'Mensagem'}
               </button>
               <FollowButton user={user} onUpdate={handleFollowUpdate} />
+              <button
+                onClick={handleReportUser}
+                disabled={reporting}
+                className="rounded-full border border-red-500/40 px-3 py-1.5 text-sm font-bold text-red-500 transition-colors hover:bg-red-500/10 disabled:opacity-50 sm:px-4 sm:py-2"
+              >
+                {reporting ? '...' : 'Denunciar usuário'}
+              </button>
             </div>
           )}
         </div>

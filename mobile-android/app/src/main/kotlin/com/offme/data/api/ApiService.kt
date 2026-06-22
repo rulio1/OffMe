@@ -200,4 +200,70 @@ interface ApiService {
         @Path("conversationId") conversationId: Int,
         @Body body: SendMessageBody,
     ): DirectMessage
+
+    @GET("verification/request")
+    suspend fun fetchVerificationStatus(
+        @Header("Authorization") token: String,
+    ): Map<String, Any?>
+
+    @POST("verification/request")
+    suspend fun submitVerificationRequest(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String>,
+    ): Map<String, Any?>
+
+    @POST("push/register")
+    suspend fun registerPushToken(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, Any?>,
+    ): Map<String, Any?>
+
+    @GET("lists")
+    suspend fun fetchLists(@Header("Authorization") token: String): Map<String, Any?>
+
+    @POST("lists")
+    suspend fun createList(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, Any?>,
+    ): Map<String, Any?>
+
+    @GET("lists/{listId}")
+    suspend fun fetchList(
+        @Header("Authorization") token: String,
+        @Path("listId") listId: Int,
+    ): Map<String, Any?>
+
+    @POST("lists/{listId}/members")
+    suspend fun addListMember(
+        @Header("Authorization") token: String,
+        @Path("listId") listId: Int,
+        @Body body: Map<String, String>,
+    ): Map<String, Any?>
+
+    @GET("communities")
+    suspend fun fetchCommunities(@Header("Authorization") token: String): Map<String, Any?>
+
+    @POST("communities")
+    suspend fun createCommunity(
+        @Header("Authorization") token: String,
+        @Body body: Map<String, String?>,
+    ): Map<String, Any?>
+
+    @GET("communities/{slug}")
+    suspend fun fetchCommunity(
+        @Header("Authorization") token: String,
+        @Path("slug") slug: String,
+    ): Map<String, Any?>
+
+    @GET("communities/{slug}/timeline")
+    suspend fun fetchCommunityTimeline(
+        @Header("Authorization") token: String,
+        @Path("slug") slug: String,
+    ): Map<String, Any?>
+
+    @POST("communities/{slug}")
+    suspend fun joinCommunity(
+        @Header("Authorization") token: String,
+        @Path("slug") slug: String,
+    ): Map<String, Any?>
 }

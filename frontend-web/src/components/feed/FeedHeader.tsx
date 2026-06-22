@@ -14,7 +14,7 @@ interface FeedHeaderProps {
 }
 
 const TABS: { id: FeedTab; label: string; subtitle?: string }[] = [
-  { id: 'for-you', label: 'Recentes', subtitle: 'Posts mais novos da rede' },
+  { id: 'for-you', label: 'Para você', subtitle: 'Recomendados para você' },
   { id: 'following', label: 'Seguindo' },
 ];
 

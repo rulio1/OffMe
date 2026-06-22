@@ -72,7 +72,7 @@ async function loadEnrichment(
   const quotedMap = new Map<number, Post>();
 
   if (quoteIds.length > 0) {
-    const quotedPosts = await Promise.all(quoteIds.map((id) => findPostById(id)));
+    const quotedPosts = await Promise.all(quoteIds.map((id) => findPostById(id, viewerId)));
     const quotedMediaMap = await getMediaUrlsByPostIds(quoteIds);
     for (const row of quoteRows) {
       if (row.quote_of_id == null) continue;

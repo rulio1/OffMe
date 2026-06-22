@@ -71,6 +71,10 @@ async function main() {
     '009_perf_indexes.sql',
     '010_moderation_polls_quotes.sql',
     '011_verification_admin.sql',
+    '012_push_tokens.sql',
+    '013_scheduled_posts.sql',
+    '014_lists_communities.sql',
+    '015_user_moderation.sql',
   ];
 
   const root = path.join(__dirname, '..', '..');

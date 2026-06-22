@@ -71,17 +71,23 @@ export interface DbReport {
   reporter_display_name: string;
   post_text?: string | null;
   post_author_username?: string | null;
+  target_username?: string | null;
+  target_display_name?: string | null;
+  target_suspended?: boolean | null;
 }
 
 export async function listOpenReports(limit = 50): Promise<DbReport[]> {
   return query<DbReport>(
     `SELECT r.id, r.reporter_id, r.target_type, r.target_id, r.reason, r.status, r.created_at,
             ru.username AS reporter_username, ru.display_name AS reporter_display_name,
-            p.text AS post_text, au.username AS post_author_username
+            p.text AS post_text, au.username AS post_author_username,
+            tu.username AS target_username, tu.display_name AS target_display_name,
+            (tu.deactivated_at IS NOT NULL) AS target_suspended
      FROM reports r
      JOIN users ru ON ru.id = r.reporter_id
      LEFT JOIN posts p ON r.target_type = 'post' AND p.id = r.target_id
      LEFT JOIN users au ON p.author_id = au.id
+     LEFT JOIN users tu ON r.target_type = 'user' AND tu.id = r.target_id
      WHERE r.status = 'open'
      ORDER BY r.created_at DESC
      LIMIT $1`,

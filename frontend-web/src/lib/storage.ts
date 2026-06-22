@@ -1,5 +1,6 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, HeadBucketCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
+import { unlink } from 'fs/promises';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
@@ -164,6 +165,67 @@ export async function uploadImage(
     url: `${publicUrl}/${storageKey}`,
     storageKey,
   };
+}
+
+async function deleteObjectLocal(storageKey: string): Promise<void> {
+  const targetPath = join(process.cwd(), 'public', storageKey);
+  try {
+    await unlink(targetPath);
+  } catch {
+    // file may already be gone
+  }
+}
+
+export async function deleteObject(storageKey: string): Promise<void> {
+  if (!storageKey) return;
+
+  if (shouldUseLocalUploads()) {
+    await deleteObjectLocal(storageKey);
+    return;
+  }
+
+  if (shouldUseImgBB()) {
+    return;
+  }
+
+  const { bucket } = getConfig();
+  await getClient().send(
+    new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: storageKey,
+    })
+  );
+}
+
+function hasRealS3Config(): boolean {
+  return (
+    !!process.env.S3_ACCESS_KEY &&
+    !!process.env.S3_SECRET_KEY &&
+    process.env.S3_ENDPOINT !== 'local'
+  );
+}
+
+export async function checkStorageHealth(): Promise<{ ok: boolean; mode: string; detail?: string }> {
+  const mode = shouldUseLocalUploads()
+    ? 'local'
+    : shouldUseImgBB()
+      ? 'imgbb'
+      : hasRealS3Config()
+        ? 'r2/s3'
+        : 'local';
+
+  if (mode === 'local' || mode === 'imgbb') {
+    return { ok: true, mode };
+  }
+
+  try {
+    const { bucket } = getConfig();
+    await getClient().send(new HeadBucketCommand({ Bucket: bucket }));
+    return { ok: true, mode };
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : 'unknown';
+    return { ok: false, mode, detail };
+  }
 }
 
 export { MAX_BYTES as MAX_UPLOAD_BYTES, ALLOWED_MIME as ALLOWED_IMAGE_MIME };

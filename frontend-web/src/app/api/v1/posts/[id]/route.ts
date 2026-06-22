@@ -15,7 +15,7 @@ export async function GET(
     const postId = Number(params.id);
     if (!Number.isFinite(postId)) return jsonError('Post inválido', 400);
 
-    const row = await findPostById(postId);
+    const row = await findPostById(postId, viewer.id);
     if (!row) return jsonError('Post não encontrado', 404);
 
     return jsonOk(await enrichPost(row, viewer.id));

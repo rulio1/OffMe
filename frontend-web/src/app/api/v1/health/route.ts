@@ -1,5 +1,6 @@
 import { pool } from '@/lib/db';
 import { jsonOk, jsonError } from '@/lib/api-response';
+import { checkStorageHealth } from '@/lib/storage';
 
 export async function GET() {
   const useLocalFlag = process.env.USE_LOCAL_UPLOADS === 'true';
@@ -9,11 +10,14 @@ export async function GET() {
 
   try {
     await pool.query('SELECT 1');
-    return jsonOk({ 
-      status: 'ok', 
-      database: 'connected', 
+    const storageHealth = await checkStorageHealth();
+    return jsonOk({
+      status: 'ok',
+      database: 'connected',
       service: 'offme-api',
-      storage: storageMode
+      storage: storageMode,
+      storageHealth: storageHealth.ok ? 'ok' : 'degraded',
+      ...(storageHealth.detail ? { storageDetail: storageHealth.detail } : {}),
     });
   } catch (e) {
     const detail = e instanceof Error ? e.message : 'unknown';

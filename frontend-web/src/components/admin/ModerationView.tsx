@@ -7,6 +7,8 @@ import {
   fetchAdminReports,
   fetchAdminVerificationRequests,
   reviewVerificationRequest,
+  suspendAdminUser,
+  unsuspendAdminUser,
   updateAdminReport,
 } from '@/lib/api';
 import { formatPostTime } from '@/lib/format-time';
@@ -16,6 +18,7 @@ type AdminTab = 'reports' | 'verification';
 export function ModerationView() {
   const [tab, setTab] = useState<AdminTab>('reports');
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState('');
 
   const {
     data: reportsData,
@@ -39,9 +42,41 @@ export function ModerationView() {
 
   const handleReportAction = async (reportId: number, action: 'resolve' | 'dismiss') => {
     setBusyId(reportId);
+    setActionError('');
     try {
       await updateAdminReport(reportId, action);
       await mutateReports();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Erro ao atualizar denúncia');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleSuspendUser = async (userId: number) => {
+    const reason = window.prompt('Motivo da suspensão:', 'Violação das regras');
+    if (!reason?.trim()) return;
+    setBusyId(userId);
+    setActionError('');
+    try {
+      await suspendAdminUser(userId, reason.trim());
+      await mutateReports();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Erro ao suspender usuário');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleUnsuspendUser = async (userId: number) => {
+    if (!window.confirm('Reativar este usuário?')) return;
+    setBusyId(userId);
+    setActionError('');
+    try {
+      await unsuspendAdminUser(userId);
+      await mutateReports();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Erro ao reativar usuário');
     } finally {
       setBusyId(null);
     }
@@ -49,9 +84,12 @@ export function ModerationView() {
 
   const handleVerificationAction = async (requestId: number, action: 'approve' | 'reject') => {
     setBusyId(requestId);
+    setActionError('');
     try {
       await reviewVerificationRequest(requestId, action);
       await mutateVerification();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Erro ao revisar solicitação');
     } finally {
       setBusyId(null);
     }
@@ -93,6 +131,12 @@ export function ModerationView() {
         </div>
       </header>
 
+      {actionError && (
+        <p className="border-b border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {actionError}
+        </p>
+      )}
+
       {tab === 'reports' && (
         <div>
           {reports.length === 0 && (
@@ -127,8 +171,52 @@ export function ModerationView() {
                       </Link>
                     </>
                   )}
+                  {report.targetType === 'user' && (
+                    <>
+                      <p className="mt-1 text-sm">
+                        Usuário denunciado:{' '}
+                        <span className="font-bold">
+                          {report.targetDisplayName ?? 'Usuário'} (@
+                          {report.targetUsername ?? report.targetId})
+                        </span>
+                        {report.targetSuspended && (
+                          <span className="ml-2 text-xs font-semibold text-red-500">
+                            (suspenso)
+                          </span>
+                        )}
+                      </p>
+                      {report.targetUsername && (
+                        <Link
+                          href={`/profile/${report.targetUsername}`}
+                          className="mt-2 inline-block text-sm text-offme-accent hover:underline"
+                        >
+                          Ver perfil
+                        </Link>
+                      )}
+                    </>
+                  )}
                 </div>
                 <div className="flex shrink-0 flex-col gap-2">
+                  {report.targetType === 'user' && !report.targetSuspended && (
+                    <button
+                      type="button"
+                      onClick={() => handleSuspendUser(report.targetId)}
+                      disabled={busyId === report.targetId}
+                      className="rounded-full bg-red-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-red-600 disabled:opacity-50"
+                    >
+                      Suspender
+                    </button>
+                  )}
+                  {report.targetType === 'user' && report.targetSuspended && (
+                    <button
+                      type="button"
+                      onClick={() => handleUnsuspendUser(report.targetId)}
+                      disabled={busyId === report.targetId}
+                      className="rounded-full bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-50"
+                    >
+                      Reativar
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => handleReportAction(report.id, 'resolve')}

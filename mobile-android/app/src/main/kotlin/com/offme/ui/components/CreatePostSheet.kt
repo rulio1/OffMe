@@ -28,6 +28,7 @@ fun CreatePostSheet(
     api: ApiClient,
     token: String,
     replyToId: Int? = null,
+    communityId: Int? = null,
     onDismiss: () -> Unit,
     onCreated: () -> Unit,
 ) {
@@ -79,7 +80,7 @@ fun CreatePostSheet(
                         posting = true
                         error = null
                         try {
-                            api.createPost(token, trimmed, replyToId)
+                            api.createPost(token, trimmed, replyToId, communityId)
                             text = ""
                             onCreated()
                             onDismiss()

@@ -17,7 +17,7 @@ export async function GET(
     if (!user) return jsonError('Usuário não encontrado', 404);
 
     const cursor = request.nextUrl.searchParams.get('cursor') ?? undefined;
-    const { rows, nextCursor } = await listByAuthor(user.id, cursor);
+    const { rows, nextCursor } = await listByAuthor(user.id, cursor, undefined, viewer.id);
     const entries = await enrichTimelineEntries(rows, viewer.id, 'following');
 
     return jsonOk({ entries, nextCursor });

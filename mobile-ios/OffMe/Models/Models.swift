@@ -350,6 +350,68 @@ struct APIErrorBody: Codable {
     let message: String
 }
 
+struct VerificationRequestInfo: Codable {
+    let id: Int?
+    let status: String
+    let reason: String?
+    let createdAt: Int64?
+}
+
+struct VerificationStatusResponse: Codable {
+    let request: VerificationRequestInfo?
+    let verified: Bool?
+}
+
+struct OffMeList: Codable, Identifiable {
+    let id: Int
+    let ownerId: Int
+    let name: String
+    let description: String?
+    let isPrivate: Bool
+    let memberCount: Int
+    let createdAt: Int64
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try FlexibleDecoding.int(from: c, forKey: .id)
+        ownerId = try FlexibleDecoding.int(from: c, forKey: .ownerId)
+        name = try c.decode(String.self, forKey: .name)
+        description = FlexibleDecoding.stringIfPresent(from: c, forKey: .description)
+        isPrivate = FlexibleDecoding.boolIfPresent(from: c, forKey: .isPrivate) ?? false
+        memberCount = FlexibleDecoding.intIfPresent(from: c, forKey: .memberCount) ?? 0
+        createdAt = try FlexibleDecoding.int64(from: c, forKey: .createdAt)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, ownerId, name, description, isPrivate, memberCount, createdAt
+    }
+}
+
+struct OffMeCommunity: Codable, Identifiable {
+    let id: Int
+    let slug: String
+    let name: String
+    let description: String?
+    let creatorId: Int?
+    let memberCount: Int
+    let createdAt: Int64
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try FlexibleDecoding.int(from: c, forKey: .id)
+        slug = try c.decode(String.self, forKey: .slug)
+        name = try c.decode(String.self, forKey: .name)
+        description = FlexibleDecoding.stringIfPresent(from: c, forKey: .description)
+        creatorId = FlexibleDecoding.intIfPresent(from: c, forKey: .creatorId)
+        memberCount = FlexibleDecoding.intIfPresent(from: c, forKey: .memberCount) ?? 0
+        createdAt = try FlexibleDecoding.int64(from: c, forKey: .createdAt)
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, slug, name, description, creatorId, memberCount, createdAt
+    }
+}
+
 enum Formatters {
     static func count(_ n: Int) -> String {
         if n >= 1_000_000 { return String(format: "%.1fM", Double(n) / 1_000_000) }

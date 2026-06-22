@@ -389,6 +389,60 @@ final class APIClient {
             token: token
         )
     }
+
+    func fetchVerificationStatus(token: String) async throws -> VerificationStatusResponse {
+        try await request("/verification/request", token: token)
+    }
+
+    func submitVerificationRequest(reason: String, token: String) async throws {
+        struct Body: Encodable { let reason: String }
+        struct Ok: Decodable { let ok: Bool? }
+        let _: Ok = try await request(
+            "/verification/request",
+            method: "POST",
+            body: Body(reason: reason),
+            token: token
+        )
+    }
+
+    func registerPushToken(token: String, platform: String, authToken: String) async throws {
+        struct Body: Encodable {
+            let platform: String
+            let token: String
+        }
+        struct Ok: Decodable { let registered: Bool? }
+        let _: Ok = try await request(
+            "/push/register",
+            method: "POST",
+            body: Body(platform: platform, token: token),
+            token: authToken
+        )
+    }
+
+    func fetchLists(token: String) async throws -> [OffMeList] {
+        struct Response: Decodable { let lists: [OffMeList] }
+        let res: Response = try await request("/lists", token: token)
+        return res.lists
+    }
+
+    func createList(name: String, token: String) async throws -> OffMeList {
+        struct Body: Encodable {
+            let name: String
+            let isPrivate: Bool
+        }
+        return try await request("/lists", method: "POST", body: Body(name: name, isPrivate: false), token: token)
+    }
+
+    func fetchCommunities(token: String) async throws -> [OffMeCommunity] {
+        struct Response: Decodable { let communities: [OffMeCommunity] }
+        let res: Response = try await request("/communities", token: token)
+        return res.communities
+    }
+
+    func createCommunity(name: String, token: String) async throws -> OffMeCommunity {
+        struct Body: Encodable { let name: String }
+        return try await request("/communities", method: "POST", body: Body(name: name), token: token)
+    }
 }
 
 private extension Data {

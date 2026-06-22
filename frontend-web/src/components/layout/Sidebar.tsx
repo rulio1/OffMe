@@ -125,6 +125,24 @@ export function Sidebar() {
                 Configurações do perfil
               </Link>
               <Link
+                href="/lists"
+                role="menuitem"
+                onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-black/5"
+              >
+                <XNavIcon name="lists" className="h-5 w-5" />
+                Listas
+              </Link>
+              <Link
+                href="/communities"
+                role="menuitem"
+                onClick={() => setMoreOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-black/5"
+              >
+                <XNavIcon name="communities" className="h-5 w-5" />
+                Comunidades
+              </Link>
+              <Link
                 href="/settings/verification"
                 role="menuitem"
                 onClick={() => setMoreOpen(false)}

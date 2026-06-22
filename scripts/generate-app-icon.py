@@ -19,6 +19,23 @@ DEFAULT_SOURCE = ROOT / "assets" / "brand" / "logo-source.jpg"
 IOS_ICON_DIR = ROOT / "mobile-ios" / "OffMe" / "Assets.xcassets" / "AppIcon.appiconset"
 IOS_LOGO_DIR = ROOT / "mobile-ios" / "OffMe" / "Assets.xcassets" / "Logo.imageset"
 WEB_PUBLIC = ROOT / "frontend-web" / "public"
+ANDROID_RES = ROOT / "mobile-android" / "app" / "src" / "main" / "res"
+
+ANDROID_MIPMAP_SIZES = {
+    "mipmap-mdpi": 48,
+    "mipmap-hdpi": 72,
+    "mipmap-xhdpi": 96,
+    "mipmap-xxhdpi": 144,
+    "mipmap-xxxhdpi": 192,
+}
+
+ANDROID_FOREGROUND_SIZES = {
+    "mipmap-mdpi": 108,
+    "mipmap-hdpi": 162,
+    "mipmap-xhdpi": 216,
+    "mipmap-xxhdpi": 324,
+    "mipmap-xxxhdpi": 432,
+}
 
 ACCENT = (29, 155, 240)
 ACCENT_DARK = (26, 140, 216)
@@ -170,6 +187,46 @@ def write_ico(path: Path, frames: list[tuple[int, bytes]]) -> None:
     path.write_bytes(b"".join(parts))
 
 
+def write_android_icons(master: Image.Image) -> None:
+    for folder, px in ANDROID_MIPMAP_SIZES.items():
+        out_dir = ANDROID_RES / folder
+        out_dir.mkdir(parents=True, exist_ok=True)
+        icon = master.resize((px, px), Image.Resampling.LANCZOS)
+        write_png_rgb(out_dir / "ic_launcher.png", icon)
+        write_png_rgb(out_dir / "ic_launcher_round.png", icon)
+
+    for folder, px in ANDROID_FOREGROUND_SIZES.items():
+        out_dir = ANDROID_RES / folder
+        out_dir.mkdir(parents=True, exist_ok=True)
+        fg = master.resize((px, px), Image.Resampling.LANCZOS)
+        write_png_rgb(out_dir / "ic_launcher_foreground.png", fg)
+
+    values_dir = ANDROID_RES / "values"
+    values_dir.mkdir(parents=True, exist_ok=True)
+    (values_dir / "ic_launcher_background.xml").write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        "<resources>\n"
+        f"    <color name=\"ic_launcher_background\">#{ACCENT[0]:02x}{ACCENT[1]:02x}{ACCENT[2]:02x}</color>\n"
+        "</resources>\n",
+        encoding="utf-8",
+    )
+
+    anydpi = ANDROID_RES / "mipmap-anydpi-v26"
+    anydpi.mkdir(parents=True, exist_ok=True)
+    (anydpi / "ic_launcher.xml").write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n'
+        '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
+        '    <background android:drawable="@color/ic_launcher_background"/>\n'
+        '    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>\n'
+        "</adaptive-icon>\n",
+        encoding="utf-8",
+    )
+    (anydpi / "ic_launcher_round.xml").write_text(
+        (anydpi / "ic_launcher.xml").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+
 def write_logo_imageset(master: Image.Image) -> None:
     logo_sizes = {
         "logo.png": 256,
@@ -256,12 +313,14 @@ def main() -> None:
             ico_frames.append((px, out.read_bytes()))
 
     write_ico(WEB_PUBLIC / "favicon.ico", ico_frames)
+    write_android_icons(master)
 
     print("Generated icons:")
     print(f"  Source: {args.source}")
     print(f"  iOS: {IOS_ICON_DIR} ({len(IOS_SIZES)} sizes)")
     print(f"  iOS logo: {IOS_LOGO_DIR}")
     print(f"  Web: {WEB_PUBLIC}")
+    print(f"  Android: {ANDROID_RES}")
 
 
 if __name__ == "__main__":

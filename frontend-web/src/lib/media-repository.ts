@@ -1,4 +1,5 @@
 import { query, queryOne } from './db';
+import { deleteObject } from './storage';
 
 export interface DbMediaAsset {
   id: string;
@@ -69,6 +70,20 @@ export async function getMediaUrlsByPostIds(postIds: number[]): Promise<Map<numb
     map.set(row.post_id, list);
   }
   return map;
+}
+
+export async function getStorageKeysByPostId(postId: number): Promise<string[]> {
+  const rows = await query<{ storage_key: string }>(
+    `SELECT storage_key FROM media_assets WHERE post_id = $1`,
+    [postId]
+  );
+  return rows.map((r) => r.storage_key).filter(Boolean);
+}
+
+export async function deleteMediaForPost(postId: number): Promise<void> {
+  const keys = await getStorageKeysByPostId(postId);
+  await Promise.all(keys.map((key) => deleteObject(key).catch(() => {})));
+  await query(`DELETE FROM media_assets WHERE post_id = $1`, [postId]);
 }
 
 export function toApiMedia(row: DbMediaAsset) {

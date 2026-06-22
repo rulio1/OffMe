@@ -101,8 +101,13 @@ class ApiClient {
         service.homeTimeline(bearer(token), cursor)
     }
 
-    suspend fun createPost(token: String, text: String, replyToId: Int? = null): Post = safeCall {
-        service.createPost(bearer(token), CreatePostBody(text, replyToId, null))
+    suspend fun createPost(
+        token: String,
+        text: String,
+        replyToId: Int? = null,
+        communityId: Int? = null,
+    ): Post = safeCall {
+        service.createPost(bearer(token), CreatePostBody(text, replyToId, null, communityId))
     }
 
     suspend fun fetchPost(token: String, postId: Int): Post = safeCall {
@@ -213,5 +218,56 @@ class ApiClient {
 
     suspend fun sendMessage(token: String, conversationId: Int, text: String) = safeCall {
         service.sendMessage(bearer(token), conversationId, SendMessageBody(text))
+    }
+
+    suspend fun fetchVerificationStatus(token: String) = safeCall {
+        service.fetchVerificationStatus(bearer(token))
+    }
+
+    suspend fun submitVerificationRequest(token: String, reason: String) = safeCall {
+        service.submitVerificationRequest(bearer(token), mapOf("reason" to reason))
+    }
+
+    suspend fun registerPushToken(token: String, deviceToken: String) = safeCall {
+        service.registerPushToken(
+            bearer(token),
+            mapOf("platform" to "android", "token" to deviceToken),
+        )
+    }
+
+    suspend fun fetchLists(token: String) = safeCall {
+        service.fetchLists(bearer(token))
+    }
+
+    suspend fun createList(token: String, name: String) = safeCall {
+        service.createList(bearer(token), mapOf("name" to name, "isPrivate" to false))
+    }
+
+    suspend fun fetchList(token: String, listId: Int) = safeCall {
+        service.fetchList(bearer(token), listId)
+    }
+
+    suspend fun addListMember(token: String, listId: Int, username: String) = safeCall {
+        service.addListMember(bearer(token), listId, mapOf("username" to username))
+    }
+
+    suspend fun fetchCommunities(token: String) = safeCall {
+        service.fetchCommunities(bearer(token))
+    }
+
+    suspend fun createCommunity(token: String, name: String) = safeCall {
+        service.createCommunity(bearer(token), mapOf("name" to name))
+    }
+
+    suspend fun fetchCommunity(token: String, slug: String) = safeCall {
+        service.fetchCommunity(bearer(token), slug)
+    }
+
+    suspend fun fetchCommunityTimeline(token: String, slug: String) = safeCall {
+        service.fetchCommunityTimeline(bearer(token), slug)
+    }
+
+    suspend fun joinCommunity(token: String, slug: String) = safeCall {
+        service.joinCommunity(bearer(token), slug)
     }
 }

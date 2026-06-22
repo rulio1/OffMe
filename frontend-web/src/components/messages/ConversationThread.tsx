@@ -162,6 +162,7 @@ export function ConversationThread({ conversationId }: ConversationThreadProps) 
         )}
         <div className="flex gap-2">
           <textarea
+            data-testid="message-input"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {

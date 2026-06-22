@@ -7,7 +7,9 @@ export type XNavIconName =
   | 'messages'
   | 'bookmarks'
   | 'profile'
-  | 'more';
+  | 'more'
+  | 'lists'
+  | 'communities';
 
 interface XNavIconProps {
   name: XNavIconName;
@@ -132,6 +134,30 @@ export function XNavIcon({ name, active = false, className }: XNavIconProps) {
           <circle cx="5.5" cy="12" r="1.75" fill="currentColor" />
           <circle cx="12" cy="12" r="1.75" fill="currentColor" />
           <circle cx="18.5" cy="12" r="1.75" fill="currentColor" />
+        </svg>
+      );
+
+    case 'lists':
+      return (
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
+          <path
+            stroke="currentColor"
+            strokeWidth={1.75}
+            strokeLinecap="round"
+            d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"
+          />
+        </svg>
+      );
+
+    case 'communities':
+      return (
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden fill="none">
+          <path
+            stroke="currentColor"
+            strokeWidth={1.75}
+            strokeLinejoin="round"
+            d="M7.5 8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm9 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM3 20v-1a4 4 0 0 1 4-4h1m8 5v-1a4 4 0 0 0-4-4h-1"
+          />
         </svg>
       );
   }

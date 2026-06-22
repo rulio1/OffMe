@@ -1,4 +1,5 @@
 import { query, queryOne } from './db';
+import { dispatchPush } from './push-repository';
 
 export type NotificationType = 'like' | 'reply' | 'follow' | 'repost' | 'quote';
 
@@ -37,6 +38,28 @@ export async function createNotification(input: {
      VALUES ($1, $2, $3, $4)`,
     [input.userId, input.actorId, input.type, input.postId ?? null]
   );
+
+  const actor = await queryOne<{ display_name: string; username: string }>(
+    `SELECT display_name, username FROM users WHERE id = $1`,
+    [input.actorId]
+  );
+  const actorLabel = actor?.display_name || actor?.username || 'Alguém';
+
+  const pushCopy: Record<NotificationType, { title: string; body: string }> = {
+    like: { title: 'Nova curtida', body: `${actorLabel} curtiu seu post` },
+    reply: { title: 'Nova resposta', body: `${actorLabel} respondeu seu post` },
+    follow: { title: 'Novo seguidor', body: `${actorLabel} começou a seguir você` },
+    repost: { title: 'Novo repost', body: `${actorLabel} repostou seu post` },
+    quote: { title: 'Nova citação', body: `${actorLabel} citou seu post` },
+  };
+
+  const copy = pushCopy[input.type];
+  void dispatchPush({
+    userId: input.userId,
+    title: copy.title,
+    body: copy.body,
+    url: input.postId ? `/post/${input.postId}` : '/notifications',
+  });
 }
 
 export async function listNotifications(userId: number, limit = 50): Promise<DbNotification[]> {

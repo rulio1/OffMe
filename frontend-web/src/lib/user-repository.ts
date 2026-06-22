@@ -158,6 +158,50 @@ export async function searchUsers(queryText: string, limit = 20): Promise<DbUser
   );
 }
 
+export async function suspendUser(
+  userId: number,
+  adminId: number,
+  reason: string
+): Promise<boolean> {
+  const trimmed = reason.trim();
+  if (!trimmed) throw new Error('Motivo da suspensão é obrigatório');
+
+  const row = await queryOne<{ id: number }>(
+    `UPDATE users
+     SET deactivated_at = NOW(),
+         suspended_reason = $2,
+         suspended_by = $3,
+         updated_at = NOW()
+     WHERE id = $1 AND deactivated_at IS NULL
+     RETURNING id`,
+    [userId, trimmed, adminId]
+  );
+  return Boolean(row);
+}
+
+export async function unsuspendUser(userId: number): Promise<boolean> {
+  const row = await queryOne<{ id: number }>(
+    `UPDATE users
+     SET deactivated_at = NULL,
+         suspended_reason = NULL,
+         suspended_by = NULL,
+         updated_at = NOW()
+     WHERE id = $1 AND deactivated_at IS NOT NULL
+     RETURNING id`,
+    [userId]
+  );
+  return Boolean(row);
+}
+
+export async function findUserByUsernameIncludingSuspended(
+  username: string
+): Promise<DbUser | null> {
+  return queryOne<DbUser>(
+    `SELECT ${USER_SELECT} FROM users WHERE LOWER(username) = LOWER($1)`,
+    [username]
+  );
+}
+
 export async function listSuggestedUsers(viewerId: number, limit = 5): Promise<DbUser[]> {
   return query<DbUser>(
     `SELECT ${USER_SELECT}

@@ -44,6 +44,10 @@
 		A10000000000000000000059 /* FeaturePlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000058 /* FeaturePlaceholderView.swift */; };
 		A1000000000000000000005B /* ListsPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005A /* ListsPlaceholderView.swift */; };
 		A1000000000000000000005D /* CommunitiesPlaceholderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005C /* CommunitiesPlaceholderView.swift */; };
+		A1000000000000000000005F /* ListsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005E /* ListsView.swift */; };
+		A10000000000000000000061 /* CommunitiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000060 /* CommunitiesView.swift */; };
+		A10000000000000000000063 /* VerificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000062 /* VerificationSettingsView.swift */; };
+		A10000000000000000000065 /* PushNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000064 /* PushNotificationService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +90,10 @@
 		A10000000000000000000058 /* FeaturePlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeaturePlaceholderView.swift; sourceTree = "<group>"; };
 		A1000000000000000000005A /* ListsPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListsPlaceholderView.swift; sourceTree = "<group>"; };
 		A1000000000000000000005C /* CommunitiesPlaceholderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunitiesPlaceholderView.swift; sourceTree = "<group>"; };
+		A1000000000000000000005E /* ListsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListsView.swift; sourceTree = "<group>"; };
+		A10000000000000000000060 /* CommunitiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunitiesView.swift; sourceTree = "<group>"; };
+		A10000000000000000000062 /* VerificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationSettingsView.swift; sourceTree = "<group>"; };
+		A10000000000000000000064 /* PushNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -154,6 +162,7 @@
 				A10000000000000000000014 /* APIClient.swift */,
 				A10000000000000000000015 /* AuthStore.swift */,
 				A10000000000000000000054 /* SupabaseRealtimeClient.swift */,
+				A10000000000000000000064 /* PushNotificationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -181,7 +190,10 @@
 				A1000000000000000000004B /* XNavIcons.swift */,
 				A1000000000000000000004D /* BookmarksView.swift */,
 				A1000000000000000000005A /* ListsPlaceholderView.swift */,
+				A1000000000000000000005E /* ListsView.swift */,
 				A1000000000000000000005C /* CommunitiesPlaceholderView.swift */,
+				A10000000000000000000060 /* CommunitiesView.swift */,
+				A10000000000000000000062 /* VerificationSettingsView.swift */,
 				A10000000000000000000058 /* FeaturePlaceholderView.swift */,
 				A10000000000000000000047 /* ImageCropView.swift */,
 				A1000000000000000000001E /* MainTabView.swift */,
@@ -284,7 +296,11 @@
 				A10000000000000000000057 /* AuthScreenLayout.swift in Sources */,
 				A10000000000000000000059 /* FeaturePlaceholderView.swift in Sources */,
 				A1000000000000000000005B /* ListsPlaceholderView.swift in Sources */,
+				A1000000000000000000005F /* ListsView.swift in Sources */,
 				A1000000000000000000005D /* CommunitiesPlaceholderView.swift in Sources */,
+				A10000000000000000000061 /* CommunitiesView.swift in Sources */,
+				A10000000000000000000063 /* VerificationSettingsView.swift in Sources */,
+				A10000000000000000000065 /* PushNotificationService.swift in Sources */,
 				A10000000000000000000008 /* LoginView.swift in Sources */,
 				A10000000000000000000009 /* SignupView.swift in Sources */,
 				A1000000000000000000000A /* FeedView.swift in Sources */,

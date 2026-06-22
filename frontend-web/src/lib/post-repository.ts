@@ -1,7 +1,13 @@
 import type { Poll, Post } from '@/types';
 import { query, queryOne } from './db';
-import { encodeCursor, PAGE_SIZE, parseCursor } from './cursor';
-import { linkMediaToPost } from './media-repository';
+import {
+  encodeCursor,
+  encodeForYouCursor,
+  PAGE_SIZE,
+  parseCursor,
+  parseForYouCursor,
+} from './cursor';
+import { deleteMediaForPost, linkMediaToPost } from './media-repository';
 import { createNotification } from './notification-repository';
 import { toPublicUser, type DbUser } from './user-repository';
 
@@ -53,12 +59,42 @@ function buildCursorClause(cursor: string | undefined, paramOffset: number): {
   };
 }
 
+function buildForYouCursorClause(cursor: string | undefined, paramOffset: number): {
+  sql: string;
+  params: (Date | number)[];
+} {
+  if (!cursor) return { sql: '', params: [] };
+  const parsed = parseForYouCursor(cursor);
+  if (!parsed) return { sql: '', params: [] };
+  return {
+    sql: ` AND (score, created_at, id) < ($${paramOffset}, $${paramOffset + 1}, $${paramOffset + 2})`,
+    params: [parsed.score, parsed.createdAt, parsed.id],
+  };
+}
+
+/** Public reads: published only, unless viewer is the author. */
+function publishedVisibilitySql(viewerId: number | undefined, paramOffset: number): {
+  sql: string;
+  params: number[];
+} {
+  if (viewerId == null) {
+    return { sql: ` AND COALESCE(p.status, 'published') = 'published'`, params: [] };
+  }
+  return {
+    sql: ` AND (COALESCE(p.status, 'published') = 'published' OR p.author_id = $${paramOffset})`,
+    params: [viewerId],
+  };
+}
+
+export type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
+
 export async function createPost(
   authorId: number,
   text: string,
   replyToId?: number,
   mediaIds?: string[],
-  quoteOfId?: number
+  quoteOfId?: number,
+  options?: { scheduledAt?: Date; communityId?: number }
 ): Promise<DbPost> {
   if (replyToId != null) {
     const parent = await queryOne<{ id: number; author_id: number }>(
@@ -76,21 +112,37 @@ export async function createPost(
     if (!quoted) throw new Error('Post citado não encontrado');
   }
 
+  const scheduledAt = options?.scheduledAt;
+  const isScheduled = scheduledAt != null && scheduledAt.getTime() > Date.now();
+  const status: PostStatus = isScheduled ? 'scheduled' : 'published';
+  const communityId = options?.communityId ?? null;
+
   const inserted = await queryOne<{ id: number }>(
-    `INSERT INTO posts (author_id, text, reply_to_id, quote_of_id)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO posts (author_id, text, reply_to_id, quote_of_id, scheduled_at, published_at, status, community_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING id`,
-    [authorId, text, replyToId ?? null, quoteOfId ?? null]
+    [
+      authorId,
+      text,
+      replyToId ?? null,
+      quoteOfId ?? null,
+      isScheduled ? scheduledAt : null,
+      isScheduled ? null : new Date(),
+      status,
+      communityId,
+    ]
   );
 
   if (!inserted) throw new Error('Failed to create post');
 
-  await query(
-    `UPDATE users SET post_count = post_count + 1, updated_at = NOW() WHERE id = $1`,
-    [authorId]
-  );
+  if (!isScheduled) {
+    await query(
+      `UPDATE users SET post_count = post_count + 1, updated_at = NOW() WHERE id = $1`,
+      [authorId]
+    );
+  }
 
-  if (replyToId != null) {
+  if (!isScheduled && replyToId != null) {
     const parent = await queryOne<{ author_id: number }>(
       `SELECT author_id FROM posts WHERE id = $1`,
       [replyToId]
@@ -104,7 +156,7 @@ export async function createPost(
         postId: inserted.id,
       });
     }
-  } else if (quoteOfId != null) {
+  } else if (!isScheduled && quoteOfId != null) {
     const quoted = await queryOne<{ author_id: number }>(
       `SELECT author_id FROM posts WHERE id = $1`,
       [quoteOfId]
@@ -128,21 +180,29 @@ export async function createPost(
   return row;
 }
 
-export async function findPostById(id: number): Promise<DbPost | null> {
-  return queryOne<DbPost>(`${POST_SELECT} WHERE p.id = $1 AND u.deactivated_at IS NULL`, [id]);
+export async function findPostById(id: number, viewerId?: number): Promise<DbPost | null> {
+  const visibility = publishedVisibilitySql(viewerId, 2);
+  return queryOne<DbPost>(
+    `${POST_SELECT} WHERE p.id = $1 AND u.deactivated_at IS NULL${visibility.sql}`,
+    [id, ...visibility.params]
+  );
 }
 
 export async function deletePost(postId: number, authorId: number): Promise<boolean> {
-  const row = await queryOne<{ id: number; reply_to_id: number | null }>(
-    `DELETE FROM posts WHERE id = $1 AND author_id = $2 RETURNING id, reply_to_id`,
+  await deleteMediaForPost(postId);
+
+  const row = await queryOne<{ id: number; reply_to_id: number | null; status: PostStatus }>(
+    `DELETE FROM posts WHERE id = $1 AND author_id = $2 RETURNING id, reply_to_id, status`,
     [postId, authorId]
   );
   if (!row) return false;
 
-  await query(
-    `UPDATE users SET post_count = GREATEST(post_count - 1, 0), updated_at = NOW() WHERE id = $1`,
-    [authorId]
-  );
+  if (row.status === 'published') {
+    await query(
+      `UPDATE users SET post_count = GREATEST(post_count - 1, 0), updated_at = NOW() WHERE id = $1`,
+      [authorId]
+    );
+  }
 
   if (row.reply_to_id != null) {
     await query(
@@ -157,15 +217,17 @@ export async function deletePost(postId: number, authorId: number): Promise<bool
 export async function listReplies(
   postId: number,
   cursor?: string,
-  limit = PAGE_SIZE
+  limit = PAGE_SIZE,
+  viewerId?: number
 ): Promise<PaginatedPosts> {
-  const { sql, params } = buildCursorClause(cursor, 3);
+  const visibility = publishedVisibilitySql(viewerId, 3);
+  const { sql, params } = buildCursorClause(cursor, 4);
   const rows = await query<DbPost>(
     `${POST_SELECT}
-     WHERE p.reply_to_id = $1 AND u.deactivated_at IS NULL${sql}
+     WHERE p.reply_to_id = $1 AND u.deactivated_at IS NULL${visibility.sql}${sql}
      ORDER BY p.created_at DESC, p.id DESC
      LIMIT $2`,
-    [postId, limit, ...params]
+    [postId, limit, ...visibility.params, ...params]
   );
 
   const last = rows[rows.length - 1];
@@ -176,24 +238,100 @@ export async function listReplies(
   };
 }
 
+const BLOCK_MUTE_FILTER = `
+  AND u.deactivated_at IS NULL
+  AND COALESCE(p.status, 'published') = 'published'
+  AND p.author_id NOT IN (
+    SELECT blocked_id FROM blocks WHERE blocker_id = $1
+    UNION
+    SELECT blocker_id FROM blocks WHERE blocked_id = $1
+  )
+  AND p.author_id NOT IN (
+    SELECT muted_id FROM mutes WHERE muter_id = $1
+  )
+`;
+
 export async function listForYou(
   viewerId: number,
   cursor?: string,
   limit = PAGE_SIZE
 ): Promise<PaginatedPosts> {
-  const { sql, params } = buildCursorClause(cursor, 3);
-  const rows = await query<DbPost>(
-    `${POST_SELECT}
-     WHERE u.deactivated_at IS NULL
-       AND p.author_id NOT IN (
-         SELECT blocked_id FROM blocks WHERE blocker_id = $1
-         UNION
-         SELECT blocker_id FROM blocks WHERE blocked_id = $1
+  const candidateLimit = 200;
+  const followingLimit = Math.floor(candidateLimit * 0.4);
+  const recentLimit = Math.floor(candidateLimit * 0.4);
+  const trendingLimit = candidateLimit - followingLimit - recentLimit;
+
+  const { sql, params } = buildForYouCursorClause(cursor, 3);
+
+  type ScoredRow = DbPost & { score: number; in_network: number };
+
+  const rows = await query<ScoredRow>(
+    `WITH candidates AS (
+       (
+         SELECT p.id, p.author_id, p.text, p.reply_to_id, p.quote_of_id, p.like_count, p.repost_count,
+                p.reply_count, p.created_at,
+                u.username, u.display_name, u.avatar_url, u.verified,
+                1::float AS in_network, p.created_at AS sort_at
+         FROM posts p
+         JOIN users u ON u.id = p.author_id
+         WHERE p.reply_to_id IS NULL
+           AND p.author_id IN (SELECT following_id FROM follows WHERE follower_id = $1)
+           ${BLOCK_MUTE_FILTER}
+         ORDER BY p.created_at DESC, p.id DESC
+         LIMIT ${followingLimit}
        )
-       AND p.author_id NOT IN (
-         SELECT muted_id FROM mutes WHERE muter_id = $1
-       )${sql}
-     ORDER BY p.created_at DESC, p.id DESC
+       UNION ALL
+       (
+         SELECT p.id, p.author_id, p.text, p.reply_to_id, p.quote_of_id, p.like_count, p.repost_count,
+                p.reply_count, p.created_at,
+                u.username, u.display_name, u.avatar_url, u.verified,
+                0::float AS in_network, p.created_at AS sort_at
+         FROM posts p
+         JOIN users u ON u.id = p.author_id
+         WHERE p.reply_to_id IS NULL
+           AND p.created_at >= NOW() - INTERVAL '7 days'
+           ${BLOCK_MUTE_FILTER}
+         ORDER BY p.created_at DESC, p.id DESC
+         LIMIT ${recentLimit}
+       )
+       UNION ALL
+       (
+         SELECT p.id, p.author_id, p.text, p.reply_to_id, p.quote_of_id, p.like_count, p.repost_count,
+                p.reply_count, p.created_at,
+                u.username, u.display_name, u.avatar_url, u.verified,
+                0::float AS in_network, p.created_at AS sort_at
+         FROM posts p
+         JOIN users u ON u.id = p.author_id
+         WHERE p.reply_to_id IS NULL
+           ${BLOCK_MUTE_FILTER}
+         ORDER BY (p.like_count + p.repost_count * 2 + p.reply_count) DESC, p.created_at DESC
+         LIMIT ${trendingLimit}
+       )
+     ),
+     deduped AS (
+       SELECT DISTINCT ON (id) *
+       FROM candidates
+       ORDER BY id, in_network DESC, sort_at DESC
+     ),
+     scored AS (
+       SELECT *,
+         (
+           0.4 * in_network
+           + 0.3 * LN(1 + GREATEST(like_count, 0))
+           + 0.3 * EXP(-EXTRACT(EPOCH FROM (NOW() - created_at)) / 604800.0)
+         ) AS score
+       FROM deduped
+     ),
+     ranked AS (
+       SELECT *,
+         ROW_NUMBER() OVER (PARTITION BY author_id ORDER BY score DESC, created_at DESC, id DESC) AS author_rank
+       FROM scored
+     )
+     SELECT id, author_id, text, reply_to_id, quote_of_id, like_count, repost_count,
+            reply_count, created_at, username, display_name, avatar_url, verified, score, in_network
+     FROM ranked
+     WHERE author_rank <= 3${sql}
+     ORDER BY score DESC, created_at DESC, id DESC
      LIMIT $2`,
     [viewerId, limit, ...params]
   );
@@ -202,8 +340,57 @@ export async function listForYou(
   return {
     rows,
     nextCursor:
-      rows.length === limit && last ? encodeCursor(last.created_at, last.id) : undefined,
+      rows.length === limit && last
+        ? encodeForYouCursor(last.score, last.created_at, last.id)
+        : undefined,
   };
+}
+
+export async function publishDuePosts(): Promise<number> {
+  const due = await query<{ id: number; author_id: number; reply_to_id: number | null; quote_of_id: number | null }>(
+    `UPDATE posts
+     SET status = 'published', published_at = NOW()
+     WHERE status = 'scheduled' AND scheduled_at <= NOW()
+     RETURNING id, author_id, reply_to_id, quote_of_id`
+  );
+
+  for (const post of due) {
+    await query(
+      `UPDATE users SET post_count = post_count + 1, updated_at = NOW() WHERE id = $1`,
+      [post.author_id]
+    );
+
+    if (post.reply_to_id != null) {
+      const parent = await queryOne<{ author_id: number }>(
+        `SELECT author_id FROM posts WHERE id = $1`,
+        [post.reply_to_id]
+      );
+      await query(`UPDATE posts SET reply_count = reply_count + 1 WHERE id = $1`, [post.reply_to_id]);
+      if (parent) {
+        await createNotification({
+          userId: parent.author_id,
+          actorId: post.author_id,
+          type: 'reply',
+          postId: post.id,
+        });
+      }
+    } else if (post.quote_of_id != null) {
+      const quoted = await queryOne<{ author_id: number }>(
+        `SELECT author_id FROM posts WHERE id = $1`,
+        [post.quote_of_id]
+      );
+      if (quoted && quoted.author_id !== post.author_id) {
+        await createNotification({
+          userId: quoted.author_id,
+          actorId: post.author_id,
+          type: 'quote',
+          postId: post.id,
+        });
+      }
+    }
+  }
+
+  return due.length;
 }
 
 function buildTimelineCursorClause(cursor: string | undefined, paramOffset: number): {
@@ -234,6 +421,7 @@ const HOME_TIMELINE_SQL = `
            p.created_at AS timeline_at, p.id AS event_id
     FROM posts p
     WHERE p.author_id IN (SELECT user_id FROM following)
+      AND COALESCE(p.status, 'published') = 'published'
 
     UNION ALL
 
@@ -246,6 +434,7 @@ const HOME_TIMELINE_SQL = `
   JOIN posts p ON p.id = te.post_id
   JOIN users u ON u.id = p.author_id
   WHERE u.deactivated_at IS NULL
+    AND COALESCE(p.status, 'published') = 'published'
 `;
 
 export async function listFollowing(
@@ -298,7 +487,8 @@ export async function listBookmarks(
      FROM posts p
      JOIN users u ON u.id = p.author_id
      JOIN post_bookmarks b ON b.post_id = p.id AND b.user_id = $1
-     WHERE u.deactivated_at IS NULL${sql}
+     WHERE u.deactivated_at IS NULL
+       AND COALESCE(p.status, 'published') = 'published'${sql}
      ORDER BY b.created_at DESC, p.id DESC
      LIMIT $2`,
     [userId, limit, ...params]
@@ -322,6 +512,7 @@ export async function searchPosts(queryText: string, limit = 20): Promise<DbPost
   return query<DbPost>(
     `${POST_SELECT}
      WHERE u.deactivated_at IS NULL
+       AND COALESCE(p.status, 'published') = 'published'
        AND p.reply_to_id IS NULL
        AND (p.text ILIKE $1 OR u.username ILIKE $1 OR u.display_name ILIKE $1)
      ORDER BY p.created_at DESC, p.id DESC
@@ -340,7 +531,9 @@ export async function getTrendingPosts(limit = 10): Promise<DbPost[]> {
 
   const posts = await query<DbPost>(
     `${POST_SELECT}
-     WHERE u.deactivated_at IS NULL AND p.reply_to_id IS NULL
+     WHERE u.deactivated_at IS NULL
+       AND COALESCE(p.status, 'published') = 'published'
+       AND p.reply_to_id IS NULL
      ORDER BY (p.like_count + p.repost_count * 2 + p.reply_count) DESC, p.created_at DESC
      LIMIT $1`,
     [limit]
@@ -353,15 +546,21 @@ export async function getTrendingPosts(limit = 10): Promise<DbPost[]> {
 export async function listByAuthor(
   authorId: number,
   cursor?: string,
-  limit = PAGE_SIZE
+  limit = PAGE_SIZE,
+  viewerId?: number
 ): Promise<PaginatedPosts> {
-  const { sql, params } = buildCursorClause(cursor, 3);
+  const isOwnProfile = viewerId != null && viewerId === authorId;
+  const visibility = isOwnProfile
+    ? { sql: '', params: [] as number[] }
+    : publishedVisibilitySql(viewerId, 3);
+  const cursorOffset = visibility.params.length > 0 ? 4 : 3;
+  const { sql, params } = buildCursorClause(cursor, cursorOffset);
   const rows = await query<DbPost>(
     `${POST_SELECT}
-     WHERE p.author_id = $1 AND u.deactivated_at IS NULL AND p.reply_to_id IS NULL${sql}
+     WHERE p.author_id = $1 AND u.deactivated_at IS NULL AND p.reply_to_id IS NULL${visibility.sql}${sql}
      ORDER BY p.created_at DESC, p.id DESC
      LIMIT $2`,
-    [authorId, limit, ...params]
+    [authorId, limit, ...visibility.params, ...params]
   );
 
   const last = rows[rows.length - 1];

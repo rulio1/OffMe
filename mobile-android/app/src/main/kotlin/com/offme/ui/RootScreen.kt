@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.offme.OffMeApp
 import com.offme.data.auth.AuthStore
+import com.offme.push.PushRegistrationHelper
 import com.offme.ui.auth.LoginScreen
 import com.offme.ui.auth.SignupScreen
 
@@ -26,6 +27,10 @@ fun RootScreen(
 
     LaunchedEffect(Unit) {
         authStore.restoreSession()
+    }
+
+    LaunchedEffect(session?.accessToken) {
+        if (session != null) PushRegistrationHelper.registerIfAvailable()
     }
 
     when {

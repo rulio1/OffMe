@@ -24,6 +24,9 @@ export async function GET(request: NextRequest) {
         createdAt: r.created_at.getTime(),
         postText: r.post_text ?? undefined,
         postAuthorUsername: r.post_author_username ?? undefined,
+        targetUsername: r.target_username ?? undefined,
+        targetDisplayName: r.target_display_name ?? undefined,
+        targetSuspended: Boolean(r.target_suspended),
       })),
     });
   } catch (err) {

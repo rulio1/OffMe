@@ -3,6 +3,7 @@ import { jsonError, jsonOk } from '@/lib/api-response';
 import { getRequestUser } from '@/lib/request-auth';
 import { enrichPost } from '@/lib/post-enrichment';
 import { createPoll } from '@/lib/poll-repository';
+import { isCommunityMember } from '@/lib/community-repository';
 import { createPost } from '@/lib/post-repository';
 
 export async function POST(request: NextRequest) {
@@ -20,6 +21,8 @@ export async function POST(request: NextRequest) {
     const pollOptions = Array.isArray(body.pollOptions)
       ? body.pollOptions.map(String).filter((o: string) => o.trim()).slice(0, 4)
       : undefined;
+    const scheduledAtRaw = body.scheduledAt != null ? String(body.scheduledAt) : undefined;
+    const scheduledAt = scheduledAtRaw ? new Date(scheduledAtRaw) : undefined;
     const hasMedia = (mediaIds?.length ?? 0) > 0;
     const hasPoll = (pollOptions?.length ?? 0) >= 2;
 
@@ -31,8 +34,30 @@ export async function POST(request: NextRequest) {
     if (hasPoll && (hasMedia || quoteOfId != null)) {
       return jsonError('Enquete não pode ser combinada com mídia ou citação', 400);
     }
+    if (scheduledAt && (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now())) {
+      return jsonError('Data de agendamento deve ser no futuro', 400);
+    }
+    if (scheduledAt && (replyToId != null || quoteOfId != null)) {
+      return jsonError('Respostas e citações não podem ser agendadas', 400);
+    }
 
-    const post = await createPost(user.id, text, replyToId, mediaIds, quoteOfId);
+    const communityIdRaw = body.communityId != null ? Number(body.communityId) : undefined;
+    let communityId: number | undefined;
+    if (communityIdRaw != null) {
+      if (!Number.isFinite(communityIdRaw)) {
+        return jsonError('Comunidade inválida', 400);
+      }
+      const isMember = await isCommunityMember(communityIdRaw, user.id);
+      if (!isMember) {
+        return jsonError('Você precisa ser membro da comunidade para publicar', 403);
+      }
+      communityId = communityIdRaw;
+    }
+
+    const post = await createPost(user.id, text, replyToId, mediaIds, quoteOfId, {
+      scheduledAt,
+      communityId,
+    });
 
     if (hasPoll && pollOptions) {
       await createPoll(post.id, pollOptions);

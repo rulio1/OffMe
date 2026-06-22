@@ -15,11 +15,11 @@ export async function GET(
     const postId = Number(params.id);
     if (!Number.isFinite(postId)) return jsonError('Post inválido', 400);
 
-    const post = await findPostById(postId);
+    const post = await findPostById(postId, viewer.id);
     if (!post) return jsonError('Post não encontrado', 404);
 
     const cursor = request.nextUrl.searchParams.get('cursor') ?? undefined;
-    const { rows, nextCursor } = await listReplies(postId, cursor);
+    const { rows, nextCursor } = await listReplies(postId, cursor, undefined, viewer.id);
     const entries = await enrichTimelineEntries(rows, viewer.id, 'following');
 
     return jsonOk({ entries, nextCursor });

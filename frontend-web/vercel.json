@@ -4,6 +4,12 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "regions": ["gru1"],
+  "crons": [
+    {
+      "path": "/api/v1/cron/publish-scheduled",
+      "schedule": "*/5 * * * *"
+    }
+  ],
   "functions": {
     "src/app/api/**/*.ts": {
       "maxDuration": 30

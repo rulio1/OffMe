@@ -172,6 +172,7 @@ data class CreatePostBody(
     val text: String,
     @SerializedName("replyToId") val replyToId: Int? = null,
     @SerializedName("mediaIds") val mediaIds: List<String>? = null,
+    @SerializedName("communityId") val communityId: Int? = null,
 )
 
 data class LoginBody(

@@ -133,6 +133,9 @@ fun FeedScreen(
     onNavigateToProfile: (String) -> Unit,
     onNavigateToPost: (Int) -> Unit = {},
     onNavigateToBookmarks: () -> Unit = {},
+    onNavigateToLists: () -> Unit = {},
+    onNavigateToCommunities: () -> Unit = {},
+    onNavigateToVerification: () -> Unit = {},
     onLogout: () -> Unit = {},
     viewModel: FeedViewModel = viewModel(
         factory = object : androidx.lifecycle.ViewModelProvider.Factory {
@@ -204,6 +207,33 @@ fun FeedScreen(
                         onClick = {
                             scope.launch { drawerState.close() }
                             onNavigateToBookmarks()
+                        },
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.List, contentDescription = null) },
+                        label = { Text("Listas") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            onNavigateToLists()
+                        },
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Groups, contentDescription = null) },
+                        label = { Text("Comunidades") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            onNavigateToCommunities()
+                        },
+                    )
+                    NavigationDrawerItem(
+                        icon = { Icon(Icons.Default.Verified, contentDescription = null) },
+                        label = { Text("Verificação") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            onNavigateToVerification()
                         },
                     )
                     Spacer(Modifier.weight(1f))

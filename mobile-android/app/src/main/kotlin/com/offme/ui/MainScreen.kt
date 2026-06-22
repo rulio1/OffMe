@@ -25,8 +25,13 @@ import com.offme.ui.messages.ConversationThreadScreen
 import com.offme.ui.messages.MessagesScreen
 import com.offme.ui.notifications.NotificationsScreen
 import com.offme.ui.post.PostThreadScreen
+import com.offme.ui.communities.CommunitiesScreen
+import com.offme.ui.communities.CommunityDetailScreen
+import com.offme.ui.lists.ListDetailScreen
+import com.offme.ui.lists.ListsScreen
 import com.offme.ui.profile.EditProfileScreen
 import com.offme.ui.profile.ProfileScreen
+import com.offme.ui.settings.VerificationSettingsScreen
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 
@@ -40,6 +45,11 @@ fun MainScreen(
     var conversationId by remember { mutableStateOf<Int?>(null) }
     var postThreadId by remember { mutableStateOf<Int?>(null) }
     var showEditProfile by remember { mutableStateOf(false) }
+    var showVerification by remember { mutableStateOf(false) }
+    var showLists by remember { mutableStateOf(false) }
+    var showCommunities by remember { mutableStateOf(false) }
+    var listDetailId by remember { mutableStateOf<Int?>(null) }
+    var communityDetailSlug by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -68,6 +78,52 @@ fun MainScreen(
         EditProfileScreen(
             authStore = authStore,
             onBack = { showEditProfile = false },
+        )
+        return
+    }
+
+    if (showVerification) {
+        VerificationSettingsScreen(
+            authStore = authStore,
+            onBack = { showVerification = false },
+        )
+        return
+    }
+
+    if (listDetailId != null) {
+        ListDetailScreen(
+            listId = listDetailId!!,
+            authStore = authStore,
+            onBack = { listDetailId = null },
+        )
+        return
+    }
+
+    if (communityDetailSlug != null) {
+        CommunityDetailScreen(
+            slug = communityDetailSlug!!,
+            authStore = authStore,
+            onBack = { communityDetailSlug = null },
+            onNavigateToProfile = navigateToProfile,
+            onNavigateToPost = navigateToPost,
+        )
+        return
+    }
+
+    if (showLists) {
+        ListsScreen(
+            authStore = authStore,
+            onBack = { showLists = false },
+            onOpenList = { listDetailId = it },
+        )
+        return
+    }
+
+    if (showCommunities) {
+        CommunitiesScreen(
+            authStore = authStore,
+            onBack = { showCommunities = false },
+            onOpenCommunity = { communityDetailSlug = it },
         )
         return
     }
@@ -139,6 +195,9 @@ fun MainScreen(
                         onNavigateToProfile = navigateToProfile,
                         onNavigateToPost = navigateToPost,
                         onNavigateToBookmarks = { selected = OffMeTab.Bookmarks },
+                        onNavigateToLists = { showLists = true },
+                        onNavigateToCommunities = { showCommunities = true },
+                        onNavigateToVerification = { showVerification = true },
                         onLogout = { authStore.logout() },
                     )
                     OffMeTab.Explore -> ExploreScreen(

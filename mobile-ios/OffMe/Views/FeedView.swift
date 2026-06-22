@@ -1,8 +1,8 @@
 import SwiftUI
 
 enum FeedTab: String, CaseIterable {
-    case forYou = "For you"
-    case following = "Following"
+    case forYou = "Para você"
+    case following = "Seguindo"
 }
 
 @MainActor
@@ -206,6 +206,7 @@ struct FeedView: View {
     @State private var navigateToProfile = false
     @State private var navigateToLists = false
     @State private var navigateToCommunities = false
+    @State private var navigateToVerification = false
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
@@ -263,10 +264,13 @@ struct FeedView: View {
             }
         }
         .navigationDestination(isPresented: $navigateToLists) {
-            ListsPlaceholderView()
+            ListsView()
         }
         .navigationDestination(isPresented: $navigateToCommunities) {
-            CommunitiesPlaceholderView()
+            CommunitiesView()
+        }
+        .navigationDestination(isPresented: $navigateToVerification) {
+            VerificationSettingsView()
         }
         .sheet(isPresented: $showCompose) {
             if let token = auth.accessToken {
@@ -313,6 +317,10 @@ struct FeedView: View {
                     onCommunities: {
                         showSideMenu = false
                         navigateToCommunities = true
+                    },
+                    onVerification: {
+                        showSideMenu = false
+                        navigateToVerification = true
                     }
                 )
                     .frame(width: 280)
@@ -398,6 +406,7 @@ private struct SideMenuView: View {
     var onBookmarks: () -> Void = {}
     var onLists: () -> Void = {}
     var onCommunities: () -> Void = {}
+    var onVerification: () -> Void = {}
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -441,6 +450,9 @@ private struct SideMenuView: View {
                 }
                 SideMenuRow(icon: "person.2", title: "Comunidades") {
                     onCommunities()
+                }
+                SideMenuRow(icon: "checkmark.seal", title: "Verificação") {
+                    onVerification()
                 }
             }
             .padding(.vertical, 8)

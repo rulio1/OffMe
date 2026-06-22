@@ -81,7 +81,15 @@ No painel **Settings → Environment Variables** (Production):
 | `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave publishable (ou `ANON_KEY`) |
 | `IMGBB_API_KEY` | Upload de imagens (ou use `S3_*`) |
+| `VAPID_PUBLIC_KEY` | Chave pública Web Push |
+| `VAPID_PRIVATE_KEY` | Chave privada Web Push |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Mesma chave pública (cliente web) |
+| `CRON_SECRET` | Protege `GET /api/v1/cron/publish-scheduled` |
+| `FCM_SERVER_KEY` | Opcional — push nativo iOS/Android |
+
 **JWT:** o `JWT_SECRET` da Vercel deve ser **igual** ao JWT Secret do painel Supabase (Settings → API).
+
+Gere chaves VAPID com: `npx web-push generate-vapid-keys`
 
 #### 4.4 Deploy manual (alternativa à Git)
 
@@ -135,7 +143,8 @@ static let baseURL = "https://seu-app.vercel.app/api/v1"
 
 ## Checklist pós-deploy
 
-- [ ] `GET /api/v1/health` retorna `database: connected`
+- [ ] `GET /api/v1/health` retorna `database: connected` e `storageHealth: ok` (quando S3/R2 configurado)
+- [ ] `CRON_SECRET` definido e cron de posts agendados ativo (`vercel.json`)
 - [ ] Login / registro funcionam
 - [ ] Upload de imagem retorna URL pública acessível
 - [ ] `JWT_SECRET` forte e único em produção

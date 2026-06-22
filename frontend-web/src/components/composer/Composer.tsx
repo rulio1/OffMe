@@ -31,6 +31,7 @@ interface ComposerProps {
   quoteOfId?: number;
   quotedPost?: Post;
   placeholder?: string;
+  communityId?: number;
 }
 
 export function Composer({
@@ -39,6 +40,7 @@ export function Composer({
   quoteOfId,
   quotedPost,
   placeholder = 'O que está acontecendo?',
+  communityId,
 }: ComposerProps) {
   const user = getStoredUser();
   const [text, setText] = useState('');
@@ -52,6 +54,9 @@ export function Composer({
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
   const [locationText, setLocationText] = useState('');
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
   const [scheduleToast, setScheduleToast] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,7 +93,7 @@ export function Composer({
     !isSubmitting &&
     !uploading;
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (scheduledAt?: string) => {
     if (!canPost) return;
     setIsSubmitting(true);
     setError('');
@@ -100,23 +105,41 @@ export function Composer({
         {
           quoteOfId,
           pollOptions: hasValidPoll ? validPollOptions : undefined,
+          scheduledAt,
+          communityId,
         }
       );
       setText('');
       setFocused(false);
       setPollMode(false);
       setPollOptions(['', '']);
+      setScheduleOpen(false);
+      setScheduleDate('');
+      setScheduleTime('');
       setPendingImages((prev) => {
         prev.forEach((img) => URL.revokeObjectURL(img.preview));
         return [];
       });
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      if (scheduledAt) {
+        setScheduleToast('Post agendado com sucesso');
+      }
       onPostCreated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao publicar');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleScheduleConfirm = () => {
+    if (!scheduleDate || !scheduleTime) return;
+    const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`);
+    if (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now()) {
+      setError('Escolha uma data e hora no futuro');
+      return;
+    }
+    void handleSubmit(scheduledAt.toISOString());
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -399,10 +422,11 @@ export function Composer({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setScheduleToast('Em breve')}
-                  className="post-action post-action-reply hidden md:inline-flex"
+                  onClick={() => setScheduleOpen(true)}
+                  disabled={Boolean(replyToId) || Boolean(quoteOfId)}
+                  className="post-action post-action-reply"
                   aria-label="Agendar"
-                  title="Em breve"
+                  title="Agendar publicação"
                 >
                   <Calendar className="h-5 w-5" />
                 </button>
@@ -469,8 +493,9 @@ export function Composer({
                 )}
                 <button
                   type="button"
-                  onClick={handleSubmit}
+                  onClick={() => handleSubmit()}
                   disabled={!canPost}
+                  data-testid="composer-submit"
                   className="rounded-full bg-offme-accent px-4 py-1.5 text-[15px] font-bold text-white transition-colors hover:bg-offme-accentHover disabled:cursor-default disabled:opacity-50"
                 >
                   {isSubmitting ? 'Publicando...' : 'Publicar'}
@@ -480,6 +505,68 @@ export function Composer({
           )}
         </div>
       </div>
+
+      {scheduleOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-offme-border bg-offme-bg p-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold">Agendar publicação</h3>
+              <button
+                type="button"
+                onClick={() => setScheduleOpen(false)}
+                className="rounded-full p-1 hover:bg-black/5"
+                aria-label="Fechar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="mt-4 space-y-3">
+              <div>
+                <label htmlFor="schedule-date" className="text-sm font-semibold text-offme-muted">
+                  Data
+                </label>
+                <input
+                  id="schedule-date"
+                  type="date"
+                  value={scheduleDate}
+                  onChange={(e) => setScheduleDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
+                  className="mt-1 w-full rounded-xl border border-offme-border bg-offme-surface px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-offme-accent"
+                />
+              </div>
+              <div>
+                <label htmlFor="schedule-time" className="text-sm font-semibold text-offme-muted">
+                  Horário
+                </label>
+                <input
+                  id="schedule-time"
+                  type="time"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-offme-border bg-offme-surface px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-offme-accent"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => setScheduleOpen(false)}
+                className="flex-1 rounded-full border border-offme-border py-2 text-sm font-semibold hover:bg-black/5"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleScheduleConfirm}
+                disabled={!scheduleDate || !scheduleTime || isSubmitting}
+                className="flex-1 rounded-full bg-offme-accent py-2 text-sm font-bold text-white hover:bg-offme-accentHover disabled:opacity-50"
+              >
+                Agendar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {scheduleToast && (
         <div className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full bg-offme-text px-4 py-2 text-sm font-medium text-offme-bg shadow-lg">

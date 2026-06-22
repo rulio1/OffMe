@@ -91,6 +91,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={loading || !identifier.trim() || password.length < 4}
+        data-testid="login-submit"
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-offme-accent py-3.5 text-[17px] font-bold text-white transition-colors hover:bg-offme-accentHover disabled:cursor-default disabled:opacity-50"
       >
         {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Entrar'}
