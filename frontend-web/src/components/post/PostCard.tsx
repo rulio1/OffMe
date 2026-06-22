@@ -17,7 +17,9 @@ import {
   VolumeX,
   Flag,
   Quote,
+  Pin,
 } from 'lucide-react';
+import { PostRichText } from '@/components/post/PostRichText';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import { useCompose } from '@/components/providers/ComposeProvider';
 import type { Poll, Post } from '@/types';
@@ -30,6 +32,7 @@ import {
   muteUser,
   reportPost,
   repostPost,
+  setProfilePinnedPost,
   unbookmarkPost,
   unlikePost,
   unrepostPost,
@@ -42,6 +45,9 @@ import { UserAvatar } from '@/components/user/UserAvatar';
 interface PostCardProps {
   post: Post;
   onDeleted?: (postId: number) => void;
+  pinnedPostId?: number;
+  onPinChange?: (postId: number | null) => void;
+  isPinnedHighlight?: boolean;
 }
 
 function formatCount(n: number): string {
@@ -66,7 +72,9 @@ function QuotedPostPreview({ quoted }: { quoted: Post }) {
         <span className="ml-1 font-normal text-offme-muted">@{author.username}</span>
       </p>
       {quoted.text.trim().length > 0 && (
-        <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-offme-muted">{quoted.text}</p>
+        <p className="mt-1 line-clamp-3 text-offme-muted">
+          <PostRichText text={quoted.text} />
+        </p>
       )}
     </div>
   );
@@ -138,7 +146,13 @@ function PollBlock({
   );
 }
 
-function PostCardInner({ post, onDeleted }: PostCardProps) {
+function PostCardInner({
+  post,
+  onDeleted,
+  pinnedPostId,
+  onPinChange,
+  isPinnedHighlight,
+}: PostCardProps) {
   const router = useRouter();
   const { openCompose } = useCompose();
   const currentUser = getStoredUser();
@@ -407,16 +421,40 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {isOwnPost && (
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={handleDelete}
-                      disabled={menuBusy}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10 disabled:opacity-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Excluir post
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={async () => {
+                          setMenuBusy(true);
+                          try {
+                            const nextId = pinnedPostId === post.id ? null : post.id;
+                            await setProfilePinnedPost(nextId);
+                            onPinChange?.(nextId);
+                            setMenuOpen(false);
+                          } catch {
+                            // ignore
+                          } finally {
+                            setMenuBusy(false);
+                          }
+                        }}
+                        disabled={menuBusy}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
+                      >
+                        <Pin className="h-4 w-4" />
+                        {pinnedPostId === post.id ? 'Desfixar do perfil' : 'Fixar no perfil'}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={handleDelete}
+                        disabled={menuBusy}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Excluir post
+                      </button>
+                    </>
                   )}
                   {!isOwnPost && (
                     <>
@@ -485,9 +523,15 @@ function PostCardInner({ post, onDeleted }: PostCardProps) {
             </div>
           </div>
 
+          {isPinnedHighlight && (
+            <p className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-offme-muted">
+              <Pin className="h-3.5 w-3.5" />
+              Post fixado
+            </p>
+          )}
           {post.text.trim().length > 0 && (
-            <p className="mt-1 whitespace-pre-wrap break-words text-[15px] leading-5">
-              {post.text}
+            <p className="mt-1 text-[15px] leading-5">
+              <PostRichText text={post.text} />
             </p>
           )}
 

@@ -11,6 +11,7 @@ export interface User {
   followerCount?: number;
   followingCount?: number;
   postCount?: number;
+  pinnedPostId?: number;
   isFollowing?: boolean;
 }
 
@@ -68,7 +69,7 @@ export interface TimelineResponse {
 
 export type FeedTab = 'for-you' | 'following';
 
-export type NotificationType = 'like' | 'reply' | 'follow' | 'repost' | 'quote';
+export type NotificationType = 'like' | 'reply' | 'follow' | 'repost' | 'quote' | 'mention';
 
 export interface Conversation {
   id: number;

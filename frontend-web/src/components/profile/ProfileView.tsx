@@ -9,7 +9,13 @@ import { PostCard } from '@/components/post/PostCard';
 import { FollowButton } from '@/components/user/FollowButton';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
-import { fetchUserPosts, fetchUserProfile, reportUser, startConversation } from '@/lib/api';
+import {
+  fetchPost,
+  fetchUserPosts,
+  fetchUserProfile,
+  reportUser,
+  startConversation,
+} from '@/lib/api';
 import type { Post, TimelineEntry, User } from '@/types';
 
 interface ProfileViewProps {
@@ -63,13 +69,22 @@ export function ProfileView({ username }: ProfileViewProps) {
     `profile-${username}`,
     () => fetchUserProfile(username)
   );
-  const { data: postsData, error: postsError } = useSWR(`profile-posts-${username}`, () =>
-    fetchUserPosts(username)
+  const { data: postsData, error: postsError, mutate: mutatePosts } = useSWR(
+    `profile-posts-${username}`,
+    () => fetchUserPosts(username)
   );
 
   const user = profileData?.user;
   const isOwnProfile = profileData?.isOwnProfile ?? false;
-  const posts: Post[] = postsData?.entries?.map(entryToPost) ?? [];
+  const pinnedPostId = user?.pinnedPostId;
+
+  const { data: pinnedPost } = useSWR(
+    pinnedPostId ? `pinned-post-${pinnedPostId}` : null,
+    () => fetchPost(pinnedPostId!)
+  );
+
+  const allPosts: Post[] = postsData?.entries?.map(entryToPost) ?? [];
+  const posts = allPosts.filter((p) => p.id !== pinnedPostId);
 
   if (profileError) {
     return (
@@ -199,14 +214,14 @@ export function ProfileView({ username }: ProfileViewProps) {
             </div>
           )}
           <div className="mt-3 flex gap-4 text-sm text-offme-muted">
-            <span>
+            <Link href={`/profile/${username}/following`} className="hover:underline">
               <strong className="text-offme-text">{formatCount(user.followingCount ?? 0)}</strong>{' '}
               seguindo
-            </span>
-            <span>
+            </Link>
+            <Link href={`/profile/${username}/followers`} className="hover:underline">
               <strong className="text-offme-text">{formatCount(user.followerCount ?? 0)}</strong>{' '}
               seguidores
-            </span>
+            </Link>
           </div>
         </div>
       </div>
@@ -214,6 +229,23 @@ export function ProfileView({ username }: ProfileViewProps) {
       <div className="border-b border-offme-border">
         <div className="px-4 py-4 text-center font-bold">Posts</div>
       </div>
+
+      {pinnedPost && (
+        <PostCard
+          post={pinnedPost}
+          isPinnedHighlight
+          pinnedPostId={pinnedPostId}
+          onPinChange={(id) => {
+            mutateProfile(
+              profileData
+                ? { ...profileData, user: { ...profileData.user, pinnedPostId: id ?? undefined } }
+                : profileData,
+              false
+            );
+            if (!id) mutatePosts();
+          }}
+        />
+      )}
 
       {postsError && (
         <div className="px-4 py-8 text-center text-red-400">Erro ao carregar posts.</div>
@@ -224,7 +256,27 @@ export function ProfileView({ username }: ProfileViewProps) {
         </div>
       )}
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard
+          key={post.id}
+          post={post}
+          pinnedPostId={isOwnProfile ? pinnedPostId : undefined}
+          onPinChange={
+            isOwnProfile
+              ? (id) => {
+                  mutateProfile(
+                    profileData
+                      ? {
+                          ...profileData,
+                          user: { ...profileData.user, pinnedPostId: id ?? undefined },
+                        }
+                      : profileData,
+                    false
+                  );
+                  mutatePosts();
+                }
+              : undefined
+          }
+        />
       ))}
 
       {showEdit && (

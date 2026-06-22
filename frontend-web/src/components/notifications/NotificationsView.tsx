@@ -21,6 +21,8 @@ function notificationText(n: Notification): string {
       return 'começou a seguir você';
     case 'repost':
       return 'repostou seu post';
+    case 'mention':
+      return 'mencionou você em um post';
     default:
       return 'interagiu com você';
   }

@@ -16,11 +16,13 @@ export interface DbUser {
   follower_count: number;
   following_count: number;
   post_count?: number;
+  pinned_post_id?: number | null;
   created_at: Date;
 }
 
 const USER_SELECT = `id, public_id, username, email, password_hash, display_name, bio,
-            avatar_url, banner_url, location, website_url, verified, follower_count, following_count, post_count, created_at`;
+            avatar_url, banner_url, location, website_url, verified, follower_count, following_count,
+            post_count, pinned_post_id, created_at`;
 
 export interface CreateUserInput {
   username: string;
@@ -83,8 +85,25 @@ export function toPublicUser(user: DbUser, extra?: { isFollowing?: boolean }) {
     followerCount: Number(user.follower_count),
     followingCount: Number(user.following_count),
     postCount: Number(user.post_count ?? 0),
+    pinnedPostId: user.pinned_post_id != null ? Number(user.pinned_post_id) : undefined,
     ...(extra?.isFollowing != null ? { isFollowing: extra.isFollowing } : {}),
   };
+}
+
+export async function setPinnedPost(userId: number, postId: number | null): Promise<boolean> {
+  if (postId != null) {
+    const owned = await queryOne<{ id: number }>(
+      `SELECT id FROM posts WHERE id = $1 AND author_id = $2 AND COALESCE(status, 'published') = 'published'`,
+      [postId, userId]
+    );
+    if (!owned) return false;
+  }
+
+  const row = await queryOne<{ id: number }>(
+    `UPDATE users SET pinned_post_id = $2, updated_at = NOW() WHERE id = $1 RETURNING id`,
+    [userId, postId]
+  );
+  return !!row;
 }
 
 export interface UpdateProfileInput {

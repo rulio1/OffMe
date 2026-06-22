@@ -39,6 +39,10 @@ export function BetaBanner() {
           <Link href="/settings/feedback" className="font-bold text-offme-accent hover:underline">
             Envie feedback
           </Link>
+          {' · '}
+          <Link href="/whats-new" className="font-bold text-offme-accent hover:underline">
+            Novidades
+          </Link>
         </p>
         <button
           type="button"

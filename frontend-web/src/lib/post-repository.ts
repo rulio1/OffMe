@@ -9,7 +9,8 @@ import {
 } from './cursor';
 import { deleteMediaForPost, linkMediaToPost } from './media-repository';
 import { createNotification } from './notification-repository';
-import { toPublicUser, type DbUser } from './user-repository';
+import { extractMentions } from './post-text';
+import { findUserByUsername, toPublicUser, type DbUser } from './user-repository';
 
 export interface DbPost {
   id: number;
@@ -168,6 +169,21 @@ export async function createPost(
         type: 'quote',
         postId: inserted.id,
       });
+    }
+  }
+
+  if (!isScheduled && replyToId == null) {
+    const mentions = extractMentions(text);
+    for (const mention of mentions) {
+      const mentioned = await findUserByUsername(mention);
+      if (mentioned && mentioned.id !== authorId) {
+        await createNotification({
+          userId: mentioned.id,
+          actorId: authorId,
+          type: 'mention',
+          postId: inserted.id,
+        });
+      }
     }
   }
 
@@ -577,16 +593,21 @@ export async function searchPosts(queryText: string, limit = 20): Promise<DbPost
   const term = queryText.trim();
   if (!term) return [];
 
-  const pattern = `%${term}%`;
+  const isHashtag = term.startsWith('#');
+  const pattern = isHashtag ? `%#${term.slice(1)}%` : `%${term}%`;
+
   return query<DbPost>(
     `${POST_SELECT}
      WHERE u.deactivated_at IS NULL
        AND COALESCE(p.status, 'published') = 'published'
        AND p.reply_to_id IS NULL
-       AND (p.text ILIKE $1 OR u.username ILIKE $1 OR u.display_name ILIKE $1)
+       AND (
+         p.text ILIKE $1
+         OR ($3::boolean = FALSE AND (u.username ILIKE $1 OR u.display_name ILIKE $1))
+       )
      ORDER BY p.created_at DESC, p.id DESC
      LIMIT $2`,
-    [pattern, limit]
+    [pattern, limit, isHashtag]
   );
 }
 

@@ -1,4 +1,9 @@
 import { query, queryOne } from './db';
+import { toPublicUser, type DbUser } from './user-repository';
+
+const USER_LIST_SELECT = `u.id, u.public_id, u.username, u.email, u.password_hash, u.display_name, u.bio,
+  u.avatar_url, u.banner_url, u.location, u.website_url, u.verified, u.follower_count, u.following_count,
+  u.post_count, u.created_at`;
 
 export async function isFollowing(followerId: number, followingId: number): Promise<boolean> {
   const row = await queryOne<{ exists: boolean }>(
@@ -53,4 +58,34 @@ export async function unfollowUser(followerId: number, followingId: number): Pro
   );
 
   return true;
+}
+
+export async function listFollowers(username: string, limit = 50): Promise<DbUser[]> {
+  return query<DbUser>(
+    `SELECT ${USER_LIST_SELECT}
+     FROM follows f
+     JOIN users u ON u.id = f.follower_id
+     JOIN users target ON target.id = f.following_id
+     WHERE LOWER(target.username) = LOWER($1) AND u.deactivated_at IS NULL
+     ORDER BY f.created_at DESC
+     LIMIT $2`,
+    [username, limit]
+  );
+}
+
+export async function listFollowing(username: string, limit = 50): Promise<DbUser[]> {
+  return query<DbUser>(
+    `SELECT ${USER_LIST_SELECT}
+     FROM follows f
+     JOIN users u ON u.id = f.following_id
+     JOIN users target ON target.id = f.follower_id
+     WHERE LOWER(target.username) = LOWER($1) AND u.deactivated_at IS NULL
+     ORDER BY f.created_at DESC
+     LIMIT $2`,
+    [username, limit]
+  );
+}
+
+export function usersToPublic(users: DbUser[]) {
+  return users.map((u) => toPublicUser(u));
 }

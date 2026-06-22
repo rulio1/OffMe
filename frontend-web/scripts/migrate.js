@@ -79,6 +79,7 @@ async function main() {
     '017_beta_feedback.sql',
     '018_feedback_status.sql',
     '019_email_digest.sql',
+    '020_social_features.sql',
   ];
 
   const root = path.join(__dirname, '..', '..');

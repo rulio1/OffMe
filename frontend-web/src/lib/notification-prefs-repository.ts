@@ -107,6 +107,8 @@ export function shouldSendPush(type: NotificationType, prefs: NotificationPrefs)
       return prefs.pushReposts;
     case 'quote':
       return prefs.pushQuotes;
+    case 'mention':
+      return prefs.pushReplies;
     default:
       return true;
   }

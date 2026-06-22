@@ -152,6 +152,7 @@ function normalizeUser(raw: Record<string, unknown>): User {
     followerCount: raw.followerCount != null ? Number(raw.followerCount) : undefined,
     followingCount: raw.followingCount != null ? Number(raw.followingCount) : undefined,
     postCount: raw.postCount != null ? Number(raw.postCount) : undefined,
+    pinnedPostId: raw.pinnedPostId != null ? Number(raw.pinnedPostId) : undefined,
     isFollowing: raw.isFollowing != null ? Boolean(raw.isFollowing) : undefined,
   };
 }
@@ -473,6 +474,30 @@ export async function fetchUserProfile(
 export async function fetchUserPosts(username: string): Promise<TimelineResponse> {
   const res = await apiFetch(`/users/${encodeURIComponent(username)}/posts`);
   if (!res.ok) await parseError(res, 'Erro ao carregar posts');
+  return res.json();
+}
+
+export async function fetchUserFollowers(username: string): Promise<{ users: User[] }> {
+  const res = await apiFetch(`/users/${encodeURIComponent(username)}/followers`);
+  if (!res.ok) await parseError(res, 'Erro ao carregar seguidores');
+  const data = await res.json();
+  return { users: (data.users ?? []).map((u: Record<string, unknown>) => normalizeUser(u)) };
+}
+
+export async function fetchUserFollowing(username: string): Promise<{ users: User[] }> {
+  const res = await apiFetch(`/users/${encodeURIComponent(username)}/following`);
+  if (!res.ok) await parseError(res, 'Erro ao carregar seguindo');
+  const data = await res.json();
+  return { users: (data.users ?? []).map((u: Record<string, unknown>) => normalizeUser(u)) };
+}
+
+export async function setProfilePinnedPost(postId: number | null): Promise<{ pinnedPostId: number | null }> {
+  const res = await apiFetch('/users/me/pinned-post', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ postId }),
+  });
+  if (!res.ok) await parseError(res, 'Erro ao fixar post');
   return res.json();
 }
 

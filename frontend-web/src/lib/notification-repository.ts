@@ -2,7 +2,7 @@ import { query, queryOne } from './db';
 import { getNotificationPrefs, shouldSendPush } from './notification-prefs-repository';
 import { dispatchPush } from './push-repository';
 
-export type NotificationType = 'like' | 'reply' | 'follow' | 'repost' | 'quote';
+export type NotificationType = 'like' | 'reply' | 'follow' | 'repost' | 'quote' | 'mention';
 
 export interface DbNotification {
   id: number;
@@ -52,6 +52,7 @@ export async function createNotification(input: {
     follow: { title: 'Novo seguidor', body: `${actorLabel} começou a seguir você` },
     repost: { title: 'Novo repost', body: `${actorLabel} repostou seu post` },
     quote: { title: 'Nova citação', body: `${actorLabel} citou seu post` },
+    mention: { title: 'Menção', body: `${actorLabel} mencionou você em um post` },
   };
 
   const copy = pushCopy[input.type];
