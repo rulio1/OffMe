@@ -6,6 +6,7 @@ import {
   setSession,
   type AuthSession,
 } from './auth';
+import { applyOfficialOverrides } from './official-profiles';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api/v1';
 
@@ -136,19 +137,19 @@ export async function fetchCurrentUser(): Promise<User | null> {
 }
 
 function normalizeUser(raw: Record<string, unknown>): User {
+  const username = String(raw.username);
+  const official = applyOfficialOverrides({ username, avatarUrl: raw.avatarUrl ? String(raw.avatarUrl) : undefined, bannerUrl: raw.bannerUrl ? String(raw.bannerUrl) : undefined });
   return {
     id: Number(raw.id),
-    username: String(raw.username),
+    username,
     displayName: String(raw.displayName ?? raw.display_name ?? raw.username),
-    avatarUrl: raw.avatarUrl ? String(raw.avatarUrl) : undefined,
-    bannerUrl:
-      raw.bannerUrl != null && String(raw.bannerUrl).trim() !== ''
-        ? String(raw.bannerUrl)
-        : undefined,
+    avatarUrl: official.avatarUrl,
+    bannerUrl: official.bannerUrl,
     location: raw.location ? String(raw.location) : undefined,
     websiteUrl: raw.websiteUrl ? String(raw.websiteUrl) : undefined,
     verified: Boolean(raw.verified),
     isAdmin: raw.isAdmin != null ? Boolean(raw.isAdmin) : undefined,
+    isOfficial: official.isOfficial,
     bio: raw.bio ? String(raw.bio) : undefined,
     followerCount: raw.followerCount != null ? Number(raw.followerCount) : undefined,
     followingCount: raw.followingCount != null ? Number(raw.followingCount) : undefined,

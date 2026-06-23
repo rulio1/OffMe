@@ -54,7 +54,11 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/') || caches.match('/login'))
+      fetch(event.request).catch(async () => {
+        const cached =
+          (await caches.match('/')) || (await caches.match('/login'));
+        return cached || Response.error();
+      })
     );
   }
 });

@@ -103,7 +103,9 @@ struct PostRowView: View {
                                 }
                                 .buttonStyle(.plain)
 
-                                if post.author?.verified == true {
+                                if post.author?.isOfficial == true {
+                                    OfficialBadgeIOS()
+                                } else if post.author?.verified == true {
                                     Image(systemName: "checkmark.seal.fill")
                                         .font(.system(size: 14))
                                         .foregroundStyle(OffMeTheme.accent)
@@ -355,6 +357,17 @@ struct PostRowView: View {
         } catch {
             // Keep post visible on failure
         }
+    }
+}
+
+struct OfficialBadgeIOS: View {
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(OffMeTheme.accent)
+        }
+        .accessibilityLabel("Conta oficial")
     }
 }
 

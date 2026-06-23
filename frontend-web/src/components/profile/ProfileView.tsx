@@ -8,6 +8,7 @@ import { ArrowLeft, Link2, MapPin } from 'lucide-react';
 import { PostCard } from '@/components/post/PostCard';
 import { FollowButton } from '@/components/user/FollowButton';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
+import { OfficialBadge } from '@/components/user/OfficialBadge';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
 import {
   fetchPost,
@@ -140,8 +141,15 @@ export function ProfileView({ username }: ProfileViewProps) {
         <Link href="/" className="rounded-full p-2 transition-colors hover:bg-offme-hover">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <div>
-          <h1 className="text-xl font-bold">{user.displayName}</h1>
+        <div className="min-w-0">
+          <h1 className="flex items-center gap-1 truncate text-xl font-bold">
+            <span className="truncate">{user.displayName}</span>
+            {user.isOfficial ? (
+              <OfficialBadge className="shrink-0" />
+            ) : user.verified ? (
+              <VerifiedBadge className="shrink-0" />
+            ) : null}
+          </h1>
           <p className="text-sm text-offme-muted">{posts.length} posts</p>
         </div>
       </header>
@@ -185,11 +193,20 @@ export function ProfileView({ username }: ProfileViewProps) {
         </div>
 
         <div className="mt-3">
-          <h2 className="text-xl font-bold">
-            {user.displayName}
-            {user.verified && <VerifiedBadge className="ml-1 inline-block" />}
+          <h2 className="flex items-center gap-1 text-xl font-bold">
+            <span className="truncate">{user.displayName}</span>
+            {user.isOfficial ? (
+              <OfficialBadge className="shrink-0" />
+            ) : user.verified ? (
+              <VerifiedBadge className="shrink-0" />
+            ) : null}
           </h2>
           <p className="text-offme-muted">@{user.username}</p>
+          {user.isOfficial && (
+            <p className="mt-1">
+              <OfficialBadge withText />
+            </p>
+          )}
           {user.bio && <p className="mt-3 text-[15px]">{user.bio}</p>}
           {(user.location || user.websiteUrl) && (
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-offme-muted">

@@ -103,7 +103,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(user?.resolvedDisplayName ?: username) },
+                title = { Text(user?.official?.resolvedDisplayName ?: username) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
@@ -127,7 +127,7 @@ fun ProfileScreen(
                 }
             }
             user != null -> {
-                val profileUser = user!!
+                val profileUser = user!!.official
                 PullToRefreshBox(
                     isRefreshing = isLoading,
                     onRefresh = { load() },
@@ -250,9 +250,10 @@ private fun ProfileHeader(
                 .height(120.dp)
                 .background(MaterialTheme.colorScheme.outline),
         ) {
-            if (!user.bannerUrl.isNullOrBlank()) {
+            val bannerUrl = resolveImageUrl(user.bannerUrl)
+            if (!bannerUrl.isNullOrBlank()) {
                 AsyncImage(
-                    model = user.bannerUrl,
+                    model = bannerUrl,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
@@ -302,7 +303,13 @@ private fun ProfileHeader(
         }
 
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Text(user.resolvedDisplayName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(user.resolvedDisplayName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                if (user.isOfficial) {
+                    Spacer(Modifier.width(4.dp))
+                    OfficialBadge(size = 20.dp)
+                }
+            }
             Text(
                 "@${user.username}",
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),

@@ -8,8 +8,9 @@ import { Ban, VolumeX, Flag, Quote } from 'lucide-react';
 import { ActionIcon } from '@/components/icons/ActionIcons';
 import { PostRichText } from '@/components/post/PostRichText';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
+import { OfficialBadge } from '@/components/user/OfficialBadge';
 import { useCompose } from '@/components/providers/ComposeProvider';
-import type { Poll, Post } from '@/types';
+import type { Poll, Post, User } from '@/types';
 import clsx from 'clsx';
 import {
   blockUser,
@@ -44,18 +45,23 @@ function formatCount(n: number): string {
 }
 
 function QuotedPostPreview({ quoted }: { quoted: Post }) {
-  const author = quoted.author ?? {
+  const author: User = quoted.author ?? {
     id: quoted.authorId,
     username: 'user',
     displayName: 'OffMe User',
     verified: false,
+    isOfficial: false,
   };
 
   return (
     <div className="mt-3 rounded-xl border border-offme-border p-3 text-sm">
       <p className="font-bold">
         {author.displayName}
-        {author.verified && <VerifiedBadge className="ml-1 inline-block" />}
+        {author.isOfficial ? (
+          <OfficialBadge className="ml-1 inline-block" />
+        ) : author.verified ? (
+          <VerifiedBadge className="ml-1 inline-block" />
+        ) : null}
         <span className="ml-1 font-normal text-offme-muted">@{author.username}</span>
       </p>
       {quoted.text.trim().length > 0 && (
@@ -145,11 +151,12 @@ function PostCardInner({
   const currentUser = getStoredUser();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const author = post.author ?? {
+  const author: User = post.author ?? {
     id: post.authorId,
     username: 'user',
     displayName: 'OffMe User',
     verified: false,
+    isOfficial: false,
   };
 
   const isOwnPost = currentUser?.id === post.authorId;
@@ -371,7 +378,11 @@ function PostCardInner({
               >
                 {author.displayName}
               </Link>
-              {author.verified && <VerifiedBadge />}
+              {author.isOfficial ? (
+                <OfficialBadge />
+              ) : author.verified ? (
+                <VerifiedBadge />
+              ) : null}
               <Link
                 href={`/profile/${author.username}`}
                 onClick={(e) => e.stopPropagation()}

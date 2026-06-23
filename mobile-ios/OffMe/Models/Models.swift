@@ -7,6 +7,7 @@ struct User: Codable, Identifiable, Hashable {
     let avatarUrl: String?
     let bannerUrl: String?
     let verified: Bool
+    let isOfficial: Bool
     let bio: String?
     let location: String?
     let websiteUrl: String?
@@ -15,7 +16,7 @@ struct User: Codable, Identifiable, Hashable {
     let isFollowing: Bool?
 
     enum CodingKeys: String, CodingKey {
-        case id, username, displayName, avatarUrl, bannerUrl, verified, bio, location, websiteUrl
+        case id, username, displayName, avatarUrl, bannerUrl, verified, isOfficial, bio, location, websiteUrl
         case followerCount, followingCount, isFollowing
     }
 
@@ -27,6 +28,7 @@ struct User: Codable, Identifiable, Hashable {
         avatarUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .avatarUrl)
         bannerUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .bannerUrl)
         verified = FlexibleDecoding.boolIfPresent(from: c, forKey: .verified) ?? false
+        isOfficial = OfficialProfiles.isOfficial(username: username)
         bio = FlexibleDecoding.stringIfPresent(from: c, forKey: .bio)
         location = FlexibleDecoding.stringIfPresent(from: c, forKey: .location)
         websiteUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .websiteUrl)
@@ -43,6 +45,7 @@ struct User: Codable, Identifiable, Hashable {
         try c.encodeIfPresent(avatarUrl, forKey: .avatarUrl)
         try c.encodeIfPresent(bannerUrl, forKey: .bannerUrl)
         try c.encode(verified, forKey: .verified)
+        try c.encode(isOfficial, forKey: .isOfficial)
         try c.encodeIfPresent(bio, forKey: .bio)
         try c.encodeIfPresent(location, forKey: .location)
         try c.encodeIfPresent(websiteUrl, forKey: .websiteUrl)
@@ -71,6 +74,7 @@ struct User: Codable, Identifiable, Hashable {
             avatarUrl: avatarUrl ?? self.avatarUrl,
             bannerUrl: bannerUrl ?? self.bannerUrl,
             verified: verified,
+            isOfficial: isOfficial,
             bio: bio ?? self.bio,
             location: location ?? self.location,
             websiteUrl: websiteUrl ?? self.websiteUrl,
@@ -87,6 +91,7 @@ struct User: Codable, Identifiable, Hashable {
         avatarUrl: String?,
         bannerUrl: String?,
         verified: Bool,
+        isOfficial: Bool,
         bio: String?,
         location: String?,
         websiteUrl: String?,
@@ -100,12 +105,57 @@ struct User: Codable, Identifiable, Hashable {
         self.avatarUrl = avatarUrl
         self.bannerUrl = bannerUrl
         self.verified = verified
+        self.isOfficial = isOfficial
         self.bio = bio
         self.location = location
         self.websiteUrl = websiteUrl
         self.followerCount = followerCount
         self.followingCount = followingCount
         self.isFollowing = isFollowing
+    }
+}
+
+enum OfficialProfiles {
+    static let profiles: [String: [String: String]] = [
+        "offme": [
+            "displayName": "OffMe",
+            "bio": "Bem-vindo ao OffMe! A rede social mais autêntica.",
+            "avatarUrl": "/brand/offme-official-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Brasil"
+        ],
+        "betateam": [
+            "displayName": "Beta Team",
+            "bio": "Equipe Beta do OffMe · novidades, suporte e testes.",
+            "avatarUrl": "/brand/beta-team-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Global"
+        ],
+        "beta": [
+            "displayName": "OffMe Beta",
+            "bio": "Programa Beta do OffMe · seja um testador.",
+            "avatarUrl": "/brand/beta-team-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Global"
+        ],
+        "support": [
+            "displayName": "OffMe Suporte",
+            "bio": "Suporte oficial do OffMe.",
+            "avatarUrl": "/brand/offme-official-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Brasil"
+        ],
+        "safety": [
+            "displayName": "OffMe Segurança",
+            "bio": "Segurança e confiança no OffMe.",
+            "avatarUrl": "/brand/offme-official-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Global"
+        ]
+    ]
+
+    static func isOfficial(username: String) -> Bool {
+        profiles[username.lowercased()] != nil
     }
 }
 

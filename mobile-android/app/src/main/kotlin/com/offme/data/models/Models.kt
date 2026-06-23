@@ -9,6 +9,7 @@ data class User(
     @SerializedName("avatarUrl") val avatarUrl: String? = null,
     @SerializedName("bannerUrl") val bannerUrl: String? = null,
     val verified: Boolean = false,
+    val isOfficial: Boolean = false,
     val bio: String? = null,
     val location: String? = null,
     @SerializedName("websiteUrl") val websiteUrl: String? = null,
@@ -17,6 +18,63 @@ data class User(
     @SerializedName("isFollowing") val isFollowing: Boolean? = null,
 ) {
     val resolvedDisplayName: String get() = displayName?.takeIf { it.isNotBlank() } ?: username
+
+    val official: User get() = OfficialProfiles.enrich(this)
+}
+
+object OfficialProfiles {
+    private val profiles: Map<String, Map<String, String>> = mapOf(
+        "offme" to mapOf(
+            "displayName" to "OffMe",
+            "bio" to "Bem-vindo ao OffMe! A rede social mais autêntica.",
+            "avatarUrl" to "/brand/offme-official-avatar.png",
+            "bannerUrl" to "/brand/offme-banner.png",
+            "location" to "Brasil"
+        ),
+        "betateam" to mapOf(
+            "displayName" to "Beta Team",
+            "bio" to "Equipe Beta do OffMe · novidades, suporte e testes.",
+            "avatarUrl" to "/brand/beta-team-avatar.png",
+            "bannerUrl" to "/brand/offme-banner.png",
+            "location" to "Global"
+        ),
+        "beta" to mapOf(
+            "displayName" to "OffMe Beta",
+            "bio" to "Programa Beta do OffMe · seja um testador.",
+            "avatarUrl" to "/brand/beta-team-avatar.png",
+            "bannerUrl" to "/brand/offme-banner.png",
+            "location" to "Global"
+        ),
+        "support" to mapOf(
+            "displayName" to "OffMe Suporte",
+            "bio" to "Suporte oficial do OffMe.",
+            "avatarUrl" to "/brand/offme-official-avatar.png",
+            "bannerUrl" to "/brand/offme-banner.png",
+            "location" to "Brasil"
+        ),
+        "safety" to mapOf(
+            "displayName" to "OffMe Segurança",
+            "bio" to "Segurança e confiança no OffMe.",
+            "avatarUrl" to "/brand/offme-official-avatar.png",
+            "bannerUrl" to "/brand/offme-banner.png",
+            "location" to "Global"
+        )
+    )
+
+    fun isOfficial(username: String): Boolean = profiles.containsKey(username.lowercase())
+
+    fun enrich(user: User): User {
+        val data = profiles[user.username.lowercase()] ?: return user
+        return user.copy(
+            displayName = data["displayName"] ?: user.displayName,
+            avatarUrl = data["avatarUrl"] ?: user.avatarUrl,
+            bannerUrl = data["bannerUrl"] ?: user.bannerUrl,
+            verified = true,
+            isOfficial = true,
+            bio = data["bio"] ?: user.bio,
+            location = data["location"] ?: user.location
+        )
+    }
 }
 
 data class AuthSession(

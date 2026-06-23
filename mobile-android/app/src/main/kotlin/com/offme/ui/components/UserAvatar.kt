@@ -13,6 +13,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
+private fun resolveImageUrl(url: String?): String? {
+    if (url.isNullOrBlank()) return null
+    if (url.startsWith("http://") || url.startsWith("https://")) return url
+    return "https://offme.vercel.app" + if (url.startsWith("/")) url else "/$url"
+}
+
 @Composable
 fun UserAvatar(
     url: String?,
@@ -25,9 +31,10 @@ fun UserAvatar(
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.outline),
     ) {
-        if (!url.isNullOrBlank()) {
+        val resolved = resolveImageUrl(url)
+        if (!resolved.isNullOrBlank()) {
             AsyncImage(
-                model = url,
+                model = resolved,
                 contentDescription = null,
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop,

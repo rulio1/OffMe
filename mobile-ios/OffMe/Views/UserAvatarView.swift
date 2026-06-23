@@ -6,7 +6,7 @@ struct UserAvatarView: View {
 
     var body: some View {
         Group {
-            if let url, let imageUrl = URL(string: url) {
+            if let resolved = resolveImageURL(url), let imageUrl = URL(string: resolved) {
                 AsyncImage(url: imageUrl) { phase in
                     switch phase {
                     case .success(let image):
@@ -21,6 +21,12 @@ struct UserAvatarView: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
+    }
+
+    private func resolveImageURL(_ url: String?) -> String? {
+        guard let url, !url.isEmpty else { return nil }
+        if url.hasPrefix("http://") || url.hasPrefix("https://") { return url }
+        return "https://offme.vercel.app" + (url.hasPrefix("/") ? url : "/\(url)")
     }
 
     private var placeholder: some View {

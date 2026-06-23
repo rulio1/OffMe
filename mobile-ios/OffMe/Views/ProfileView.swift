@@ -34,7 +34,7 @@ struct AvatarView: View {
 
     var body: some View {
         Group {
-            if let url, let imageUrl = URL(string: url), !url.isEmpty {
+            if let resolved = resolveImageURL(url), let imageUrl = URL(string: resolved) {
                 AsyncImage(url: imageUrl) { phase in
                     if let image = phase.image {
                         image.resizable().scaledToFill()
@@ -48,6 +48,12 @@ struct AvatarView: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
+    }
+
+    private func resolveImageURL(_ url: String?) -> String? {
+        guard let url, !url.isEmpty else { return nil }
+        if url.hasPrefix("http://") || url.hasPrefix("https://") { return url }
+        return "https://offme.vercel.app" + (url.hasPrefix("/") ? url : "/\(url)")
     }
 }
 
@@ -170,17 +176,17 @@ struct ProfileView: View {
     private func profileHeader(user: User) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Group {
-                if let banner = user.bannerUrl, !banner.isEmpty, let url = URL(string: banner) {
-                    AsyncImage(url: url) { phase in
-                        if case .success(let image) = phase {
-                            image.resizable().scaledToFill()
-                        } else {
-                            Rectangle().fill(OffMeTheme.surface)
-                        }
+            if let banner = user.bannerUrl, !banner.isEmpty, let resolved = resolveBannerURL(banner), let url = URL(string: resolved) {
+                AsyncImage(url: url) { phase in
+                    if case .success(let image) = phase {
+                        image.resizable().scaledToFill()
+                    } else {
+                        Rectangle().fill(OffMeTheme.surface)
                     }
-                } else {
-                    Rectangle().fill(OffMeTheme.surface)
                 }
+            } else {
+                Rectangle().fill(OffMeTheme.surface)
+            }
             }
             .frame(height: 120)
             .frame(maxWidth: .infinity)
@@ -226,7 +232,9 @@ struct ProfileView: View {
                 HStack(spacing: 4) {
                     Text(user.displayName)
                         .font(.title2.bold())
-                    if user.verified {
+                    if user.isOfficial {
+                        OfficialBadgeIOS()
+                    } else if user.verified {
                         Image(systemName: "checkmark.seal.fill")
                             .foregroundStyle(OffMeTheme.accent)
                     }
@@ -282,6 +290,11 @@ struct ProfileView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
+    }
+
+    private func resolveBannerURL(_ url: String) -> String? {
+        if url.hasPrefix("http://") || url.hasPrefix("https://") { return url }
+        return "https://offme.vercel.app" + (url.hasPrefix("/") ? url : "/\(url)")
     }
 
     private func startMessage(username: String) async {

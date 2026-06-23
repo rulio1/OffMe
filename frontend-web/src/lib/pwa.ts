@@ -31,6 +31,8 @@ export function shouldShowIosInstallBanner(): boolean {
 
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
+  // Skip registration in development to avoid SW caches interfering with local dev
+  if (process.env.NODE_ENV !== 'production') return null;
   try {
     return await navigator.serviceWorker.register('/sw.js');
   } catch {

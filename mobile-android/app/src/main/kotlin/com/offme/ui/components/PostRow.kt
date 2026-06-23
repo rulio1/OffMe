@@ -84,10 +84,11 @@ fun PostRow(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val authorName = post.author?.resolvedDisplayName ?: "Usuário"
-    val username = post.author?.username ?: "usuario"
+    val author = post.author?.official
+    val authorName = author?.resolvedDisplayName ?: "Usuário"
+    val username = author?.username ?: "usuario"
     val isOwnPost = currentUserId != null &&
-        (post.authorId == currentUserId || post.author?.id == currentUserId)
+        (post.authorId == currentUserId || author?.id == currentUserId)
     val shareUrl = "https://offme.vercel.app/post/${post.id}"
 
     Column(modifier = modifier.fillMaxWidth()) {
@@ -118,7 +119,7 @@ fun PostRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             UserAvatar(
-                url = post.author?.avatarUrl,
+                url = author?.avatarUrl,
                 size = 40.dp,
                 modifier = Modifier.clickable { onAuthorClick(username) },
             )
@@ -130,6 +131,10 @@ fun PostRow(
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.clickable { onAuthorClick(username) },
                     )
+                    if (author?.isOfficial == true) {
+                        Spacer(Modifier.width(2.dp))
+                        OfficialBadge()
+                    }
                     Spacer(Modifier.width(4.dp))
                     Text(
                         text = "@$username",
