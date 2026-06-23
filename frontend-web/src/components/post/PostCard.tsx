@@ -4,21 +4,8 @@ import { memo, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  MessageCircle,
-  Repeat2,
-  Heart,
-  BarChart2,
-  Bookmark,
-  Share,
-  MoreHorizontal,
-  Trash2,
-  Ban,
-  VolumeX,
-  Flag,
-  Quote,
-  Pin,
-} from 'lucide-react';
+import { Ban, VolumeX, Flag, Quote } from 'lucide-react';
+import { ActionIcon } from '@/components/icons/ActionIcons';
 import { PostRichText } from '@/components/post/PostRichText';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import { useCompose } from '@/components/providers/ComposeProvider';
@@ -360,7 +347,7 @@ function PostCardInner({
     <article className="offme-card px-4 py-3" onClick={openThread} role="link" tabIndex={0}>
       {post.timelineSource === 'repost' && (
         <p className="mb-2 flex items-center gap-1.5 pl-12 text-[13px] text-offme-muted">
-          <Repeat2 className="h-3.5 w-3.5" />
+          <ActionIcon name="repost" filled className="h-3.5 w-3.5" />
           Repost
         </p>
       )}
@@ -411,7 +398,7 @@ function PostCardInner({
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
               >
-                <MoreHorizontal className="h-[17px] w-[17px] stroke-[2]" />
+                <ActionIcon name="more" className="h-[17px] w-[17px]" />
               </button>
 
               {menuOpen && (
@@ -441,7 +428,7 @@ function PostCardInner({
                         disabled={menuBusy}
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
                       >
-                        <Pin className="h-4 w-4" />
+                        <ActionIcon name="pin" className="h-4 w-4" />
                         {pinnedPostId === post.id ? 'Desfixar do perfil' : 'Fixar no perfil'}
                       </button>
                       <button
@@ -451,7 +438,7 @@ function PostCardInner({
                         disabled={menuBusy}
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10 disabled:opacity-50"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <ActionIcon name="delete" className="h-4 w-4" />
                         Excluir post
                       </button>
                     </>
@@ -525,7 +512,7 @@ function PostCardInner({
 
           {isPinnedHighlight && (
             <p className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-offme-muted">
-              <Pin className="h-3.5 w-3.5" />
+              <ActionIcon name="pin" className="h-3.5 w-3.5" />
               Post fixado
             </p>
           )}
@@ -570,7 +557,7 @@ function PostCardInner({
               href={`/post/${post.id}`}
               className={clsx('post-action post-action-reply', post.replyCount > 0 && 'gap-1')}
             >
-              <MessageCircle className="h-[18px] w-[18px] stroke-[1.75]" />
+              <ActionIcon name="reply" className="h-[18px] w-[18px]" />
               {post.replyCount > 0 && <span className="text-[13px]">{formatCount(post.replyCount)}</span>}
             </Link>
 
@@ -584,7 +571,7 @@ function PostCardInner({
                 repostCount > 0 && 'gap-1'
               )}
             >
-              <Repeat2 className="h-[18px] w-[18px] stroke-[1.75]" />
+              <ActionIcon name="repost" filled={reposted} className="h-[18px] w-[18px]" />
               {repostCount > 0 && <span className="text-[13px]">{formatCount(repostCount)}</span>}
             </button>
 
@@ -598,12 +585,12 @@ function PostCardInner({
                 likeCount > 0 && 'gap-1'
               )}
             >
-              <Heart className={clsx('h-[18px] w-[18px] stroke-[1.75]', liked && 'fill-current')} />
+              <ActionIcon name="like" filled={liked} className="h-[18px] w-[18px]" />
               {likeCount > 0 && <span className="text-[13px]">{formatCount(likeCount)}</span>}
             </button>
 
             <button type="button" className="post-action post-action-views gap-1">
-              <BarChart2 className="h-[18px] w-[18px] stroke-[1.75]" />
+              <ActionIcon name="views" className="h-[18px] w-[18px]" />
               {viewCount > 0 && <span className="text-[13px]">{formatCount(viewCount)}</span>}
             </button>
 
@@ -614,7 +601,7 @@ function PostCardInner({
               aria-label={shareLabel || 'Compartilhar'}
               title={shareLabel || undefined}
             >
-              <Share className="h-[18px] w-[18px] stroke-[1.75]" />
+              <ActionIcon name="share" className="h-[18px] w-[18px]" />
             </button>
 
             <button
@@ -635,7 +622,7 @@ function PostCardInner({
                 bookmarked && 'text-offme-accent'
               )}
             >
-              <Bookmark className={clsx('h-[18px] w-[18px] stroke-[1.75]', bookmarked && 'fill-current')} />
+              <ActionIcon name="bookmark" filled={bookmarked} className="h-[18px] w-[18px]" />
             </button>
           </div>
         </div>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { XNavIcon, type XNavIconName } from '@/components/icons/XNavIcons';
-import { getStoredUser } from '@/lib/auth';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 type NavItem = {
   href: string;
@@ -23,7 +23,7 @@ const ITEMS: NavItem[] = [
 
 export function MobileNav() {
   const pathname = usePathname();
-  const user = getStoredUser();
+  const user = useCurrentUser();
 
   const items = user?.isAdmin
     ? [

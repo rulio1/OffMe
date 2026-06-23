@@ -89,4 +89,5 @@ export function isAuthenticated(): boolean {
 export function updateStoredUser(user: User): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  window.dispatchEvent(new Event('offme:user-change'));
 }

@@ -92,12 +92,23 @@ fun PostRow(
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (post.timelineSource == "repost") {
-            Text(
-                text = "Repost",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = 68.dp, bottom = 8.dp),
-            )
+            ) {
+                Icon(
+                    imageVector = ActionIcons.Repost,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.size(14.dp),
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = "Repost",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
+            }
         }
 
         Row(
@@ -181,14 +192,14 @@ fun PostRow(
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     PostAction(
-                        icon = Icons.Outlined.ChatBubbleOutline,
+                        icon = ActionIcons.Reply,
                         count = post.replyCount,
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         onClick = { onPostClick(post.id) },
                     )
 
                     PostAction(
-                        icon = if (reposted) Icons.Filled.Repeat else Icons.Outlined.Repeat,
+                        icon = ActionIcons.Repost,
                         count = repostCount,
                         tint = if (reposted) RepostColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         onClick = if (token != null && !reposting) {
@@ -218,7 +229,7 @@ fun PostRow(
                     )
 
                     PostAction(
-                        icon = if (liked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        icon = ActionIcons.HeartFilled,
                         count = likeCount,
                         tint = if (liked) LikeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         onClick = if (token != null && !liking) {
@@ -248,7 +259,7 @@ fun PostRow(
                     )
 
                     PostAction(
-                        icon = Icons.Default.Share,
+                        icon = ActionIcons.Share,
                         count = 0,
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         onClick = {
@@ -261,7 +272,7 @@ fun PostRow(
                     )
 
                     PostAction(
-                        icon = if (bookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                        icon = ActionIcons.BookmarkFilled,
                         count = 0,
                         tint = if (bookmarked) {
                             MaterialTheme.colorScheme.primary

@@ -148,6 +148,7 @@ function normalizeUser(raw: Record<string, unknown>): User {
     location: raw.location ? String(raw.location) : undefined,
     websiteUrl: raw.websiteUrl ? String(raw.websiteUrl) : undefined,
     verified: Boolean(raw.verified),
+    isAdmin: raw.isAdmin != null ? Boolean(raw.isAdmin) : undefined,
     bio: raw.bio ? String(raw.bio) : undefined,
     followerCount: raw.followerCount != null ? Number(raw.followerCount) : undefined,
     followingCount: raw.followingCount != null ? Number(raw.followingCount) : undefined,

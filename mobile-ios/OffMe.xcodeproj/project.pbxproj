@@ -37,6 +37,7 @@
 		A10000000000000000000048 /* ImageCropView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000047 /* ImageCropView.swift */; };
 		A1000000000000000000004A /* FlexibleDecoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000049 /* FlexibleDecoding.swift */; };
 		A1000000000000000000004C /* XNavIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004B /* XNavIcons.swift */; };
+		A1000000000000000000005C /* ActionIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005B /* ActionIcons.swift */; };
 		A1000000000000000000004E /* BookmarksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004D /* BookmarksView.swift */; };
 		A10000000000000000000053 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000052 /* SupabaseConfig.swift */; };
 		A10000000000000000000055 /* SupabaseRealtimeClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000054 /* SupabaseRealtimeClient.swift */; };
@@ -86,6 +87,7 @@
 		A10000000000000000000047 /* ImageCropView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCropView.swift; sourceTree = "<group>"; };
 		A10000000000000000000049 /* FlexibleDecoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlexibleDecoding.swift; sourceTree = "<group>"; };
 		A1000000000000000000004B /* XNavIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XNavIcons.swift; sourceTree = "<group>"; };
+		A1000000000000000000005B /* ActionIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionIcons.swift; sourceTree = "<group>"; };
 		A1000000000000000000004D /* BookmarksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookmarksView.swift; sourceTree = "<group>"; };
 		A10000000000000000000052 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		A10000000000000000000054 /* SupabaseRealtimeClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseRealtimeClient.swift; sourceTree = "<group>"; };
@@ -194,6 +196,7 @@
 				A1000000000000000000001C /* PostRowView.swift */,
 				A10000000000000000000045 /* BottomTabBar.swift */,
 				A1000000000000000000004B /* XNavIcons.swift */,
+				A1000000000000000000005B /* ActionIcons.swift */,
 				A1000000000000000000004D /* BookmarksView.swift */,
 				A1000000000000000000005A /* ListsPlaceholderView.swift */,
 				A1000000000000000000005E /* ListsView.swift */,
@@ -320,6 +323,7 @@
 				A1000000000000000000000C /* PostRowView.swift in Sources */,
 				A10000000000000000000046 /* BottomTabBar.swift in Sources */,
 				A1000000000000000000004C /* XNavIcons.swift in Sources */,
+				A1000000000000000000005C /* ActionIcons.swift in Sources */,
 				A1000000000000000000004E /* BookmarksView.swift in Sources */,
 				A10000000000000000000048 /* ImageCropView.swift in Sources */,
 				A1000000000000000000000D /* MainTabView.swift in Sources */,

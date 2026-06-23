@@ -75,11 +75,14 @@ struct PostRowView: View {
     private var postContent: some View {
         VStack(alignment: .leading, spacing: 0) {
             if post.timelineSource == "repost" {
-                Label("Repost", systemImage: "arrow.2.squarepath")
-                    .font(.system(size: 13))
-                    .foregroundStyle(OffMeTheme.muted)
-                    .padding(.leading, 52)
-                    .padding(.bottom, 8)
+                HStack(spacing: 4) {
+                    ActionIconView(shape: ActionIcons.repost, size: 14, color: OffMeTheme.muted)
+                    Text("Repost")
+                        .font(.system(size: 13))
+                        .foregroundStyle(OffMeTheme.muted)
+                }
+                .padding(.leading, 52)
+                .padding(.bottom, 8)
             }
 
             HStack(alignment: .top, spacing: 12) {
@@ -140,7 +143,7 @@ struct PostRowView: View {
 
                     HStack {
                         actionButton(
-                            systemName: "bubble.right",
+                            shape: ActionIcons.reply,
                             count: post.replyCount,
                             color: OffMeTheme.muted,
                             destination: post.id
@@ -150,7 +153,7 @@ struct PostRowView: View {
                             Task { await toggleRepost() }
                         } label: {
                             actionLabel(
-                                systemName: "arrow.2.squarepath",
+                                shape: ActionIcons.repost,
                                 count: repostCount,
                                 color: reposted ? OffMeTheme.repost : OffMeTheme.muted
                             )
@@ -162,16 +165,17 @@ struct PostRowView: View {
                             Task { await toggleLike() }
                         } label: {
                             actionLabel(
-                                systemName: liked ? "heart.fill" : "heart",
+                                shape: ActionIcons.likeFilled,
                                 count: likeCount,
-                                color: liked ? OffMeTheme.like : OffMeTheme.muted
+                                color: liked ? OffMeTheme.like : OffMeTheme.muted,
+                                iconOpacity: liked ? 1.0 : 0.5
                             )
                         }
                         .buttonStyle(.plain)
                         .disabled(liking)
 
                         actionLabel(
-                            systemName: "chart.bar",
+                            shape: ActionIcons.views,
                             count: viewCount,
                             color: OffMeTheme.muted
                         )
@@ -179,9 +183,7 @@ struct PostRowView: View {
                         Button {
                             showShareSheet = true
                         } label: {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.system(size: 16))
-                                .foregroundStyle(OffMeTheme.muted)
+                            ActionIconView(shape: ActionIcons.share, size: 18, color: OffMeTheme.muted)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.plain)
@@ -190,9 +192,9 @@ struct PostRowView: View {
                         Button {
                             Task { await toggleBookmark() }
                         } label: {
-                            Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
-                                .font(.system(size: 16))
-                                .foregroundStyle(bookmarked ? OffMeTheme.accent : OffMeTheme.muted)
+                            ActionIconView(shape: ActionIcons.bookmarkFilled, size: 18,
+                                color: bookmarked ? OffMeTheme.accent : OffMeTheme.muted)
+                                .opacity(bookmarked ? 1.0 : 0.5)
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.plain)
@@ -252,21 +254,21 @@ struct PostRowView: View {
 
     @ViewBuilder
     private func actionButton(
-        systemName: String,
+        shape: ActionIconShape,
         count: Int,
         color: Color,
         destination: Int
     ) -> some View {
         NavigationLink(value: destination) {
-            actionLabel(systemName: systemName, count: count, color: color)
+            actionLabel(shape: shape, count: count, color: color)
         }
         .buttonStyle(.plain)
     }
 
-    private func actionLabel(systemName: String, count: Int, color: Color) -> some View {
+    private func actionLabel(shape: ActionIconShape, count: Int, color: Color, iconOpacity: Double = 1.0) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: systemName)
-                .font(.system(size: 16))
+            ActionIconView(shape: shape, size: 18, color: color)
+                .opacity(iconOpacity)
             if count > 0 {
                 Text(Formatters.count(count))
                     .font(.system(size: 13))

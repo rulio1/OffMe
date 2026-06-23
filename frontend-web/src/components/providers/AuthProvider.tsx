@@ -8,8 +8,9 @@ import {
   getToken,
   isTokenExpired,
   syncSessionCookies,
+  updateStoredUser,
 } from '@/lib/auth';
-import { bootstrapSession } from '@/lib/api';
+import { bootstrapSession, fetchCurrentUser } from '@/lib/api';
 
 const AUTH_PATHS = ['/login', '/signup'];
 
@@ -30,6 +31,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (token && !isTokenExpired(token)) {
+        // Refresh stored user profile (e.g., isAdmin flag) in the background
+        fetchCurrentUser()
+          .then((u) => {
+            if (u && !cancelled) updateStoredUser(u);
+          })
+          .catch(() => {});
         if (!cancelled) setReady(true);
         return;
       }

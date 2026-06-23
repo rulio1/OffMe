@@ -9,8 +9,9 @@ import { OffMeLogo } from '@/components/auth/OffMeLogo';
 import { XNavIcon, type XNavIconName } from '@/components/icons/XNavIcons';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import { useCompose } from '@/components/providers/ComposeProvider';
-import { getStoredUser, clearSession } from '@/lib/auth';
+import { clearSession } from '@/lib/auth';
 import { logout } from '@/lib/api';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 const NAV_ITEMS: {
   href: string;
@@ -30,7 +31,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { openCompose } = useCompose();
-  const user = getStoredUser();
+  const user = useCurrentUser();
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
 
