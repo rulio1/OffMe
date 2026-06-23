@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { LogOut, PenLine } from 'lucide-react';
+import React from 'react';
+import { LogOut, PenLine, Home, Search, Bell, Mail, Bookmark, User, MoreHorizontal, List, Users, Settings, Shield } from 'lucide-react';
 import clsx from 'clsx';
 import { OffMeLogo } from '@/components/auth/OffMeLogo';
-import { XNavIcon, type XNavIconName } from '@/components/icons/XNavIcons';
 import { UserAvatar } from '@/components/user/UserAvatar';
 import { useCompose } from '@/components/providers/ComposeProvider';
 import { clearSession } from '@/lib/auth';
@@ -16,15 +16,15 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 const NAV_ITEMS: {
   href: string;
   label: string;
-  icon: XNavIconName;
+  icon: React.ComponentType<{ className?: string }>;
   match: (p: string) => boolean;
 }[] = [
-  { href: '/', label: 'Início', icon: 'home', match: (p) => p === '/' },
-  { href: '/explore', label: 'Explorar', icon: 'search', match: (p) => p.startsWith('/explore') },
-  { href: '/notifications', label: 'Notificações', icon: 'notifications', match: (p) => p.startsWith('/notifications') },
-  { href: '/messages', label: 'Mensagens', icon: 'messages', match: (p) => p.startsWith('/messages') },
-  { href: '/bookmarks', label: 'Salvos', icon: 'bookmarks', match: (p) => p.startsWith('/bookmarks') },
-  { href: '/profile', label: 'Perfil', icon: 'profile', match: (p) => p.startsWith('/profile') },
+  { href: '/', label: 'Início', icon: Home, match: (p) => p === '/' },
+  { href: '/explore', label: 'Explorar', icon: Search, match: (p) => p.startsWith('/explore') },
+  { href: '/notifications', label: 'Notificações', icon: Bell, match: (p) => p.startsWith('/notifications') },
+  { href: '/messages', label: 'Mensagens', icon: Mail, match: (p) => p.startsWith('/messages') },
+  { href: '/bookmarks', label: 'Salvos', icon: Bookmark, match: (p) => p.startsWith('/bookmarks') },
+  { href: '/profile', label: 'Perfil', icon: User, match: (p) => p.startsWith('/profile') },
 ];
 
 export function Sidebar() {
@@ -77,14 +77,12 @@ export function Sidebar() {
                 active && 'font-bold'
               )}
             >
-              <XNavIcon
-                name={icon}
-                active={active}
-                className={clsx(
+              {React.createElement(icon, {
+                className: clsx(
                   'h-7 w-7',
                   active ? 'scale-[1.04]' : 'group-hover:opacity-100'
-                )}
-              />
+                )
+              })}
               <span className="hidden xl:inline">{label}</span>
             </Link>
           );
@@ -98,7 +96,7 @@ export function Sidebar() {
             aria-haspopup="menu"
             className="group flex w-full items-center justify-center gap-5 rounded-full px-3 py-3 text-xl transition-colors hover:bg-offme-hover xl:justify-start xl:px-4"
           >
-            <XNavIcon name="more" className="h-7 w-7 group-hover:opacity-100" />
+              <MoreHorizontal className="h-7 w-7 group-hover:opacity-100" />
             <span className="hidden xl:inline">Mais</span>
           </button>
 
@@ -113,7 +111,7 @@ export function Sidebar() {
                 onClick={() => setMoreOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
-                <XNavIcon name="bookmarks" className="h-5 w-5" />
+                <Bookmark className="h-5 w-5" />
                 Salvos
               </Link>
               <Link
@@ -122,7 +120,7 @@ export function Sidebar() {
                 onClick={() => setMoreOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
-                <XNavIcon name="profile" className="h-5 w-5" />
+                <User className="h-5 w-5" />
                 Configurações do perfil
               </Link>
               <Link
@@ -131,7 +129,7 @@ export function Sidebar() {
                 onClick={() => setMoreOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
-                <XNavIcon name="lists" className="h-5 w-5" />
+                <List className="h-5 w-5" />
                 Listas
               </Link>
               <Link
@@ -140,7 +138,7 @@ export function Sidebar() {
                 onClick={() => setMoreOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
-                <XNavIcon name="communities" className="h-5 w-5" />
+                <Users className="h-5 w-5" />
                 Comunidades
               </Link>
               <Link
@@ -149,7 +147,7 @@ export function Sidebar() {
                 onClick={() => setMoreOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 text-[15px] hover:bg-offme-hover"
               >
-                <XNavIcon name="settings" className="h-5 w-5" />
+                <Settings className="h-5 w-5" />
                 Configurações
               </Link>
               {user?.isAdmin && (
@@ -159,7 +157,7 @@ export function Sidebar() {
                   onClick={() => setMoreOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold text-offme-primary hover:bg-offme-hover"
                 >
-                  <XNavIcon name="admin" className="h-5 w-5" />
+                  <Shield className="h-5 w-5" />
                   Moderação
                 </Link>
               )}
