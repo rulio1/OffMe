@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { XNavIcon, type XNavIconName } from '@/components/icons/XNavIcons';
+import { getStoredUser } from '@/lib/auth';
 
 type NavItem = {
   href: string;
@@ -22,6 +23,20 @@ const ITEMS: NavItem[] = [
 
 export function MobileNav() {
   const pathname = usePathname();
+  const user = getStoredUser();
+
+  const items = user?.isAdmin
+    ? [
+        ...ITEMS.slice(0, 4),
+        {
+          href: '/moderation',
+          label: 'Moderação',
+          icon: 'admin' as XNavIconName,
+          match: (p: string) => p.startsWith('/moderation'),
+        },
+        { href: '/profile', label: 'Perfil', icon: 'profile' as XNavIconName, match: (p: string) => p.startsWith('/profile') },
+      ]
+    : ITEMS;
 
   return (
     <nav
@@ -30,7 +45,7 @@ export function MobileNav() {
       aria-label="Navegação principal"
     >
       <div className="mx-auto flex h-[52px] max-w-[600px] items-stretch justify-between px-2">
-        {ITEMS.map(({ href, label, icon, match }) => {
+        {items.map(({ href, label, icon, match }) => {
           const active = match(pathname);
           return (
             <Link

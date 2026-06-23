@@ -151,6 +151,17 @@ export function Sidebar() {
                 <XNavIcon name="settings" className="h-5 w-5" />
                 Configurações
               </Link>
+              {user?.isAdmin && (
+                <Link
+                  href="/moderation"
+                  role="menuitem"
+                  onClick={() => setMoreOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold text-offme-primary hover:bg-offme-hover"
+                >
+                  <XNavIcon name="admin" className="h-5 w-5" />
+                  Moderação
+                </Link>
+              )}
               <button
                 type="button"
                 role="menuitem"

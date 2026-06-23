@@ -13,6 +13,7 @@ export interface DbUser {
   location: string | null;
   website_url: string | null;
   verified: boolean;
+  is_admin?: boolean;
   follower_count: number;
   following_count: number;
   post_count?: number;
@@ -21,7 +22,7 @@ export interface DbUser {
 }
 
 const USER_SELECT = `id, public_id, username, email, password_hash, display_name, bio,
-            avatar_url, banner_url, location, website_url, verified, follower_count, following_count,
+            avatar_url, banner_url, location, website_url, verified, is_admin, follower_count, following_count,
             post_count, pinned_post_id, created_at`;
 
 export interface CreateUserInput {
@@ -81,6 +82,7 @@ export function toPublicUser(user: DbUser, extra?: { isFollowing?: boolean }) {
     location: user.location || undefined,
     websiteUrl: user.website_url || undefined,
     verified: user.verified,
+    isAdmin: Boolean(user.is_admin),
     bio: user.bio,
     followerCount: Number(user.follower_count),
     followingCount: Number(user.following_count),

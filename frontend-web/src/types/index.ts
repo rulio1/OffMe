@@ -7,6 +7,7 @@ export interface User {
   location?: string;
   websiteUrl?: string;
   verified: boolean;
+  isAdmin?: boolean;
   bio?: string;
   followerCount?: number;
   followingCount?: number;

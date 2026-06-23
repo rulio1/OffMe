@@ -11,6 +11,7 @@ enum XNavIconKind {
     case lists
     case communities
     case settings
+    case admin
 }
 
 /// Ícones modernos e consistentes para a navegação (iOS / Android / Web).
@@ -44,6 +45,8 @@ struct XNavIcon: View {
                 communitiesIcon
             case .settings:
                 strokedIcon(settingsPath)
+            case .admin:
+                adminIcon
             }
         }
         .frame(width: 26, height: 26)
@@ -115,6 +118,18 @@ struct XNavIcon: View {
     @ViewBuilder
     private var communitiesIcon: some View {
         communitiesFilledPath.fill(OffMeTheme.text.opacity(active ? 1 : 0.78))
+    }
+
+    @ViewBuilder
+    private var adminIcon: some View {
+        if active {
+            adminFilledPath.fill(OffMeTheme.text)
+        } else {
+            adminOutlinePath.stroke(
+                OffMeTheme.text,
+                style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round, lineJoin: .round)
+            )
+        }
     }
 
     private func strokedIcon(_ path: Path) -> some View {
@@ -429,6 +444,49 @@ struct XNavIcon: View {
             control1: CGPoint(x: 18, y: 13.5),
             control2: CGPoint(x: 20, y: 14.5)
         )
+        path.closeSubpath()
+        return path
+    }
+
+    /// Escudo com check (admin/moderação) — contorno.
+    private var adminOutlinePath: Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 12, y: 2))
+        path.addLine(to: CGPoint(x: 4, y: 5))
+        path.addLine(to: CGPoint(x: 4, y: 11))
+        path.addCurve(
+            to: CGPoint(x: 12, y: 22),
+            control1: CGPoint(x: 4, y: 16.55),
+            control2: CGPoint(x: 7.58, y: 21.74)
+        )
+        return path
+    }
+
+    /// Escudo com check (admin/moderação) — preenchido.
+    private var adminFilledPath: Path {
+        var path = Path()
+        path.move(to: CGPoint(x: 12, y: 2))
+        path.addLine(to: CGPoint(x: 4, y: 6))
+        path.addLine(to: CGPoint(x: 4, y: 12))
+        path.addCurve(
+            to: CGPoint(x: 12, y: 23),
+            control1: CGPoint(x: 4, y: 17.55),
+            control2: CGPoint(x: 7.58, y: 22.74)
+        )
+        path.addCurve(
+            to: CGPoint(x: 20, y: 12),
+            control1: CGPoint(x: 16.42, y: 22.74),
+            control2: CGPoint(x: 20, y: 17.55)
+        )
+        path.addLine(to: CGPoint(x: 20, y: 6))
+        path.closeSubpath()
+        // Check
+        path.move(to: CGPoint(x: 10.5, y: 16.5))
+        path.addLine(to: CGPoint(x: 7, y: 13))
+        path.addLine(to: CGPoint(x: 8.41, y: 11.59))
+        path.addLine(to: CGPoint(x: 10.5, y: 13.67))
+        path.addLine(to: CGPoint(x: 15.59, y: 8.58))
+        path.addLine(to: CGPoint(x: 17, y: 10))
         path.closeSubpath()
         return path
     }

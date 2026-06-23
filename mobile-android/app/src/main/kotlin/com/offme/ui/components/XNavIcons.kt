@@ -24,6 +24,7 @@ enum class XNavIconKind {
     Lists,
     Communities,
     Settings,
+    Admin,
 }
 
 /** Ícones modernos e consistentes para a navegação (iOS / Android / Web). */
@@ -247,6 +248,36 @@ private val XSettings: ImageVector by lazy {
     }
 }
 
+private val XAdminOutline: ImageVector by lazy {
+    strokePath("XAdminOutline") {
+        // Escudo com check parcial
+        moveTo(12f, 2f)
+        lineTo(4f, 5f)
+        verticalLineToRelative(6f)
+        curveTo(4f, 16.55f, 7.58f, 21.74f, 12f, 23f)
+    }
+}
+
+private val XAdminFilled: ImageVector by lazy {
+    filledPath("XAdminFilled") {
+        moveTo(12f, 2f)
+        lineTo(4f, 6f)
+        verticalLineToRelative(6f)
+        curveTo(4f, 17.55f, 7.58f, 22.74f, 12f, 24f)
+        curveTo(16.42f, 22.74f, 20f, 17.55f, 20f, 12f)
+        verticalLineTo(6f)
+        close()
+        // Checkmark
+        moveTo(10.5f, 16.5f)
+        lineTo(7f, 13f)
+        lineTo(8.41f, 11.59f)
+        lineTo(10.5f, 13.67f)
+        lineTo(15.59f, 8.58f)
+        lineTo(17f, 10f)
+        close()
+    }
+}
+
 @Composable
 fun XNavIcon(
     kind: XNavIconKind,
@@ -265,6 +296,7 @@ fun XNavIcon(
         XNavIconKind.Lists -> XLists
         XNavIconKind.Communities -> XCommunities
         XNavIconKind.Settings -> XSettings
+        XNavIconKind.Admin -> if (active) XAdminFilled else XAdminOutline
     }
 
     Icon(
