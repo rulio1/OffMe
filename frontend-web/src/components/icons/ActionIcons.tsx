@@ -13,32 +13,37 @@ export type ActionIconName =
 
 interface ActionIconProps {
   name: ActionIconName;
-  filled?: boolean;
+  active?: boolean;
   className?: string;
 }
 
 /**
- * Ícones de ação modernos e consistentes (iOS / Android / Web).
- * Design 2024 com traços limpos e cantos arredondados.
- * Estados outline (inativo) e filled (ativo) para like, repost e bookmark.
+ * Ícones oficiais do X/Twitter — paths SVG reais usados na plataforma.
+ * Outline (inativo) vs Filled (ativo) exatamente como no app do X.
  */
-export function ActionIcon({ name, filled = false, className }: ActionIconProps) {
-  const shared = clsx('shrink-0', className);
+export function ActionIcon({ name, active = false, className }: ActionIconProps) {
+  const shared = clsx(
+    'h-[1.5rem] w-[1.5rem] shrink-0 text-offme-text transition-all duration-200',
+    className
+  );
 
   switch (name) {
-    /* ============================================================= REPLY */
+    /* =============================================================== REPLY */
     case 'reply':
       return (
-        <svg viewBox="0 0 24 24" className={shared} fill="currentColor" aria-hidden>
-          <path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.323-3.13 3.323-5.5 0-3.39-2.744-6.13-6.129-6.13H9.756z" />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          <path
+            fill="currentColor"
+            d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.323-3.13 3.323-5.5 0-3.39-2.744-6.13-6.129-6.13H9.756z"
+          />
         </svg>
       );
 
-    /* =========================================================== REPOST */
+    /* =============================================================== REPOST */
     case 'repost':
       return (
         <svg viewBox="0 0 24 24" className={shared} aria-hidden>
-          {filled ? (
+          {active ? (
             <path
               fill="currentColor"
               d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46L18.5 16.45V8c0-1.1-.896-2-2-2z"
@@ -52,11 +57,11 @@ export function ActionIcon({ name, filled = false, className }: ActionIconProps)
         </svg>
       );
 
-    /* ============================================================= LIKE */
+    /* =============================================================== LIKE */
     case 'like':
       return (
         <svg viewBox="0 0 24 24" className={shared} aria-hidden>
-          {filled ? (
+          {active ? (
             <path
               fill="currentColor"
               d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"
@@ -70,27 +75,33 @@ export function ActionIcon({ name, filled = false, className }: ActionIconProps)
         </svg>
       );
 
-    /* ============================================================ VIEWS */
+    /* =============================================================== VIEWS */
     case 'views':
       return (
-        <svg viewBox="0 0 24 24" className={shared} fill="currentColor" aria-hidden>
-          <path d="M8.75 21V3h2v18h-2zM18 21V8h2v13h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z" />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          <path
+            fill="currentColor"
+            d="M8.75 21V3h2v18h-2zM18 21V8h2v13h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"
+          />
         </svg>
       );
 
-    /* =========================================================== SHARE */
+    /* =============================================================== SHARE */
     case 'share':
       return (
-        <svg viewBox="0 0 24 24" className={shared} fill="currentColor" aria-hidden>
-          <path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z" />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          <path
+            fill="currentColor"
+            d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"
+          />
         </svg>
       );
 
-    /* ======================================================== BOOKMARK */
+    /* =============================================================== BOOKMARK */
     case 'bookmark':
       return (
         <svg viewBox="0 0 24 24" className={shared} aria-hidden>
-          {filled ? (
+          {active ? (
             <path
               fill="currentColor"
               d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z"
@@ -104,28 +115,40 @@ export function ActionIcon({ name, filled = false, className }: ActionIconProps)
         </svg>
       );
 
-    /* ========================================================== DELETE */
+    /* =============================================================== DELETE */
     case 'delete':
       return (
-        <svg viewBox="0 0 24 24" className={shared} fill="currentColor" aria-hidden>
-          <path d="M3 6h18v2H3V6zm2 3h14l-1 13H6L5 9zm4.5 2v9h1v-9h-1zm4 0v9h1v-9h-1zM9 4c0-1.1.9-2 2-2h2c1.1 0 2 .9 2 2v1h-2V4h-2v1H9V4z" />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          <path
+            fill="currentColor"
+            d="M3 6h18v2H3V6zm2 3h14l-1 13H6L5 9zm4.5 2v9h1v-9h-1zm4 0v9h1v-9h-1zM9 4c0-1.1.9-2 2-2h2c1.1 0 2 .9 2 2v1h-2V4h-2v1H9V4z"
+          />
         </svg>
       );
 
-    /* ============================================================ MORE */
+    /* =============================================================== MORE */
     case 'more':
       return (
-        <svg viewBox="0 0 24 24" className={shared} fill="currentColor" aria-hidden>
-          <path d="M3.75 12c0-4.56 3.69-8.25 8.25-8.25c1.97 0 3.78.69 5.21 1.84l-4.46 4.47l0.01 0.02c-.43-.21-.91-.33-1.41-.33c-1.79 0-3.25 1.46-3.25 3.25c0 .51.12.98.33 1.4l-.01.02l-4.48 4.47C4.44 15.78 3.75 13.97 3.75 12zM12 20.25c-1.97 0-3.78-.69-5.21-1.84l4.47-4.47l.01.01c.43.21.91.33 1.41.33c1.79 0 3.25-1.46 3.25-3.25c0-.5-.12-.98-.33-1.4l-.01-.02l4.48-4.47C19.56 8.22 20.25 10.03 20.25 12c0 4.56-3.69 8.25-8.25 8.25zM13 12c0 .55-.45 1-1 1s-1-.45-1-1s.45-1 1-1s1 .45 1 1z" />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          <path
+            fill="currentColor"
+            d="M3.75 12c0-4.56 3.69-8.25 8.25-8.25c1.97 0 3.78.69 5.21 1.84l-4.46 4.47l0.01 0.02c-.43-.21-.91-.33-1.41-.33c-1.79 0-3.25 1.46-3.25 3.25c0 .51.12.98.33 1.4l-.01.02l-4.48 4.47C4.44 15.78 3.75 13.97 3.75 12zM12 20.25c-1.97 0-3.78-.69-5.21-1.84l4.47-4.47l.01.01c.43.21.91.33 1.41.33c1.79 0 3.25-1.46 3.25-3.25c0-.5-.12-.98-.33-1.4l-.01-.02l4.48-4.47C19.56 8.22 20.25 10.03 20.25 12c0 4.56-3.69 8.25-8.25 8.25zM13 12c0 .55-.45 1-1 1s-1-.45-1-1s.45-1 1-1s1 .45 1 1z"
+          />
         </svg>
       );
 
-    /* ============================================================= PIN */
+    /* =============================================================== PIN */
     case 'pin':
       return (
-        <svg viewBox="0 0 24 24" className={shared} fill="currentColor" aria-hidden>
-          <path d="M19.4 9L15 4.6V1h-2v3.6L8.6 9H3v2h4.3l1.2 6.7L7 21l1.4 1.4L12 18.8l3.6 3.6L17 21l-1.5-3.3 1.2-6.7H21V9h-1.6zm-6.4 8L12 16.5l-.9.5-2.4-1.4-.6-3.6h7.8l-.6 3.6-2.4 1.4z" />
+        <svg viewBox="0 0 24 24" className={shared} aria-hidden>
+          <path
+            fill="currentColor"
+            d="M19.4 9L15 4.6V1h-2v3.6L8.6 9H3v2h4.3l1.2 6.7L7 21l1.4 1.4L12 18.8l3.6 3.6L17 21l-1.5-3.3 1.2-6.7H21V9h-1.6zm-6.4 8L12 16.5l-.9.5-2.4-1.4-.6-3.6h7.8l-.6 3.6-2.4 1.4z"
+          />
         </svg>
       );
+
+    default:
+      return null;
   }
 }

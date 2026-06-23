@@ -354,7 +354,7 @@ function PostCardInner({
     <article className="offme-card px-4 py-3" onClick={openThread} role="link" tabIndex={0}>
       {post.timelineSource === 'repost' && (
         <p className="mb-2 flex items-center gap-1.5 pl-12 text-[13px] text-offme-muted">
-          <ActionIcon name="repost" filled className="h-3.5 w-3.5" />
+           <ActionIcon name="repost" filled className="h-3.5 w-3.5" />
           Repost
         </p>
       )}
@@ -582,7 +582,7 @@ function PostCardInner({
                 repostCount > 0 && 'gap-1'
               )}
             >
-              <ActionIcon name="repost" filled={reposted} className="h-[18px] w-[18px]" />
+               <ActionIcon name="repost" filled={reposted} className="h-[18px] w-[18px]" />
               {repostCount > 0 && <span className="text-[13px]">{formatCount(repostCount)}</span>}
             </button>
 
@@ -596,7 +596,7 @@ function PostCardInner({
                 likeCount > 0 && 'gap-1'
               )}
             >
-              <ActionIcon name="like" filled={liked} className="h-[18px] w-[18px]" />
+               <ActionIcon name="like" filled={liked} className="h-[18px] w-[18px]" />
               {likeCount > 0 && <span className="text-[13px]">{formatCount(likeCount)}</span>}
             </button>
 
@@ -633,7 +633,7 @@ function PostCardInner({
                 bookmarked && 'text-offme-accent'
               )}
             >
-              <ActionIcon name="bookmark" filled={bookmarked} className="h-[18px] w-[18px]" />
+               <ActionIcon name="bookmark" filled={bookmarked} className="h-[18px] w-[18px]" />
             </button>
           </div>
         </div>

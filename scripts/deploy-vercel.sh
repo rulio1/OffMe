@@ -31,7 +31,7 @@ fi
 
 if [[ -z "${DATABASE_URL:-}" ]]; then
   echo "Aviso: DATABASE_URL não definida — migrations ignoradas." >&2
-elif [[ "${RUN_MIGRATE,,}" == "y" || "${RUN_MIGRATE,,}" == "yes" || "${1:-}" == "--migrate" ]]; then
+elif [[ "$(echo "${RUN_MIGRATE:-}" | tr '[:upper:]' '[:lower:]')" == "y" || "$(echo "${RUN_MIGRATE:-}" | tr '[:upper:]' '[:lower:]')" == "yes" || "${1:-}" == "--migrate" ]]; then
   echo "==> Rodando migrations..."
   bash "$ROOT/scripts/migrate-prod.sh"
 else
