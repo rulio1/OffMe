@@ -45,10 +45,22 @@ struct PostRowView: View {
         post.author?.username ?? "usuario"
     }
 
+    @Environment(\.openURL) private var openURL
+    @State private var openPostTrigger = false
+    @State private var openProfileTrigger = false
+
     private var isOwnPost: Bool {
         guard let currentUserId = auth.session?.user.id else { return false }
         if post.authorId == currentUserId { return true }
         return post.author?.id == currentUserId
+    }
+
+    private func openPost() {
+        openPostTrigger = true
+    }
+
+    private func openProfile() {
+        openProfileTrigger = true
     }
 
     private var shareURL: URL {
@@ -86,7 +98,9 @@ struct PostRowView: View {
             }
 
             HStack(alignment: .top, spacing: 12) {
-                NavigationLink(value: username) {
+                Button {
+                    openProfile()
+                } label: {
                     UserAvatarView(url: post.author?.avatarUrl, size: 40)
                 }
                 .buttonStyle(.plain)
@@ -136,11 +150,13 @@ struct PostRowView: View {
                             .foregroundStyle(OffMeTheme.text)
                             .lineSpacing(2)
                             .fixedSize(horizontal: false, vertical: true)
+                            .onTapGesture { openPost() }
                     }
 
                     if let urls = post.mediaUrls, !urls.isEmpty {
                         PostMediaGrid(urls: urls)
                             .padding(.top, 4)
+                            .onTapGesture { openPost() }
                     }
 
                     HStack {
@@ -212,6 +228,19 @@ struct PostRowView: View {
             .padding(.vertical, 12)
         }
         .background(OffMeTheme.bg)
+        .background {
+            NavigationLink(
+                destination: PostThreadView(postId: post.id),
+                isActive: $openPostTrigger
+            ) { EmptyView() }
+
+            if let username = post.author?.username {
+                NavigationLink(
+                    destination: ProfileView(username: username),
+                    isActive: $openProfileTrigger
+                ) { EmptyView() }
+            }
+        }
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(items: [shareURL])
                 .presentationDetents([.medium, .large])

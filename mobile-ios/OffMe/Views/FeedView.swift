@@ -200,6 +200,7 @@ private struct FeedHeaderView: View {
 struct FeedView: View {
     @EnvironmentObject private var auth: AuthStore
     @ObservedObject var viewModel: FeedViewModel
+    @Binding var resetTrigger: Bool
     @State private var showCompose = false
     @State private var showSideMenu = false
     @State private var navigateToBookmarks = false
@@ -209,7 +210,23 @@ struct FeedView: View {
     @State private var navigateToVerification = false
     @State private var showSettingsHub = false
 
+    init(viewModel: FeedViewModel, resetTrigger: Binding<Bool>? = nil) {
+        self.viewModel = viewModel
+        _resetTrigger = resetTrigger ?? .constant(false)
+    }
+
     var body: some View {
+        rootContent
+            .onChange(of: resetTrigger) { _ in
+                if let token = auth.accessToken {
+                    Task {
+                        await viewModel.load(token: token, force: true)
+                    }
+                }
+            }
+    }
+
+    private var rootContent: some View {
         ZStack(alignment: .bottomTrailing) {
             VStack(spacing: 0) {
                 FeedHeaderView(

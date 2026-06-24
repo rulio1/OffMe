@@ -9,6 +9,7 @@ struct BottomTabItem: Identifiable {
 struct BottomTabBar: View {
     @Binding var selectedTab: Int
     var unreadCount: Int = 0
+    var onHomeDoubleTap: (() -> Void)? = nil
 
     private let items: [BottomTabItem] = [
         BottomTabItem(id: 0, icon: .home, label: "Início"),
@@ -45,6 +46,9 @@ struct BottomTabBar: View {
 
         Button {
             withAnimation(.easeOut(duration: 0.18)) {
+                if item.id == 0, isSelected {
+                    onHomeDoubleTap?()
+                }
                 selectedTab = item.id
             }
         } label: {
