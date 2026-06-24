@@ -211,7 +211,14 @@ export async function fetchHomeTimeline(cursor?: string): Promise<TimelineRespon
   if (cursor) params.set('cursor', cursor);
   const res = await apiFetch(`/timeline/home?${params}`);
   if (!res.ok) await parseError(res, 'Erro ao carregar timeline');
-  return res.json();
+  const data = await res.json();
+  return {
+    ...data,
+    entries: data.entries.map((entry: { post?: Record<string, unknown> }) => ({
+      ...entry,
+      post: entry.post ? normalizePost(entry.post) : undefined
+    }))
+  };
 }
 
 export async function fetchForYouTimeline(cursor?: string): Promise<TimelineResponse> {
@@ -219,7 +226,14 @@ export async function fetchForYouTimeline(cursor?: string): Promise<TimelineResp
   if (cursor) params.set('cursor', cursor);
   const res = await apiFetch(`/timeline/for-you?${params}`);
   if (!res.ok) await parseError(res, 'Erro ao carregar timeline');
-  return res.json();
+  const data = await res.json();
+  return {
+    ...data,
+    entries: data.entries.map((entry: { post?: Record<string, unknown> }) => ({
+      ...entry,
+      post: entry.post ? normalizePost(entry.post) : undefined
+    }))
+  };
 }
 
 export interface UploadedMedia {
