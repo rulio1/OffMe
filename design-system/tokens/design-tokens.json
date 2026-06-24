@@ -1,0 +1,149 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Salesforce/lightning-design-system/main/design-tokens/schema/design-tokens.schema.json",
+  "description": "OffMe Design System - Cross-platform design tokens",
+  "version": "1.0.0",
+  "tokens": {
+    "color": {
+      "background": {
+        "light": { "value": "#ffffff" },
+        "dark": { "value": "#000000" }
+      },
+      "surface": {
+        "light": { "value": "#f7f9fa" },
+        "dark": { "value": "#16181c" }
+      },
+      "border": {
+        "light": { "value": "#e1e8ed" },
+        "dark": { "value": "#2f3336" }
+      },
+      "text": {
+        "primary": {
+          "light": { "value": "#0f1419" },
+          "dark": { "value": "#e7e9ea" }
+        },
+        "secondary": {
+          "light": { "value": "#536471" },
+          "dark": { "value": "#71767b" }
+        }
+      },
+      "hover": {
+        "light": { "value": "#eff3f4" },
+        "dark": { "value": "#18191b" }
+      },
+      "accent": {
+        "primary": { "value": "#1d9bf0" },
+        "hover": { "value": "#1a8cd8" }
+      },
+      "semantic": {
+        "success": { "value": "#00ba7c" },
+        "warning": { "value": "#ffd400" },
+        "danger": { "value": "#f91880" },
+        "info": { "value": "#1d9bf0" }
+      }
+    },
+    "spacing": {
+      "none": { "value": "0" },
+      "xxs": { "value": "4px" },
+      "xs": { "value": "8px" },
+      "sm": { "value": "12px" },
+      "md": { "value": "16px" },
+      "lg": { "value": "24px" },
+      "xl": { "value": "32px" },
+      "xxl": { "value": "48px" },
+      "xxxl": { "value": "64px" }
+    },
+    "radius": {
+      "none": { "value": "0" },
+      "xs": { "value": "2px" },
+      "sm": { "value": "4px" },
+      "md": { "value": "6px" },
+      "lg": { "value": "8px" },
+      "xl": { "value": "12px" },
+      "full": { "value": "9999px" },
+      "circle": { "value": "50%" }
+    },
+    "shadow": {
+      "xs": { "value": "0 1px 2px rgba(0, 0, 0, 0.05)" },
+      "sm": { "value": "0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)" },
+      "md": { "value": "0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)" },
+      "lg": { "value": "0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05)" },
+      "xl": { "value": "0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04)" }
+    },
+    "typography": {
+      "font": {
+        "family": {
+          "primary": { "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" },
+          "monospace": { "value": "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace" }
+        },
+        "weight": {
+          "regular": { "value": "400" },
+          "medium": { "value": "500" },
+          "semibold": { "value": "600" },
+          "bold": { "value": "700" }
+        }
+      },
+      "size": {
+        "display": {
+          "large": { "value": "30px" },
+          "medium": { "value": "24px" },
+          "small": { "value": "20px" }
+        },
+        "headline": {
+          "large": { "value": "18px" },
+          "medium": { "value": "16px" },
+          "small": { "value": "14px" }
+        },
+        "title": {
+          "large": { "value": "16px" },
+          "medium": { "value": "14px" },
+          "small": { "value": "12px" }
+        },
+        "body": {
+          "large": { "value": "16px" },
+          "medium": { "value": "14px" },
+          "small": { "value": "12px" }
+        },
+        "label": {
+          "large": { "value": "14px" },
+          "medium": { "value": "12px" },
+          "small": { "value": "10px" }
+        }
+      },
+      "lineHeight": {
+        "display": { "value": "1.2" },
+        "headline": { "value": "1.3" },
+        "title": { "value": "1.4" },
+        "body": { "value": "1.5" },
+        "label": { "value": "1.6" }
+      }
+    },
+    "animation": {
+      "duration": {
+        "fast": { "value": "100ms" },
+        "normal": { "value": "200ms" },
+        "slow": { "value": "300ms" },
+        "extraSlow": { "value": "500ms" }
+      },
+      "easing": {
+        "standard": { "value": "cubic-bezier(0.4, 0, 0.2, 1)" },
+        "decelerate": { "value": "cubic-bezier(0, 0, 0.2, 1)" },
+        "accelerate": { "value": "cubic-bezier(0.4, 0, 1, 1)" },
+        "easeInOut": { "value": "cubic-bezier(0.4, 0, 0.2, 1)" }
+      }
+    },
+    "border": {
+      "width": {
+        "none": { "value": "0" },
+        "hairline": { "value": "1px" },
+        "thin": { "value": "1px" },
+        "thick": { "value": "2px" },
+        "heavy": { "value": "3px" }
+      }
+    },
+    "opacity": {
+      "disabled": { "value": "0.4" },
+      "hover": { "value": "0.8" },
+      "active": { "value": "0.9" }
+    }
+  }
+}
