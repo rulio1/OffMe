@@ -306,11 +306,9 @@ struct FeedView: View {
             }
         }
         .sheet(isPresented: $showSideMenu) {
-            ZStack(alignment: .leading) {
-                Color.black.opacity(0.35)
-                    .ignoresSafeArea()
-                    .onTapGesture { showSideMenu = false }
-                
+            SideMenuSheet {
+                showSideMenu = false
+            } content: {
                 SideMenuView(
                     onProfile: {
                         showSideMenu = false
@@ -337,13 +335,7 @@ struct FeedView: View {
                         showSettingsHub = true
                     }
                 )
-                    .frame(width: 280)
-                    .background(OffMeTheme.bg)
-                    .shadow(radius: 5)
             }
-            .ignoresSafeArea()
-            .presentationDetents([.large])
-            .presentationDragIndicator(.hidden)
         }
         .task(id: viewModel.tab) {
             if let token = auth.accessToken {
@@ -413,6 +405,28 @@ struct FeedView: View {
         }
     }
 }
+private struct SideMenuSheet<Content: View>: View {
+    let onDismiss: () -> Void
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        ZStack(alignment: .leading) {
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .onTapGesture { onDismiss() }
+
+            content
+                .frame(width: 286)
+                .frame(maxHeight: .infinity, alignment: .top)
+                .background(OffMeTheme.bg)
+                .shadow(color: .black.opacity(0.12), radius: 10, x: 4, y: 0)
+        }
+        .ignoresSafeArea()
+        .presentationDetents([.large])
+        .presentationDragIndicator(.hidden)
+    }
+}
+
 private struct SideMenuView: View {
     @EnvironmentObject private var auth: AuthStore
     @Environment(\.dismiss) private var dismiss
@@ -426,74 +440,87 @@ private struct SideMenuView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if let user = auth.session?.user {
-                VStack(alignment: .leading, spacing: 8) {
-                    UserAvatarView(url: user.avatarUrl, size: 48)
-                        .padding(.top, 12)
-                    
-                    Text(user.displayName ?? user.username)
-                        .font(.title3.bold())
-                    
-                    Text("@" + user.username)
-                        .foregroundStyle(OffMeTheme.muted)
-                    
-                    HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 10) {
+                    UserAvatarView(url: user.avatarUrl, size: 52)
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(user.displayName)
+                            .font(.system(size: 19, weight: .bold, design: .rounded))
+                            .foregroundStyle(OffMeTheme.text)
+                            .lineLimit(1)
+
+                        Text("@" + user.username)
+                            .font(.system(size: 15, weight: .regular))
+                            .foregroundStyle(OffMeTheme.muted)
+                            .lineLimit(1)
+                    }
+
+                    HStack(spacing: 18) {
                         if let following = user.followingCount {
-                            (Text("\(following) ").bold() + Text("Seguindo").foregroundColor(OffMeTheme.muted))
+                            label(count: following, singular: "Seguindo", plural: "Seguindo")
                         }
                         if let followers = user.followerCount {
-                            (Text("\(followers) ").bold() + Text("Seguidores").foregroundColor(OffMeTheme.muted))
+                            label(count: followers, singular: "Seguidor", plural: "Seguidores")
                         }
                     }
-                    .font(.subheadline)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundStyle(OffMeTheme.muted)
+                    .padding(.top, 4)
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                .padding(.top, 18)
+                .padding(.bottom, 14)
+            } else {
+                Color.clear
+                    .frame(height: 18)
             }
-            
+
             Divider().overlay(OffMeTheme.border)
-            
+
             VStack(alignment: .leading, spacing: 0) {
-                SideMenuRow(icon: "person", title: "Perfil") {
-                    onProfile()
-                    dismiss()
-                }
-                SideMenuRow(icon: "bookmark", title: "Salvos") {
-                    onBookmarks()
-                }
-                SideMenuRow(icon: "list.bullet", title: "Listas") {
-                    onLists()
-                }
-                SideMenuRow(icon: "person.2", title: "Comunidades") {
-                    onCommunities()
-                }
-                SideMenuRow(icon: "gearshape", title: "Configurações") {
-                    onSettings()
-                }
-                SideMenuRow(icon: "checkmark.seal", title: "Verificação") {
-                    onVerification()
-                }
+                SideMenuRow(icon: "person", title: "Perfil") { onProfile(); dismiss() }
+                SideMenuRow(icon: "bookmark", title: "Salvos") { onBookmarks() }
+                SideMenuRow(icon: "list.bullet", title: "Listas") { onLists() }
+                SideMenuRow(icon: "person.2", title: "Comunidades") { onCommunities() }
+                SideMenuRow(icon: "checkmark.seal", title: "Verificação") { onVerification() }
+                SideMenuRow(icon: "gearshape", title: "Configurações") { onSettings() }
             }
-            .padding(.vertical, 8)
-            
+            .padding(.top, 10)
+            .padding(.bottom, 8)
+
             Spacer()
-            
+
             Divider().overlay(OffMeTheme.border)
-            
+
             Button {
                 auth.logout()
                 dismiss()
             } label: {
-                HStack {
+                HStack(spacing: 12) {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .font(.system(size: 18, weight: .medium))
+                        .frame(width: 24, alignment: .center)
                     Text("Sair")
+                        .font(.system(size: 16, weight: .medium))
+                    Spacer()
                 }
                 .foregroundStyle(.red)
-                .padding(.vertical, 12)
+                .padding(.vertical, 14)
             }
             .padding(.horizontal, 16)
         }
+        .padding(.horizontal, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(OffMeTheme.bg)
+    }
+
+    private func label(count: Int, singular: String, plural: String) -> some View {
+        HStack(spacing: 3) {
+            Text("\(count)")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(OffMeTheme.text)
+            Text(count == 1 ? singular : plural)
+                .font(.system(size: 14, weight: .regular))
+        }
     }
 }
 
@@ -501,18 +528,20 @@ private struct SideMenuRow: View {
     let icon: String
     let title: String
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 14) {
+            HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .frame(width: 26)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(OffMeTheme.text)
+                    .frame(width: 24, height: 24, alignment: .center)
                 Text(title)
-                    .font(.body)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(OffMeTheme.text)
                 Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.vertical, 12)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

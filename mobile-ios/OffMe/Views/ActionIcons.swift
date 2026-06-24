@@ -18,28 +18,32 @@ struct ActionIconView: View {
     var isFilled: Bool = false
 
     var body: some View {
-        Group {
-            switch kind {
-            case .reply:
-                Image(systemName: "arrowshape.turn.up.left")
-            case .repost:
-                Image(systemName: "arrow.2.squarepath")
-            case .like:
-                Image(systemName: isFilled ? "heart.fill" : "heart")
-            case .likeFilled:
-                Image(systemName: "heart.fill")
-            case .views:
-                Image(systemName: "eye")
-            case .share:
-                Image(systemName: "arrowshape.turn.up.right")
-            case .bookmark:
-                Image(systemName: isFilled ? "bookmark.fill" : "bookmark")
-            case .bookmarkFilled:
-                Image(systemName: "bookmark.fill")
-            }
+        Image(systemName: symbolName)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: size, height: size)
+            .foregroundColor(color)
+            .accessibilityHidden(true)
+    }
+
+    private var symbolName: String {
+        switch kind {
+        case .reply:
+            return "arrowshape.turn.up.left"
+        case .repost:
+            return "arrow.2.squarepath"
+        case .like:
+            return isFilled ? "heart.fill" : "heart"
+        case .likeFilled:
+            return "heart.fill"
+        case .views:
+            return "eye"
+        case .share:
+            return "arrowshape.turn.up.right"
+        case .bookmark:
+            return isFilled ? "bookmark.fill" : "bookmark"
+        case .bookmarkFilled:
+            return "bookmark.fill"
         }
-        .frame(width: size, height: size)
-        .foregroundColor(color)
-        .accessibilityHidden(true)
     }
 }
