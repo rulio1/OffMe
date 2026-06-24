@@ -1,0 +1,48 @@
+# fly.toml app configuration file generated for offme-backend on 2026-06-24T03:28:37-03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'offme-backend'
+primary_region = 'gru'
+
+[build]
+  builder = 'paketobuildpacks/builder:base'
+  buildpacks = ['gcr.io/paketo-buildpacks/java']
+
+[env]
+  DB_HOST = 'localhost'
+  DB_NAME = 'offme'
+  DB_PASSWORD = 'offme_dev'
+  DB_PORT = '5432'
+  DB_USER = 'offme'
+  JWT_SECRET = 'change_me_in_production_use_long_random_string_1234567890'
+  REDIS_HOST = 'localhost'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[services]]
+  protocol = 'tcp'
+  internal_port = 8080
+  processes = ['app']
+
+  [[services.ports]]
+    port = 80
+    handlers = ['http']
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ['tls', 'http']
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 1024

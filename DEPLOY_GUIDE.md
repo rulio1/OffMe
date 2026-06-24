@@ -1,16 +1,32 @@
 # OffMe Deployment Guide
 
-## 🚀 Railway + Vercel Deployment
+## 🚀 Hybrid Railway + Vercel Deployment
 
 ### Pré-requisitos
 - Conta na [Railway](https://railway.app)
 - Conta na [Vercel](https://vercel.com)
 - Railway CLI instalado (`npm install -g @railway/cli`)
 - Vercel CLI instalado (`npm install -g vercel`)
+- Docker instalado (para build local)
 
 ---
 
-## 📋 Passo 1: Configurar Railway
+## 🔧 Nova Arquitetura (Hybrid Deployment)
+
+### Como funciona:
+```
+🌍 Cliente → Vercel Edge Network (API Gateway) → Railway Microservices → Railway Database
+```
+
+### Vantagens:
+- ✅ **API Gateway na Edge**: Baixa latência global via Vercel
+- ✅ **Microserviços gerenciados**: Infraestrutura confiável no Railway
+- ✅ **Custo otimizado**: Aproveita o melhor de ambos os mundos
+- ✅ **Escalabilidade**: Edge functions + containers gerenciados
+
+---
+
+## 📋 Passo 1: Configurar Railway (Microserviços)
 
 ### 1.1. Criar Projeto no Railway
 ```bash
@@ -38,17 +54,36 @@ railway service list
 
 ### 1.3. Configurar Variáveis de Ambiente
 ```bash
-# Configurar JWT Secret
+# Configurar JWT Secret (compartilhado com Vercel)
 railway variables set --service backend JWT_SECRET=your_256_bit_secret_here
 
-# Configurar URLs dos serviços (serão preenchidas automaticamente pelo Railway)
-# DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
-# REDIS_HOST, REDIS_PORT
+# Configurar Database
+# DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD serão preenchidos automaticamente
+
+# Configurar Redis
+# REDIS_HOST, REDIS_PORT serão preenchidos automaticamente
+
+# Configurar URLs dos serviços internos
+railway variables set --service backend IDENTITY_SERVICE_URL=http://identity-service:8081
+railway variables set --service backend POST_SERVICE_URL=http://post-service:8082
+railway variables set --service backend TIMELINE_SERVICE_URL=http://timeline-service:8083
+railway variables set --service backend GRAPH_SERVICE_URL=http://graph-service:8084
+railway variables set --service backend NOTIFICATION_SERVICE_URL=http://notification-service:8085
+railway variables set --service backend WEBSOCKET_SERVICE_URL=http://websocket-service:8086
 ```
 
-### 1.4. Fazer Deploy do Backend
+### 1.4. Fazer Deploy dos Microserviços
 ```bash
-# Fazer deploy
+# Fazer deploy dos serviços (exceto API Gateway)
+cd backend-scala
+sbt identity-service/universal:packageBin
+sbt post-service/universal:packageBin
+sbt timeline-service/universal:packageBin
+sbt graph-service/universal:packageBin
+sbt notification-service/universal:packageBin
+sbt websocket-service/universal:packageBin
+
+# Deploy para Railway
 railway up
 
 # Ver logs
@@ -60,21 +95,43 @@ railway status
 
 ---
 
-## 🌐 Passo 2: Configurar Vercel
+## 🌐 Passo 2: Configurar Vercel (API Gateway + Frontend)
 
-### 2.1. Fazer Deploy do Frontend
+### 2.1. Configurar Variáveis de Ambiente no Vercel
 ```bash
-# Navegar para frontend
-cd frontend-web
+# Navegar para a raiz do projeto
+cd /caminho/para/OffMe
 
-# Fazer deploy
-vercel --prod
-
-# Configurar variáveis de ambiente
+# Adicionar variáveis de ambiente para o API Gateway
 vercel env add RAILWAY_BACKEND_URL production
+vercel env add JWT_SECRET production
+vercel env add DB_HOST production
+vercel env add DB_PORT production
+vercel env add DB_NAME production
+vercel env add DB_USER production
+vercel env add DB_PASSWORD production
+vercel env add REDIS_HOST production
+vercel env add REDIS_PORT production
+
+# Adicionar variáveis para o frontend
+vercel env add NEXT_PUBLIC_API_URL production "/api/v1"
+vercel env add NEXT_PUBLIC_WS_URL production "wss://seu-projeto-production.up.railway.app/ws"
 ```
 
-### 2.2. Configurar Domínio
+### 2.2. Fazer Deploy do API Gateway e Frontend
+```bash
+# Fazer deploy completo (API Gateway + Frontend)
+vercel --prod
+
+# Ou fazer deploy separado:
+# Deploy apenas do API Gateway
+vercel --prod --scope=api-gateway
+
+# Deploy apenas do Frontend
+cd frontend-web && vercel --prod
+```
+
+### 2.3. Configurar Domínio
 ```bash
 # Adicionar domínio
 vercel domains add offme.vercel.app
@@ -87,28 +144,24 @@ vercel domains add offme.vercel.app
 
 ## 🔧 Passo 3: Configurar Integração
 
-### 3.1. Configurar CORS
-No `vercel.json`, certifique-se de que as rotas de API estão corretas:
-```json
-{
-  "routes": [
-    {
-      "src": "/api/v1/(.*)",
-      "dest": "https://seu-projeto-production.up.railway.app/api/v1/$1"
-    }
-  ]
-}
-```
+### 3.1. Configurar CORS e Rotas
+O `vercel.json` já está configurado para:
+- Rotear `/api/v1/*` para o API Gateway no Vercel
+- Rotear `/ws/*` para WebSocket no Railway
+- Servir frontend estático para todas as outras rotas
 
 ### 3.2. Testar Integração
 ```bash
-# Testar health check
+# Testar health check (agora servido pelo Vercel)
 curl https://offme.vercel.app/api/v1/health
 
-# Testar registro
+# Testar registro (API Gateway no Vercel → Identity Service no Railway)
 curl -X POST https://offme.vercel.app/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"test","email":"test@example.com","password":"Test123!","displayName":"Test"}'
+
+# Testar WebSocket (direto para Railway)
+wscat -c wss://seu-projeto-production.up.railway.app/ws
 ```
 
 ---
@@ -117,7 +170,7 @@ curl -X POST https://offme.vercel.app/api/v1/auth/register \
 
 ### 4.1. Aplicar Schemas
 ```bash
-# Conectar ao PostgreSQL
+# Conectar ao PostgreSQL (Railway)
 psql postgresql://offme:password@host:port/offme
 
 # Aplicar schema
@@ -136,41 +189,51 @@ cqlsh -f schemas/cassandra/001_init.cql
 
 ### 5.1. Testar Fluxo Completo
 ```bash
-# Executar script de teste
+# Executar script de teste (atualizado para nova arquitetura)
 ./scripts/test-backend-flow.sh
 ```
 
 ### 5.2. Verificar Serviços
-- ✅ Backend: https://seu-projeto-production.up.railway.app
-- ✅ Frontend: https://offme.vercel.app
-- ✅ Health: https://offme.vercel.app/api/v1/health
+- ✅ **API Gateway**: https://offme.vercel.app/api/v1/health (Vercel)
+- ✅ **Microserviços**: https://seu-projeto-production.up.railway.app (Railway)
+- ✅ **Frontend**: https://offme.vercel.app
+- ✅ **WebSocket**: wss://seu-projeto-production.up.railway.app/ws
 
 ---
 
 ## 🔄 Passo 6: Configurar CI/CD
 
-### 6.1. Configurar GitHub Actions
+### 6.1. Configurar GitHub Actions para Hybrid Deployment
 ```yaml
 # .github/workflows/deploy.yml
-name: Deploy
+name: Hybrid Deploy
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  deploy-backend:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: cd backend-scala && sbt test
+
+  deploy-railway:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cd backend-scala && sbt compile
+      - run: cd backend-scala && sbt package
       - run: railway up --service backend
 
-  deploy-frontend:
-    needs: deploy-backend
+  deploy-vercel:
+    needs: deploy-railway
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cd frontend-web && vercel --prod
+      - run: vercel --prod
 ```
 
 ---
@@ -179,76 +242,108 @@ jobs:
 
 ### 7.1. Configurar Railway Insights
 - Acessar dashboard do Railway
-- Configurar alertas
-- Monitorar métricas
+- Configurar alertas para microserviços
+- Monitorar métricas de banco de dados
 
 ### 7.2. Configurar Vercel Analytics
 - Acessar dashboard do Vercel
-- Configurar monitoring
-- Verificar logs
+- Configurar monitoring para API Gateway
+- Verificar logs de edge functions
+- Monitorar latência global
+
+### 7.3. Configurar Alertas Unificados
+```bash
+# Usar webhooks para integrar Railway + Vercel alerts
+vercel webhooks add deploy-succeeded https://seu-webhook-url.com/vercel-deploy
+railway webhooks add deploy https://seu-webhook-url.com/railway-deploy
+```
 
 ---
 
 ## 🆘 Solução de Problemas
 
-### Problema: Conexão com Banco de Dados
+### Problema: API Gateway não responde
 **Solução:**
 ```bash
-# Verificar variáveis de ambiente
-railway variables list
+# Verificar logs do Vercel
+vercel logs
 
-# Testar conexão manualmente
-psql postgresql://offme:password@host:port/offme
+# Testar conexão com Railway
+curl https://seu-projeto-production.up.railway.app/api/v1/health
+
+# Verificar variáveis de ambiente
+vercel env ls
 ```
 
 ### Problema: CORS
 **Solução:**
 - Verificar configuração no `vercel.json`
-- Certificar-se de que o backend está configurado para aceitar requests do frontend
+- Certificar-se de que o API Gateway está configurado para aceitar requests do frontend
+- Verificar headers na resposta: `Access-Control-Allow-Origin: *`
 
-### Problema: Services não iniciam
+### Problema: Microserviços não iniciam no Railway
 **Solução:**
 ```bash
 # Ver logs detalhados
-railway logs --service backend
+railway logs --service identity-service
 
 # Verificar ports expostos
 railway run netstat -tuln
+
+# Testar conexão entre serviços
+railway run curl http://identity-service:8081/api/v1/health
 ```
+
+### Problema: WebSocket não conecta
+**Solução:**
+- Verificar se o WebSocket está configurado para Railway (não Vercel)
+- Testar conexão direta: `wscat -c wss://seu-projeto-production.up.railway.app/ws`
+- Verificar CORS e headers
 
 ---
 
-## ✅ Checklist de Deploy
+## ✅ Checklist de Deploy (Hybrid)
 
 - [ ] Criar projeto no Railway
 - [ ] Adicionar serviços (PostgreSQL, Redis)
-- [ ] Configurar variáveis de ambiente
-- [ ] Fazer deploy do backend
-- [ ] Fazer deploy do frontend
+- [ ] Configurar variáveis de ambiente no Railway
+- [ ] Fazer deploy dos microserviços no Railway
+- [ ] Configurar variáveis de ambiente no Vercel
+- [ ] Fazer deploy do API Gateway no Vercel
+- [ ] Fazer deploy do frontend no Vercel
 - [ ] Configurar domínio
-- [ ] Testar integração
+- [ ] Testar integração API Gateway → Microserviços
+- [ ] Testar WebSocket direto
 - [ ] Configurar CI/CD
 - [ ] Monitorar serviços
 
 ---
 
-## 🎓 Dicas
+## 🎓 Dicas para Hybrid Deployment
 
-1. **Use Railway Variables**: Para configurações sensíveis
-2. **Monitore Logs**: `railway logs` para debug
-3. **Escale Gradualmente**: Ajuste replicas conforme necessário
-4. **Configure Alertas**: Para downtime e erros
-5. **Use Railway Plugins**: Para backups e monitoring
+1. **Variáveis de Ambiente Compartilhadas**: Mantenha JWT_SECRET e DB credentials sincronizados entre Railway e Vercel
+2. **Monitoramento Unificado**: Use ferramentas como Datadog ou New Relic para monitorar ambos os ambientes
+3. **Latência**: Aproveite a edge network do Vercel para reduzir latência global
+4. **Custo**: Monitore o uso no Railway para evitar surpresas com microserviços
+5. **Backups**: Configure backups automáticos no Railway para PostgreSQL/Redis
+6. **Health Checks**: Configure health checks em ambos os ambientes
 
 ---
 
 ## 🚀 Parabéns!
 
-Seu sistema OffMe está agora em produção com:
-- ✅ Backend escalável na Railway
-- ✅ Frontend rápido na Vercel
-- ✅ Banco de dados gerenciado
-- ✅ CI/CD automatizado
-- ✅ Monitoring completo
+Seu sistema OffMe está agora em produção com a nova arquitetura híbrida:
+- ✅ **API Gateway na Edge**: Vercel com baixa latência global
+- ✅ **Microserviços gerenciados**: Railway com infraestrutura confiável
+- ✅ **Banco de dados unificado**: Railway PostgreSQL/Redis
+- ✅ **Frontend rápido**: Vercel com deploy instantâneo
+- ✅ **CI/CD automatizado**: GitHub Actions para ambos os ambientes
+- ✅ **Monitoring completo**: Insights em ambos os provedores
 
-Aproveite o beta aberto! 🎉
+**Performance esperada:**
+- 🌍 **Latência reduzida**: API Gateway em +50 regiões globais
+- 🚀 **Escalabilidade automática**: Microserviços gerenciados
+- 💰 **Custo otimizado**: Pague apenas pelo que usa
+- 🔒 **Segurança**: TLS automático, DDoS protection, e muito mais
+
+Aproveite o beta aberto com a nova arquitetura! 🎉
