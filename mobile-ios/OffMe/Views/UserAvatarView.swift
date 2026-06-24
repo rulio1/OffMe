@@ -3,15 +3,17 @@ import SwiftUI
 struct UserAvatarView: View {
     var url: String?
     var size: CGFloat = 40
+    var isOnline: Bool = false
 
     var body: some View {
         Group {
             if let resolved = resolveImageURL(url), let imageUrl = URL(string: resolved) {
                 AsyncImage(url: imageUrl) { phase in
-                    switch phase {
-                    case .success(let image):
+                    if let image = phase.image {
                         image.resizable().scaledToFill()
-                    default:
+                    } else if let url, url.hasPrefix("/brand/") {
+                        OffMeLogoView(size: size)
+                    } else {
                         placeholder
                     }
                 }
@@ -23,6 +25,14 @@ struct UserAvatarView: View {
         }
         .frame(width: size, height: size)
         .clipShape(Circle())
+        .overlay(
+            isOnline ?
+            Circle()
+                .stroke(Color.green, lineWidth: 2)
+                .padding(2) :
+            Circle()
+                .strokeBorder(OffMeTheme.border, lineWidth: 1)
+        )
     }
 
     private func resolveImageURL(_ url: String?) -> String? {
@@ -34,6 +44,5 @@ struct UserAvatarView: View {
     private var placeholder: some View {
         Circle()
             .fill(OffMeTheme.surface)
-            .overlay(Circle().strokeBorder(OffMeTheme.border, lineWidth: 0.5))
     }
 }

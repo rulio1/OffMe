@@ -44,31 +44,16 @@ function formatCount(n: number): string {
   return n.toString();
 }
 
+import { UserAvatar } from '@/components/user/UserAvatar';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Card } from '@/components/ui/Card';
+
+// ... (keep other imports)
+
 function Avatar({ url, size = 'lg' }: { url?: string; size?: 'lg' | 'sm' }) {
-  const dim = size === 'lg' ? 'h-20 w-20 sm:h-24 sm:w-24' : 'h-10 w-10';
-  if (url?.startsWith('/brand/')) {
-    return (
-      <div
-        className={`${dim} shrink-0 rounded-full border-4 border-offme-bg bg-offme-surface flex items-center justify-center`}
-      >
-        <OffMeLogo className="w-full h-full p-1" />
-      </div>
-    );
-  }
-  if (url) {
-    return (
-      <img
-        src={url}
-        alt=""
-        className={`${dim} shrink-0 rounded-full border-4 border-offme-bg object-cover`}
-      />
-    );
-  }
-  return (
-    <div
-      className={`${dim} shrink-0 rounded-full border-4 border-offme-bg bg-offme-border`}
-    />
-  );
+  const avatarSize = size === 'lg' ? 'xxl' : 'md';
+  return <UserAvatar url={url} size={avatarSize} className="border-4 border-offme-bg" />;
 }
 
 export function ProfileView({ username }: ProfileViewProps) {
@@ -175,29 +160,35 @@ export function ProfileView({ username }: ProfileViewProps) {
             <Avatar url={user.avatarUrl} size="lg" />
           </div>
           {isOwnProfile ? (
-            <button
+            <Button
               onClick={() => setShowEdit(true)}
-              className="mt-2 shrink-0 rounded-full border border-offme-border px-3 py-1.5 text-sm font-bold transition-colors hover:bg-offme-hover sm:mt-3 sm:px-4 sm:py-2"
+              variant="outline"
+              size="sm"
+              className="mt-2 sm:mt-3"
             >
               Editar perfil
-            </button>
+            </Button>
           ) : (
             <div className="mt-2 flex shrink-0 flex-wrap gap-2 sm:mt-3">
-              <button
+              <Button
                 onClick={handleMessage}
                 disabled={startingDm}
-                className="rounded-full border border-offme-border px-3 py-1.5 text-sm font-bold transition-colors hover:bg-offme-hover disabled:opacity-50 sm:px-4 sm:py-2"
+                variant="outline"
+                size="sm"
+                isLoading={startingDm}
               >
-                {startingDm ? '...' : 'Mensagem'}
-              </button>
+                Mensagem
+              </Button>
               <FollowButton user={user} onUpdate={handleFollowUpdate} />
-              <button
+              <Button
                 onClick={handleReportUser}
                 disabled={reporting}
-                className="rounded-full border border-red-500/40 px-3 py-1.5 text-sm font-bold text-red-500 transition-colors hover:bg-red-500/10 disabled:opacity-50 sm:px-4 sm:py-2"
+                variant="destructive"
+                size="sm"
+                isLoading={reporting}
               >
-                {reporting ? '...' : 'Denunciar usuário'}
-              </button>
+                Denunciar usuário
+              </Button>
             </div>
           )}
         </div>

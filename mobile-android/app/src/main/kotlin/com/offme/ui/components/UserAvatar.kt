@@ -24,6 +24,7 @@ fun UserAvatar(
     url: String?,
     size: Dp,
     modifier: Modifier = Modifier,
+    isOnline: Boolean = false,
 ) {
     Box(
         modifier = modifier
@@ -38,6 +39,18 @@ fun UserAvatar(
                 contentDescription = null,
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop,
+            )
+        }
+
+        // Online indicator
+        if (isOnline) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(size / 3)
+                    .clip(CircleShape)
+                    .background(Color.Green)
+                    .border(2.dp, MaterialTheme.colorScheme.outline, CircleShape)
             )
         }
     }

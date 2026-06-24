@@ -1,56 +1,68 @@
 import Image from 'next/image';
 import clsx from 'clsx';
 import { OffMeLogo } from '@/components/auth/OffMeLogo';
+import { avatars, classNames } from '@/styles/design-system';
 
 interface UserAvatarProps {
   url?: string | null;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
   className?: string;
+  isOnline?: boolean;
 }
 
-const sizes = {
-  sm: { className: 'h-8 w-8', px: 32 },
-  md: { className: 'h-10 w-10', px: 40 },
-  lg: { className: 'h-12 w-12', px: 48 },
-};
+export function UserAvatar({ url, size = 'md', className, isOnline = false }: UserAvatarProps) {
+  const sizeClasses = avatars.size[size] || avatars.size.md;
+  const baseClasses = classNames(
+    sizeClasses,
+    avatars.base,
+    className
+  );
 
-export function UserAvatar({ url, size = 'md', className }: UserAvatarProps) {
-  const dim = sizes[size];
+  const getContainerClasses = () => {
+    const containerClasses = classNames(
+      sizeClasses,
+      'shrink-0 rounded-full bg-offme-surface flex items-center justify-center',
+      isOnline ? avatars.online : avatars.ring,
+      className
+    );
+    return containerClasses;
+  };
 
   if (url?.startsWith('/brand/')) {
     return (
-      <div
-        className={clsx(
-          dim.className,
-          'shrink-0 rounded-full bg-offme-surface ring-1 ring-offme-border flex items-center justify-center',
-          className
-        )}
-      >
+      <div className={getContainerClasses()}>
         <OffMeLogo className="w-full h-full p-1" />
       </div>
     );
   }
 
   if (url) {
+    // Calculate size in pixels based on the size prop
+    const sizeMap: Record<string, number> = {
+      xs: 24,
+      sm: 32,
+      md: 40,
+      lg: 48,
+      xl: 64,
+      xxl: 80,
+    };
+    const pxSize = sizeMap[size] || 40;
+
     return (
-      <Image
-        src={url}
-        alt=""
-        width={dim.px}
-        height={dim.px}
-        className={clsx(dim.className, 'shrink-0 rounded-full object-cover', className)}
-        loading="lazy"
-      />
+      <div className={classNames(isOnline ? avatars.online : avatars.ring, 'shrink-0')}>
+        <Image
+          src={url}
+          alt=""
+          width={pxSize}
+          height={pxSize}
+          className={classNames(sizeClasses, avatars.base, className)}
+          loading="lazy"
+        />
+      </div>
     );
   }
 
   return (
-    <div
-      className={clsx(
-        dim.className,
-        'shrink-0 rounded-full bg-offme-surface ring-1 ring-offme-border',
-        className
-      )}
-    />
+    <div className={getContainerClasses()} />
   );
 }
