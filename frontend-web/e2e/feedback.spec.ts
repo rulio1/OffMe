@@ -23,6 +23,6 @@ test.describe('Beta feedback', () => {
     await page.getByLabel('Mensagem').fill('Encontrei um problema no feed durante o teste E2E.');
     await page.getByRole('button', { name: 'Enviar feedback' }).click();
 
-    await expect(page.getByText('Seu feedback foi recebido')).toBeVisible();
+    await expect(page.getByText('Obrigado! Seu feedback foi recebido.')).toBeVisible();
   });
 });

@@ -144,25 +144,44 @@ final case class AuthTokens(accessToken: String, refreshToken: String)
 
 class OffMeGatewayServer(config: ServiceConfig) extends com.twitter.server.TwitterServer:
   def main(): Unit =
+    // Production: Use real Thrift clients
+    // val identityClient = Thrift.client
+    //   .withLabel("identity-client")
+    //   .newIface[IdentityService.ServiceIface](s"${config.identityHost}:${config.identityPort}")
+    //
+    // val postClient = Thrift.client
+    //   .withLabel("post-client")
+    //   .newIface[PostService.ServiceIface](s"${config.postHost}:${config.postPort}")
+    //
+    // val timelineClient = Thrift.client
+    //   .withLabel("timeline-client")
+    //   .newIface[TimelineService.ServiceIface](s"${config.timelineHost}:${config.timelinePort}")
+    //
+    // val graphClient = Thrift.client
+    //   .withLabel("graph-client")
+    //   .newIface[GraphService.ServiceIface](s"${config.graphHost}:${config.graphPort}")
+
     val controller = GatewayController(StubPostClient(), StubTimelineClient(), StubIdentityClient(), StubGraphClient())
     // Finatra HttpServer wiring: .add(controller).listen(config.httpPort)
     println(s"API Gateway listening on :${config.httpPort}")
 
-final class StubPostClient extends PostServiceClient:
-  def createPost(authorId: Long, text: String, replyToId: Option[Long], quoteOfId: Option[Long]): Future[PostView] =
-    Future.value(PostView(1L, authorId, text, System.currentTimeMillis(), 0, 0, 0))
+  // Production clients would use Finagle ThriftMux here
+  // For now keeping stubs for local development
+  final class StubPostClient extends PostServiceClient:
+    def createPost(authorId: Long, text: String, replyToId: Option[Long], quoteOfId: Option[Long]): Future[PostView] =
+      Future.value(PostView(1L, authorId, text, System.currentTimeMillis(), 0, 0, 0))
 
-final class StubTimelineClient extends TimelineServiceClient:
-  def getHomeTimeline(userId: Long, cursor: Option[String], limit: Int): Future[TimelineResponse] =
-    Future.value(TimelineResponse(Nil, None))
-  def getForYouTimeline(userId: Long, cursor: Option[String]): Future[TimelineResponse] =
-    Future.value(TimelineResponse(Nil, None))
+  final class StubTimelineClient extends TimelineServiceClient:
+    def getHomeTimeline(userId: Long, cursor: Option[String], limit: Int): Future[TimelineResponse] =
+      Future.value(TimelineResponse(Nil, None))
+    def getForYouTimeline(userId: Long, cursor: Option[String]): Future[TimelineResponse] =
+      Future.value(TimelineResponse(Nil, None))
 
-final class StubIdentityClient extends IdentityServiceClient:
-  def register(username: String, email: String, password: String, displayName: String): Future[(AuthTokens, UserView)] =
-    Future.value((AuthTokens("access", "refresh"), UserView(1L, username, displayName, None, false)))
-  def login(email: String, password: String): Future[(AuthTokens, UserView)] =
-    Future.value((AuthTokens("access", "refresh"), UserView(1L, "user", "User", None, false)))
+  final class StubIdentityClient extends IdentityServiceClient:
+    def register(username: String, email: String, password: String, displayName: String): Future[(AuthTokens, UserView)] =
+      Future.value((AuthTokens("access", "refresh"), UserView(1L, username, displayName, None, false)))
+    def login(email: String, password: String): Future[(AuthTokens, UserView)] =
+      Future.value((AuthTokens("access", "refresh"), UserView(1L, "user", "User", None, false)))
 
-final class StubGraphClient extends GraphServiceClient:
-  def follow(followerId: Long, followeeId: Long): Future[Unit] = Future.Unit
+  final class StubGraphClient extends GraphServiceClient:
+    def follow(followerId: Long, followeeId: Long): Future[Unit] = Future.Unit

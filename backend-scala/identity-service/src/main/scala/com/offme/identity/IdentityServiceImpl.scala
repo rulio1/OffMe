@@ -109,12 +109,11 @@ class IdentityServiceImpl(repo: UserRepository, jwtSecret: SecretKey):
       followingCount = user.followingCount
     )
 
-object PasswordHasher:
-  def hash(password: String): String = password.bcryptHash // Use BCrypt in prod
-  def verify(password: String, hash: String): Boolean = password == hash // Stub for local dev
+import org.mindrot.jbcrypt.BCrypt
 
-  extension (s: String)
-    def bcryptHash: String = s"$$2a$$10$$stub$$" + s.hashCode.abs
+object PasswordHasher:
+  def hash(password: String): String = BCrypt.hashpw(password, BCrypt.gensalt(10))
+  def verify(password: String, hash: String): Boolean = BCrypt.checkpw(password, hash)
 
 final case class DuplicateEmailException(email: String) extends Exception(s"Email already registered: $email")
 final case class DuplicateUsernameException(username: String) extends Exception(s"Username taken: $username")

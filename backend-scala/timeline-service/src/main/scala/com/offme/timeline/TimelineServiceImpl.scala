@@ -93,7 +93,20 @@ class TimelineServiceImpl(
       fanoutType: String,
       recipientCount: Int,
       durationMs: Long
-  ): Future[Unit] = Future.Unit // Wire to KafkaEventPublisher in prod
+  ): Future[Unit] =
+    // Production: events.publish(
+    //   Topics.FanoutCompleted,
+    //   entry.authorId.toString,
+    //   FanoutCompletedEvent(
+    //     postId = entry.postId,
+    //     authorId = entry.authorId,
+    //     fanoutType = fanoutType,
+    //     recipientCount = recipientCount,
+    //     durationMs = durationMs,
+    //     completedAt = System.currentTimeMillis()
+    //   )
+    // )
+    Future.Unit
 
   private def decodeCursor(cursor: String): Option[Instant] =
     scala.util.Try(cursor.toLong).toOption.map(Instant.ofEpochMilli)

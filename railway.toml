@@ -1,0 +1,44 @@
+# Railway Configuration for OffMe Backend
+# https://docs.railway.app/deploy/configurations
+
+[build]
+builder = "DOCKERFILE"
+buildCommand = "cd backend-scala && sbt docker:publishLocal"
+
+[deploy]
+numReplicas = 2
+restartPolicyType = "ALWAYS"
+restartPolicyMaxRetries = 5
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30
+
+[env]
+# Database Configuration
+DB_HOST = "${{ DB_HOST }}"
+DB_PORT = "${{ DB_PORT }}"
+DB_NAME = "${{ DB_NAME }}"
+DB_USER = "${{ DB_USER }}"
+DB_PASSWORD = "${{ DB_PASSWORD }}"
+
+# Cassandra (using Railway PostgreSQL as fallback)
+CASSANDRA_HOSTS = "${{ DB_HOST }}"
+CASSANDRA_KEYSPACE = "offme"
+
+# Redis (Railway managed)
+REDIS_HOST = "${{ REDIS_HOST }}"
+REDIS_PORT = "${{ REDIS_PORT }}"
+
+# JWT Configuration
+JWT_SECRET = "change_me_in_production_use_long_random_string_1234567890"
+
+# Service Configuration
+IDENTITY_PORT = "8081"
+POST_PORT = "8082"
+TIMELINE_PORT = "8083"
+RECS_PORT = "8090"
+WEBSOCKET_PORT = "8084"
+API_GATEWAY_PORT = "8080"
+
+# Environment
+NODE_ENV = "production"
+JAVA_OPTS = "-Xms512m -Xmx1024m"
