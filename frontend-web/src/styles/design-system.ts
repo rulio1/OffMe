@@ -235,6 +235,57 @@ export const skeleton = {
   rectangle: 'rounded-lg',
 };
 
+// Responsive Grid System - 8px/12px base units
+export const grid = {
+  // 8px base grid (for smaller components)
+  grid8: {
+    xxs: '0.5rem',    // 4px
+    xs: '1rem',       // 8px
+    sm: '1.5rem',     // 12px
+    md: '2rem',       // 16px
+    lg: '3rem',       // 24px
+    xl: '4rem',       // 32px
+    xxl: '6rem',      // 48px
+    xxxl: '8rem',     // 64px
+  },
+  // 12px base grid (for larger components and spacing)
+  grid12: {
+    xxs: '0.75rem',   // 6px
+    xs: '1.5rem',     // 12px
+    sm: '2.25rem',    // 18px
+    md: '3rem',       // 24px
+    lg: '4.5rem',     // 36px
+    xl: '6rem',       // 48px
+    xxl: '9rem',      // 72px
+    xxxl: '12rem',    // 96px
+  },
+  // Container max-widths
+  container: {
+    sm: '640px',
+    md: '768px',
+    lg: '1024px',
+    xl: '1280px',
+    xxl: '1536px',
+  },
+  // Responsive breakpoints
+  breakpoints: {
+    sm: '640px',
+    md: '768px',
+    lg: '1024px',
+    xl: '1280px',
+    xxl: '1536px',
+  },
+};
+
+// Grid utility classes
+export const gridClasses = {
+  container: 'mx-auto px-4 sm:px-6 lg:px-8',
+  section: 'py-8 md:py-12 lg:py-16',
+  cardGrid: 'grid gap-4 sm:gap-6 md:gap-8',
+  contentGrid: 'grid gap-6 md:grid-cols-2 lg:grid-cols-3',
+  featureGrid: 'grid gap-8 md:grid-cols-2 lg:grid-cols-3',
+};
+
 // Utility functions
 export function applyTheme(theme: 'light' | 'dark') {
   const colors = theme === 'dark' ? themeColors.dark : themeColors.light;
@@ -245,4 +296,14 @@ export function applyTheme(theme: 'light' | 'dark') {
 
 export function classNames(...classes: (string | boolean | undefined)[]): string {
   return classes.filter(Boolean).join(' ');
+}
+
+// Responsive grid helper
+export function getGridClass(gridType: 'grid8' | 'grid12', size: keyof typeof grid.grid8): string {
+  return grid[gridType][size];
+}
+
+// Container helper
+export function getContainerClass(size: keyof typeof grid.container): string {
+  return `max-w-[${grid.container[size]}] mx-auto px-4 sm:px-6 lg:px-8`;
 }

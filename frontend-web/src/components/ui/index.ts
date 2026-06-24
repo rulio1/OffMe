@@ -2,6 +2,7 @@
 // Export all UI components for easy import
 
 export { Button, IconButton } from './Button';
+export { UnifiedButton, UnifiedIconButton } from './UnifiedButton';
 export { Card } from './Card';
 export { Badge } from './Badge';
 export { Input, Textarea } from './Input';
