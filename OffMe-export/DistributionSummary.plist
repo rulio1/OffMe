@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>OffMe.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>buildNumber</key>
+			<string>1</string>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>CB8498FE357416761781DAFBE58F1EB2A53DC349</string>
+				<key>dateExpires</key>
+				<string>21/06/27</string>
+				<key>type</key>
+				<string>Apple Development</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>HP25CSYA96.com.offme.app</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>HP25CSYA96</string>
+				<key>get-task-allow</key>
+				<true/>
+			</dict>
+			<key>name</key>
+			<string>OffMe.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>f750b989-e648-4dc0-810a-3f014041227d</string>
+				<key>dateExpires</key>
+				<string>28/06/26</string>
+				<key>name</key>
+				<string>iOS Team Provisioning Profile: com.offme.app</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>HP25CSYA96</string>
+				<key>name</key>
+				<string></string>
+			</dict>
+			<key>versionNumber</key>
+			<string>1.0</string>
+		</dict>
+	</array>
+</dict>
+</plist>
