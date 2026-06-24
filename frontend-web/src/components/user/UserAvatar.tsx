@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import clsx from 'clsx';
+import { OffMeLogo } from '@/components/auth/OffMeLogo';
 
 interface UserAvatarProps {
   url?: string | null;
@@ -15,6 +16,20 @@ const sizes = {
 
 export function UserAvatar({ url, size = 'md', className }: UserAvatarProps) {
   const dim = sizes[size];
+
+  if (url?.startsWith('/brand/')) {
+    return (
+      <div
+        className={clsx(
+          dim.className,
+          'shrink-0 rounded-full bg-offme-surface ring-1 ring-offme-border flex items-center justify-center',
+          className
+        )}
+      >
+        <OffMeLogo className="w-full h-full p-1" />
+      </div>
+    );
+  }
 
   if (url) {
     return (
