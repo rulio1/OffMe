@@ -58,48 +58,76 @@ export function NotificationsView() {
   );
 
   const notifications = data?.notifications ?? [];
+  const unreadCount = data?.unreadCount ?? 0;
 
   return (
-    <div>
-      <header className="sticky top-0 z-10 border-b border-offme-border bg-offme-bg/80 px-4 py-3 backdrop-blur-md">
-        <h1 className="text-xl font-bold">Notificações</h1>
+    <div className="flex flex-col">
+      <header className="sticky top-0 z-10 border-b border-offme-border bg-offme-bg/80 backdrop-blur-md">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="text-xl font-bold">Notificações</h1>
+          {unreadCount > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-offme-muted">Novo</span>
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-offme-accent text-xs font-bold text-white">
+                {unreadCount}
+              </span>
+            </div>
+          )}
+        </div>
       </header>
 
       {isLoading && (
-        <div className="px-4 py-12 text-center text-offme-muted">Carregando...</div>
-      )}
-      {error && (
-        <div className="px-4 py-12 text-center text-red-400">Erro ao carregar notificações.</div>
-      )}
-      {!isLoading && !error && notifications.length === 0 && (
-        <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-offme-muted">
-          <Bell className="h-12 w-12 opacity-50" aria-hidden />
-          <p className="font-medium text-offme-text">Nenhuma notificação ainda.</p>
+        <div className="flex flex-1 flex-col items-center justify-center py-12 px-4">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-2 border-offme-accent border-t-transparent" />
+          <p className="text-offme-muted">Carregando notificações...</p>
         </div>
       )}
-      {notifications.map((n) => (
-        <Link
-          key={n.id}
-          href={notificationLink(n)}
-          className={`flex gap-3 border-b border-offme-border px-4 py-4 transition-colors hover:bg-offme-hover ${
-            !n.read ? 'bg-offme-accent/5' : ''
-          }`}
-        >
-          <div className="h-10 w-10 shrink-0 rounded-full bg-offme-surface" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[15px]">
-              <span className="font-bold">{n.actor.displayName}</span>{' '}
-              <span className="text-offme-muted">{notificationText(n)}</span>
-            </p>
-            <p className="mt-1 text-sm text-offme-muted">
-              {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ptBR })}
-            </p>
+      {error && (
+        <div className="flex flex-1 flex-col items-center justify-center py-12 px-4">
+          <div className="mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+            <Bell className="h-6 w-6 text-red-400" aria-hidden />
           </div>
-          {!n.read && (
-            <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-offme-accent" />
-          )}
-        </Link>
-      ))}
+          <p className="text-red-400">Erro ao carregar notificações.</p>
+        </div>
+      )}
+      {!isLoading && !error && notifications.length === 0 && (
+        <div className="flex flex-1 flex-col items-center justify-center py-16 px-4 text-center">
+          <div className="mb-4 h-16 w-16 rounded-full bg-offme-surface/50 flex items-center justify-center">
+            <Bell className="h-8 w-8 text-offme-muted" aria-hidden />
+          </div>
+          <p className="font-medium text-offme-text">Nenhuma notificação ainda.</p>
+          <p className="mt-2 text-sm text-offme-muted">Você receberá notificações aqui quando alguém interagir com você.</p>
+        </div>
+      )}
+      {notifications.length > 0 && (
+        <div className="divide-y divide-offme-border">
+          {notifications.map((n) => (
+            <Link
+              key={n.id}
+              href={notificationLink(n)}
+              className={`flex items-start gap-3 px-4 py-4 transition-colors hover:bg-offme-hover ${
+                !n.read ? 'bg-offme-accent/5' : ''
+              }`}
+            >
+              <div className="mt-1 h-10 w-10 shrink-0 rounded-full bg-offme-surface" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[15px]">
+                    <span className="font-bold">{n.actor.displayName}</span>{' '}
+                    <span className="text-offme-muted">{notificationText(n)}</span>
+                  </p>
+                  {!n.read && (
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-offme-accent" />
+                  )}
+                </div>
+                <p className="mt-1 text-sm text-offme-muted">
+                  {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: ptBR })}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

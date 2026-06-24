@@ -26,12 +26,16 @@ struct UserAvatarView: View {
         .frame(width: size, height: size)
         .clipShape(Circle())
         .overlay(
-            isOnline ?
-            Circle()
-                .stroke(Color.green, lineWidth: 2)
-                .padding(2) :
-            Circle()
-                .strokeBorder(OffMeTheme.border, lineWidth: 1)
+            Group {
+                if isOnline {
+                    Circle()
+                        .stroke(Color.green, lineWidth: 2)
+                        .padding(2)
+                } else {
+                    Circle()
+                        .stroke(OffMeTheme.border, lineWidth: 1)
+                }
+            }
         )
     }
 

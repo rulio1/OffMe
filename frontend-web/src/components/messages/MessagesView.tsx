@@ -59,30 +59,52 @@ export function MessagesView() {
   const conversations = data?.conversations ?? [];
 
   return (
-    <div>
-      <header className="sticky top-0 z-10 border-b border-offme-border bg-offme-bg/80 px-4 py-3 backdrop-blur-md">
-        <h1 className="text-xl font-bold">Mensagens</h1>
+    <div className="flex flex-col">
+      <header className="sticky top-0 z-10 border-b border-offme-border bg-offme-bg/80 backdrop-blur-md">
+        <div className="flex items-center justify-between px-4 py-3">
+          <h1 className="text-xl font-bold">Mensagens</h1>
+          <Link
+            href="/explore"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-offme-accent text-white transition-colors hover:bg-opacity-90"
+          >
+            <span className="text-lg font-bold">+</span>
+          </Link>
+        </div>
       </header>
 
       {isLoading && (
-        <div className="px-4 py-12 text-center text-offme-muted">Carregando...</div>
-      )}
-      {error && (
-        <div className="px-4 py-12 text-center text-red-400">Erro ao carregar conversas.</div>
-      )}
-      {!isLoading && !error && conversations.length === 0 && (
-        <div className="flex flex-col items-center gap-3 px-4 py-16 text-center text-offme-muted">
-          <Mail className="h-12 w-12 opacity-50" />
-          <p className="font-medium text-offme-text">Nenhuma conversa ainda</p>
-          <p className="max-w-xs text-sm">
-            Visite o perfil de alguém e toque em &quot;Mensagem&quot; para começar.
-          </p>
+        <div className="flex flex-1 flex-col items-center justify-center py-12 px-4">
+          <div className="mb-4 h-12 w-12 animate-spin rounded-full border-2 border-offme-accent border-t-transparent" />
+          <p className="text-offme-muted">Carregando conversas...</p>
         </div>
       )}
+      {error && (
+        <div className="flex flex-1 flex-col items-center justify-center py-12 px-4">
+          <div className="mb-4 h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+            <Mail className="h-6 w-6 text-red-400" />
+          </div>
+          <p className="text-red-400">Erro ao carregar conversas.</p>
+        </div>
+      )}
+            {!isLoading && !error && conversations.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                    <div className="mb-4 h-16 w-16 rounded-full bg-offme-surface/50 flex items-center justify-center">
+                        <Mail className="h-8 w-8 text-offme-muted" />
+                    </div>
+                    <p className="font-medium text-offme-text">Nenhuma conversa ainda</p>
+                    <p className="mt-2 max-w-xs text-sm text-offme-muted">
+                        Visite o perfil de alguém e toque em &ldquo;Mensagem&rdquo; para começar.
+                    </p>
+                </div>
+            )}
 
-      {conversations.map((conversation) => (
-        <ConversationRow key={conversation.id} conversation={conversation} />
-      ))}
+      {conversations.length > 0 && (
+        <div className="divide-y divide-offme-border">
+          {conversations.map((conversation) => (
+            <ConversationRow key={conversation.id} conversation={conversation} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

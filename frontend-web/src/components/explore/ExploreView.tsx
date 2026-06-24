@@ -50,31 +50,34 @@ export function ExploreView({ initialQuery = '' }: ExploreViewProps) {
   const isLoading = tab === 'people' ? usersLoading : postsLoading;
 
   return (
-    <div>
-      <header className="sticky top-0 z-10 border-b border-offme-border bg-offme-bg/80 px-4 py-3 backdrop-blur-md">
-        <h1 className="text-xl font-bold">Explorar</h1>
-        <div className="relative mt-3">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-offme-muted" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar posts e pessoas"
-            className="w-full rounded-full bg-offme-surface py-3 pl-12 pr-4 text-offme-text outline-none ring-1 ring-transparent focus:ring-offme-accent"
-          />
+    <div className="flex flex-col">
+      <header className="sticky top-0 z-10 border-b border-offme-border bg-offme-bg/80 backdrop-blur-md">
+        <div className="px-4 py-3">
+          <h1 className="text-xl font-bold">Explorar</h1>
+          <div className="relative mt-3">
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-offme-muted" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar posts e pessoas"
+              className="w-full rounded-full bg-offme-surface py-3 pl-12 pr-4 text-offme-text outline-none ring-1 ring-transparent focus:ring-offme-accent transition-all duration-200"
+            />
+          </div>
         </div>
+
         {debouncedQuery && (
-          <div className="mt-3 flex gap-6 border-b border-offme-border">
+          <div className="flex gap-0 overflow-x-auto border-b border-offme-border">
             {(['top', 'people'] as const).map((item) => (
               <button
                 key={item}
                 type="button"
                 onClick={() => setTab(item)}
-                className={
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors duration-200 ${
                   tab === item
-                    ? 'border-b-4 border-offme-accent pb-3 font-bold'
-                    : 'pb-3 text-offme-muted hover:text-offme-text'
-                }
+                    ? 'border-b-2 border-offme-accent text-offme-accent font-bold'
+                    : 'text-offme-muted hover:text-offme-text'
+                }`}
               >
                 {item === 'top' ? 'Top' : 'Pessoas'}
               </button>
@@ -83,66 +86,93 @@ export function ExploreView({ initialQuery = '' }: ExploreViewProps) {
         )}
       </header>
 
-      <div>
+      <div className="flex-1 overflow-y-auto">
         {!debouncedQuery && (
-          <>
+          <div className="space-y-4">
             <div className="px-4 py-4">
               <h2 className="text-lg font-bold">Em alta</h2>
               <p className="text-sm text-offme-muted">Posts com mais engajamento</p>
             </div>
+
             {trending.length === 0 ? (
-              <div className="px-4 py-8 text-center text-offme-muted">
-                Nenhum post em destaque ainda.
+              <div className="flex flex-col items-center justify-center py-12 px-4">
+                <div className="mb-4 h-16 w-16 rounded-full bg-offme-surface/50 flex items-center justify-center">
+                  <Search className="h-8 w-8 text-offme-muted" />
+                </div>
+                <p className="text-offme-muted">Nenhum post em destaque ainda.</p>
               </div>
             ) : (
-              trending.map((post) => <PostCard key={post.id} post={post} />)
+              <div className="space-y-2">
+                {trending.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
             )}
-          </>
+          </div>
         )}
 
         {debouncedQuery && isLoading && (
-          <div className="px-4 py-8 text-center text-offme-muted">Buscando...</div>
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="mb-4 h-12 w-12 animate-spin rounded-full border-2 border-offme-accent border-t-transparent" />
+            <p className="text-offme-muted">Buscando...</p>
+          </div>
         )}
 
         {debouncedQuery && !isLoading && tab === 'people' && users.length === 0 && (
-          <div className="px-4 py-8 text-center text-offme-muted">
-            Nenhum usuário encontrado para &ldquo;{debouncedQuery}&rdquo;.
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="mb-4 h-16 w-16 rounded-full bg-offme-surface/50 flex items-center justify-center">
+              <Search className="h-8 w-8 text-offme-muted" />
+            </div>
+            <p className="text-offme-muted">Nenhum usuário encontrado para &ldquo;{debouncedQuery}&rdquo;.</p>
           </div>
         )}
 
         {debouncedQuery && !isLoading && tab === 'top' && posts.length === 0 && (
-          <div className="px-4 py-8 text-center text-offme-muted">
-            Nenhum post encontrado para &ldquo;{debouncedQuery}&rdquo;.
+          <div className="flex flex-col items-center justify-center py-12 px-4">
+            <div className="mb-4 h-16 w-16 rounded-full bg-offme-surface/50 flex items-center justify-center">
+              <Search className="h-8 w-8 text-offme-muted" />
+            </div>
+            <p className="text-offme-muted">Nenhum post encontrado para &ldquo;{debouncedQuery}&rdquo;.</p>
           </div>
         )}
 
-        {debouncedQuery && !isLoading && tab === 'people' &&
-          users.map((user) => (
-            <div
-              key={user.id}
-              className="flex items-center gap-3 border-b border-offme-border px-4 py-3 hover:bg-offme-hover"
-            >
-              <Link href={`/profile/${user.username}`}>
-                <UserAvatar url={user.avatarUrl} size="lg" />
-              </Link>
-              <div className="min-w-0 flex-1">
-                <Link href={`/profile/${user.username}`} className="block truncate font-bold hover:underline">
-                  {user.displayName}
-                  {user.verified && <VerifiedBadge className="ml-1 inline-block" />}
+        {debouncedQuery && !isLoading && tab === 'people' && (
+          <div className="divide-y divide-offme-border">
+            {users.map((user) => (
+              <div
+                key={user.id}
+                className="flex items-center gap-3 px-4 py-4 hover:bg-offme-hover transition-colors duration-150"
+              >
+                <Link href={`/profile/${user.username}`} className="shrink-0">
+                  <UserAvatar url={user.avatarUrl} size="lg" />
                 </Link>
-                <Link href={`/profile/${user.username}`} className="block truncate text-sm text-offme-muted hover:underline">
-                  @{user.username}
-                </Link>
-                {user.bio && (
-                  <p className="mt-1 truncate text-sm text-offme-muted">{user.bio}</p>
-                )}
+                <div className="min-w-0 flex-1">
+                  <Link href={`/profile/${user.username}`} className="block truncate font-bold hover:underline">
+                    <span className="flex items-center gap-1">
+                      {user.displayName}
+                      {user.verified && <VerifiedBadge className="inline-block" />}
+                    </span>
+                  </Link>
+                  <Link href={`/profile/${user.username}`} className="block truncate text-sm text-offme-muted hover:underline">
+                    @{user.username}
+                  </Link>
+                  {user.bio && (
+                    <p className="mt-1 truncate text-sm text-offme-muted">{user.bio}</p>
+                  )}
+                </div>
+                <FollowButton user={user} size="sm" />
               </div>
-              <FollowButton user={user} size="sm" />
-            </div>
-          ))}
+            ))}
+          </div>
+        )}
 
-        {debouncedQuery && !isLoading && tab === 'top' &&
-          posts.map((post) => <PostCard key={post.id} post={post} />)}
+        {debouncedQuery && !isLoading && tab === 'top' && (
+          <div className="space-y-2">
+            {posts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

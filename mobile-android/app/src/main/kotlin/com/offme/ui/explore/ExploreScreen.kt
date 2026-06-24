@@ -118,7 +118,14 @@ fun ExploreScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Explorar") }) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Explorar") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.95f)
+                )
+            )
+        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -133,16 +140,27 @@ fun ExploreScreen(
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(24.dp),
             )
 
             if (hasQuery) {
-                TabRow(selectedTabIndex = selectedTabIndex) {
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    indicator = { tabPositions ->
+                        TabRowDefaults.Indicator(
+                            Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                ) {
                     ExploreSearchTab.entries.forEachIndexed { index, tab ->
                         Tab(
                             selected = selectedTabIndex == index,
                             onClick = { selectedTabIndex = index },
-                            text = { Text(tab.label) },
+                            text = { Text(tab.label, fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal) },
                         )
                     }
                 }
@@ -162,7 +180,7 @@ fun ExploreScreen(
                 }
                 isSearching -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
                 selectedTab == ExploreSearchTab.People -> {

@@ -46,12 +46,14 @@ fun NotificationsScreen(
     authStore: AuthStore,
     api: ApiClient = OffMeApp.instance.apiClient,
     onNavigateToProfile: (String) -> Unit,
+    onNavigateToPost: (Int) -> Unit = {},
     onUnreadCountChanged: (Int) -> Unit = {},
 ) {
     val token = authStore.session.collectAsState().value?.accessToken
     var notifications by remember { mutableStateOf<List<AppNotification>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var unreadCount by remember { mutableStateOf(0) }
     val scope = rememberCoroutineScope()
 
     fun load(markRead: Boolean = false) {
@@ -62,11 +64,13 @@ fun NotificationsScreen(
             try {
                 val res = api.fetchNotifications(t)
                 notifications = res.notifications
+                unreadCount = res.unreadCount
                 onUnreadCountChanged(res.unreadCount)
                 if (markRead && res.unreadCount > 0) {
                     api.markNotificationsRead(t)
                     onUnreadCountChanged(0)
                     notifications = notifications.map { it.copy(read = true) }
+                    unreadCount = 0
                 }
             } catch (e: Exception) {
                 error = e.message
@@ -78,24 +82,99 @@ fun NotificationsScreen(
 
     LaunchedEffect(token) { load(markRead = true) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Notificações") }) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Notificações") },
+                actions = {
+                    if (unreadCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = unreadCount.toString(),
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.95f)
+                )
+            )
+        },
+    ) { padding ->
         when {
             isLoading && notifications.isEmpty() -> {
                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
             error != null && notifications.isEmpty() -> {
                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(error ?: "", color = MaterialTheme.colorScheme.error)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.errorContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "!",
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Text(
+                            text = error ?: "Erro desconhecido",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
             notifications.isEmpty() -> {
                 Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                    Text(
-                        "Nenhuma notificação ainda",
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "🔔",
+                                style = MaterialTheme.typography.displayMedium
+                            )
+                        }
+                        Text(
+                            text = "Nenhuma notificação ainda",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "Você receberá notificações aqui quando alguém interagir com você",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
             else -> {
@@ -111,6 +190,8 @@ fun NotificationsScreen(
                                 onClick = {
                                     if (notification.postId == null) {
                                         onNavigateToProfile(notification.actor.username)
+                                    } else {
+                                        onNavigateToPost(notification.postId)
                                     }
                                 },
                             )
