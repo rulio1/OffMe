@@ -45,9 +45,6 @@ struct PostRowView: View {
         post.author?.username ?? "usuario"
     }
 
-    @Environment(\.openURL) private var openURL
-    @State private var openPostTrigger = false
-    @State private var openProfileTrigger = false
 
     private var isOwnPost: Bool {
         guard let currentUserId = auth.session?.user.id else { return false }
@@ -55,13 +52,6 @@ struct PostRowView: View {
         return post.author?.id == currentUserId
     }
 
-    private func openPost() {
-        openPostTrigger = true
-    }
-
-    private func openProfile() {
-        openProfileTrigger = true
-    }
 
     private var shareURL: URL {
         URL(string: "https://offme.vercel.app/post/\(post.id)")!
@@ -98,9 +88,7 @@ struct PostRowView: View {
             }
 
             HStack(alignment: .top, spacing: 12) {
-                Button {
-                    openProfile()
-                } label: {
+                NavigationLink(value: username) {
                     UserAvatarView(url: post.author?.avatarUrl, size: 40)
                 }
                 .buttonStyle(.plain)
@@ -145,18 +133,22 @@ struct PostRowView: View {
                     }
 
                     if !post.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text(post.text)
-                            .font(.system(size: 15))
-                            .foregroundStyle(OffMeTheme.text)
-                            .lineSpacing(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .onTapGesture { openPost() }
+                        NavigationLink(value: post.id) {
+                            Text(post.text)
+                                .font(.system(size: 15))
+                                .foregroundStyle(OffMeTheme.text)
+                                .lineSpacing(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .buttonStyle(.plain)
                     }
 
                     if let urls = post.mediaUrls, !urls.isEmpty {
-                        PostMediaGrid(urls: urls)
-                            .padding(.top, 4)
-                            .onTapGesture { openPost() }
+                        NavigationLink(value: post.id) {
+                            PostMediaGrid(urls: urls)
+                                .padding(.top, 4)
+                        }
+                        .buttonStyle(.plain)
                     }
 
                     HStack {
@@ -228,19 +220,6 @@ struct PostRowView: View {
             .padding(.vertical, 12)
         }
         .background(OffMeTheme.bg)
-        .background {
-            NavigationLink(
-                destination: PostThreadView(postId: post.id),
-                isActive: $openPostTrigger
-            ) { EmptyView() }
-
-            if let username = post.author?.username {
-                NavigationLink(
-                    destination: ProfileView(username: username),
-                    isActive: $openProfileTrigger
-                ) { EmptyView() }
-            }
-        }
         .sheet(isPresented: $showShareSheet) {
             ShareSheet(items: [shareURL])
                 .presentationDetents([.medium, .large])

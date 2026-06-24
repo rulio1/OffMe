@@ -38,10 +38,14 @@ struct AvatarView: View {
                 AsyncImage(url: imageUrl) { phase in
                     if let image = phase.image {
                         image.resizable().scaledToFill()
+                    } else if let url, url.hasPrefix("/brand/") {
+                        OffMeLogoView(size: size)
                     } else {
                         Circle().fill(OffMeTheme.border)
                     }
                 }
+            } else if let url, url.hasPrefix("/brand/") {
+                OffMeLogoView(size: size)
             } else {
                 Circle().fill(OffMeTheme.border)
             }
@@ -180,10 +184,18 @@ struct ProfileView: View {
                 AsyncImage(url: url) { phase in
                     if case .success(let image) = phase {
                         image.resizable().scaledToFill()
+                    } else if banner.hasPrefix("/brand/") {
+                        OffMeLogoView(size: 120)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
                     } else {
                         Rectangle().fill(OffMeTheme.surface)
                     }
                 }
+            } else if let banner = user.bannerUrl, banner.hasPrefix("/brand/") {
+                OffMeLogoView(size: 120)
+                    .frame(maxWidth: .infinity)
+                    .clipped()
             } else {
                 Rectangle().fill(OffMeTheme.surface)
             }

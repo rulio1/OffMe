@@ -151,6 +151,20 @@ enum OfficialProfiles {
             "avatarUrl": "/brand/offme-official-avatar.png",
             "bannerUrl": "/brand/offme-banner.png",
             "location": "Global"
+        ],
+        "tips": [
+            "displayName": "OffMe Dicas",
+            "bio": "Dicas e tutoriais para usar o OffMe.",
+            "avatarUrl": "/brand/offme-official-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Global"
+        ],
+        "news": [
+            "displayName": "OffMe Notícias",
+            "bio": "Novidades e atualizações do OffMe.",
+            "avatarUrl": "/brand/offme-official-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Global"
         ]
     ]
 
