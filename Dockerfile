@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y curl && \
     apt-get update && apt-get install -y sbt
 
 # Build all services
+WORKDIR /app/backend-scala
 RUN sbt clean compile
 
 # Package services
@@ -35,7 +36,7 @@ COPY --from=builder /app/backend-scala/timeline-service/target/universal/stage /
 COPY --from=builder /app/backend-scala/api-gateway/target/universal/stage /app/api-gateway
 
 # Copy scripts
-COPY scripts/start-services.sh /app/start-services.sh
+COPY start-services.sh /app/start-services.sh
 
 # Install dependencies
 RUN apt-get update && apt-get install -y netcat-openbsd

@@ -1,0 +1,194 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: OffMe Backend - Serverless Deployment on AWS Lambda
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 1024
+    Runtime: java11
+    Environment:
+      Variables:
+        STAGE: !Ref Stage
+        DB_HOST: !Ref DBHost
+        DB_PORT: !Ref DBPort
+        DB_NAME: !Ref DBName
+        DB_USER: !Ref DBUsername
+        DB_PASSWORD: !Ref DBPassword
+        JWT_SECRET: !Ref JWTSecret
+        REDIS_HOST: !Ref RedisHost
+        REDIS_PORT: !Ref RedisPort
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    Description: Deployment stage (dev, staging, prod)
+
+  DBHost:
+    Type: String
+    Description: PostgreSQL database host
+
+  DBPort:
+    Type: String
+    Default: "5432"
+    Description: PostgreSQL database port
+
+  DBName:
+    Type: String
+    Default: "offme"
+    Description: PostgreSQL database name
+
+  DBUsername:
+    Type: String
+    Description: PostgreSQL database username
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: PostgreSQL database password
+
+  JWTSecret:
+    Type: String
+    NoEcho: true
+    Description: JWT secret key for authentication
+    Default: "change_me_in_production_use_long_random_string_1234567890"
+
+  RedisHost:
+    Type: String
+    Description: Redis host
+
+  RedisPort:
+    Type: String
+    Default: "6379"
+    Description: Redis port
+
+Resources:
+  # API Gateway
+  OffMeApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+
+  # Identity Service
+  IdentityServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../backend-scala/identity-service/
+      Handler: com.offme.identity.LambdaHandler::handleRequest
+      Events:
+        AuthEvents:
+          Type: Api
+          Properties:
+            Path: /api/v1/auth/{proxy+}
+            Method: ANY
+            RestApiId: !Ref OffMeApiGateway
+        HealthCheck:
+          Type: Api
+          Properties:
+            Path: /api/v1/health
+            Method: GET
+            RestApiId: !Ref OffMeApiGateway
+      Environment:
+        Variables:
+          SERVICE_NAME: "identity-service"
+          SERVICE_PORT: "8081"
+          IDENTITY_SERVICE_URL: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/api/v1/auth"
+
+  # Post Service
+  PostServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../backend-scala/post-service/
+      Handler: com.offme.post.LambdaHandler::handleRequest
+      Events:
+        PostEvents:
+          Type: Api
+          Properties:
+            Path: /api/v1/posts/{proxy+}
+            Method: ANY
+            RestApiId: !Ref OffMeApiGateway
+      Environment:
+        Variables:
+          SERVICE_NAME: "post-service"
+          SERVICE_PORT: "8082"
+          POST_SERVICE_URL: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/api/v1/posts"
+
+  # Timeline Service
+  TimelineServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../backend-scala/timeline-service/
+      Handler: com.offme.timeline.LambdaHandler::handleRequest
+      Events:
+        TimelineEvents:
+          Type: Api
+          Properties:
+            Path: /api/v1/timeline/{proxy+}
+            Method: ANY
+            RestApiId: !Ref OffMeApiGateway
+      Environment:
+        Variables:
+          SERVICE_NAME: "timeline-service"
+          SERVICE_PORT: "8083"
+          TIMELINE_SERVICE_URL: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/api/v1/timeline"
+
+  # Graph Service
+  GraphServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../backend-scala/graph-service/
+      Handler: com.offme.graph.LambdaHandler::handleRequest
+      Events:
+        GraphEvents:
+          Type: Api
+          Properties:
+            Path: /api/v1/graph/{proxy+}
+            Method: ANY
+            RestApiId: !Ref OffMeApiGateway
+      Environment:
+        Variables:
+          SERVICE_NAME: "graph-service"
+          SERVICE_PORT: "8084"
+          GRAPH_SERVICE_URL: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/api/v1/graph"
+
+  # Notification Service
+  NotificationServiceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../backend-scala/notification-service/
+      Handler: com.offme.notification.LambdaHandler::handleRequest
+      Events:
+        NotificationEvents:
+          Type: Api
+          Properties:
+            Path: /api/v1/notifications/{proxy+}
+            Method: ANY
+            RestApiId: !Ref OffMeApiGateway
+      Environment:
+        Variables:
+          SERVICE_NAME: "notification-service"
+          SERVICE_PORT: "8085"
+          NOTIFICATION_SERVICE_URL: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/api/v1/notifications"
+
+Outputs:
+  ApiGatewayUrl:
+    Description: "URL of the API Gateway"
+    Value: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+
+  IdentityServiceUrl:
+    Description: "URL of the Identity Service"
+    Value: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/api/v1/auth"
+
+  PostServiceUrl:
+    Description: "URL of the Post Service"
+    Value: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/api/v1/posts"
+
+  TimelineServiceUrl:
+    Description: "URL of the Timeline Service"
+    Value: !Sub "https://${OffMeApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/api/v1/timeline"

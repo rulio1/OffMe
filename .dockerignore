@@ -1,0 +1,46 @@
+# Ignore git directory
+.git
+
+# Ignore node modules
+node_modules
+
+# Ignore IDE files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Ignore build outputs
+target
+dist
+build
+
+# Ignore logs
+*.log
+
+# Ignore environment files
+.env
+*.env.*
+
+# Ignore documentation and temporary files
+docs
+*.md
+*.tmp
+
+# Ignore local databases
+*.db
+*.sqlite
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore frontend and mobile build files
+frontend-web/node_modules
+frontend-web/.next
+mobile-ios/Pods
+mobile-android/.gradle
+mobile-android/build
+
+# Ignore large asset files that aren't needed for backend
+assets/brand/logo-source.jpg

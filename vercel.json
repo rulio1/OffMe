@@ -90,12 +90,12 @@
     "NEXT_PUBLIC_WS_URL": "wss://offme.vercel.app/ws",
     "NEXT_PUBLIC_PLAUSIBLE_DOMAIN": "offme.vercel.app",
     "NEXT_PUBLIC_SITE_URL": "https://offme.vercel.app",
-    "IDENTITY_SERVICE_URL": "http://identity-service:8081",
-    "POST_SERVICE_URL": "http://post-service:8082",
-    "TIMELINE_SERVICE_URL": "http://timeline-service:8083",
-    "GRAPH_SERVICE_URL": "http://graph-service:8084",
-    "NOTIFICATION_SERVICE_URL": "http://notification-service:8085",
-    "WEBSOCKET_SERVICE_URL": "http://websocket-service:8086"
+    "IDENTITY_SERVICE_URL": "http://localhost:8081",
+    "POST_SERVICE_URL": "http://localhost:8082",
+    "TIMELINE_SERVICE_URL": "http://localhost:8083",
+    "GRAPH_SERVICE_URL": "http://localhost:8084",
+    "NOTIFICATION_SERVICE_URL": "http://localhost:8085",
+    "WEBSOCKET_SERVICE_URL": "http://localhost:8086"
   },
   "rewrites": [
     {

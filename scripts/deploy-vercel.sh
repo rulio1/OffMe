@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUN_MIGRATE="${RUN_MIGRATE:-}"
+DEPLOY_BACKEND="${DEPLOY_BACKEND:-}"
 
 if ! command -v vercel >/dev/null 2>&1; then
   echo "Vercel CLI não encontrado." >&2
@@ -12,12 +13,14 @@ fi
 
 cd "$ROOT/frontend-web"
 
-echo "==> OffMe — deploy Vercel"
+echo "==> OffMe — deploy Vercel (Frontend + Backend)"
 echo ""
 echo "Variáveis obrigatórias no painel Vercel:"
 echo "  DATABASE_URL, DATABASE_SSL=true, JWT_SECRET"
 echo "  NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (ou ANON_KEY)"
 echo "  IMGBB_API_KEY (ou S3_*)"
+echo "  IDENTITY_SERVICE_URL, POST_SERVICE_URL, TIMELINE_SERVICE_URL"
+echo "  GRAPH_SERVICE_URL, NOTIFICATION_SERVICE_URL, WEBSOCKET_SERVICE_URL"
 
 echo ""
 
@@ -39,9 +42,23 @@ else
 fi
 
 echo ""
-echo "==> Deploy produção..."
+
+# Deploy backend services if requested
+if [[ "$(echo "${DEPLOY_BACKEND:-}" | tr '[:upper:]' '[:lower:]')" == "y" || "$(echo "${DEPLOY_BACKEND:-}" | tr '[:upper:]' '[:lower:]')" == "yes" || "${1:-}" == "--backend" ]]; then
+  echo "==> Deploying backend services to Vercel..."
+  bash "$ROOT/scripts/deploy-backend.sh"
+  echo "✓ Backend services deployed"
+  echo ""
+fi
+
+echo "==> Deploy produção frontend..."
 vercel deploy --prod
 
 echo ""
 echo "Após o deploy:"
 echo "  make deploy-check URL=https://seu-app.vercel.app"
+echo ""
+echo "Para deploy completo (frontend + backend):"
+echo "  DEPLOY_BACKEND=y make deploy-vercel"
+echo "ou"
+echo "  make deploy-vercel --backend"
