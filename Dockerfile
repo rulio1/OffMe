@@ -1,17 +1,18 @@
-# OffMe Backend Dockerfile for Railway
-# Multi-stage build for Scala services
+# OffMe Backend Dockerfile for Render
+# Multi-stage build with SBT pre-installed
 
-# Stage 1: Build
+# Stage 1: Build with SBT
 FROM eclipse-temurin:21-jdk-jammy as builder
 
 WORKDIR /app
 COPY . .
 
-# Install sbt
+# Install SBT using official package
 RUN apt-get update && apt-get install -y curl && \
-    curl -s "https://get.sdkman.io" | bash && \
-    source "$HOME/.sdkman/bin/sdkman-init.sh" && \
-    sdk install sbt 1.9.7
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list && \
+    curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add && \
+    apt-get update && apt-get install -y sbt
 
 # Build all services
 RUN sbt clean compile
@@ -34,14 +35,13 @@ COPY --from=builder /app/backend-scala/timeline-service/target/universal/stage /
 COPY --from=builder /app/backend-scala/api-gateway/target/universal/stage /app/api-gateway
 
 # Copy scripts
-COPY scripts/start-backend-services.sh /app/start-services.sh
-COPY railway.toml /app/railway.toml
+COPY scripts/start-services.sh /app/start-services.sh
 
 # Install dependencies
 RUN apt-get update && apt-get install -y netcat-openbsd
 
 # Expose ports
-EXPOSE 8080 8081 8082 8083 8084 8090
+EXPOSE 8080
 
 # Start script
 CMD ["./start-services.sh"]
