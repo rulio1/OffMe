@@ -16,5 +16,5 @@ enum APIConfig {
 
     /// Alternative API endpoints
     static let vercelURL = "https://offme.vercel.app/api/v1"
-    static let localURL = "http://localhost:3000/api/v1"
+    static let localURL = "http://192.168.8.192:3000/api/v1"
 }

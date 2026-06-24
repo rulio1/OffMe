@@ -11,6 +11,7 @@ ARCHIVE_PATH="$BUILD_DIR/OffMe.xcarchive"
 EXPORT_DIR="$BUILD_DIR/export"
 EXPORT_PLIST="$IOS_DIR/ExportOptions.plist"
 CONFIG_FILE="$IOS_DIR/OffMe/Config/APIConfig.swift"
+ENVIRONMENT_CONFIG_FILE="$IOS_DIR/OffMe/Config/EnvironmentConfig.swift"
 PRODUCTION_API_URL="${IOS_API_BASE_URL:-https://offme.vercel.app/api/v1}"
 
 MAC_IP="$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "127.0.0.1")"
@@ -29,7 +30,14 @@ echo "==> Gerando ícones do app..."
 python3 "$ROOT/scripts/generate-app-icon.py"
 
 if [[ -f "$CONFIG_FILE" ]]; then
-  sed -i '' "s|static let baseURL = \"[^\"]*\"|static let baseURL = \"${API_URL}\"|" "$CONFIG_FILE"
+  # Update APIConfig.swift to use the specified API URL
+  sed -i '' "s|static let localURL = \"[^\"]*\"|static let localURL = \"http://${MAC_IP}:3000/api/v1\"|" "$CONFIG_FILE"
+  sed -i '' "s|static let vercelURL = \"[^\"]*\"|static let vercelURL = \"${API_URL}\"|" "$CONFIG_FILE"
+fi
+
+if [[ -f "$ENVIRONMENT_CONFIG_FILE" ]]; then
+  # Update EnvironmentConfig.swift to set production as default for release builds
+  sed -i '' "s|return .development|return .production|" "$ENVIRONMENT_CONFIG_FILE"
 fi
 
 if ! security find-identity -v -p codesigning 2>/dev/null | grep -q "valid identities found"; then

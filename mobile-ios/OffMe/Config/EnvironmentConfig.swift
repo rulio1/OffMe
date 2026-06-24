@@ -12,7 +12,7 @@ enum EnvironmentConfig {
         if ProcessInfo.processInfo.environment["ENVIRONMENT"] == "staging" {
             return .staging
         }
-        return .development
+        return .production
         #else
         return .production
         #endif
