@@ -84,7 +84,7 @@ fun PostRow(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    val author = post.author?.official
+    val author = post.author
     val authorName = author?.resolvedDisplayName ?: "Usuário"
     val username = author?.username ?: "usuario"
     val isOwnPost = currentUserId != null &&

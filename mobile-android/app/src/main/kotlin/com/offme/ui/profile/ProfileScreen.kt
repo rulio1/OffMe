@@ -103,7 +103,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(user?.official?.resolvedDisplayName ?: username) },
+                title = { Text(user?.resolvedDisplayName ?: username) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
@@ -126,9 +126,9 @@ fun ProfileScreen(
                     }
                 }
             }
-            user != null -> {
-                val profileUser = user!!.official
-                PullToRefreshBox(
+             user != null -> {
+                 val profileUser = user!!
+                 PullToRefreshBox(
                     isRefreshing = isLoading,
                     onRefresh = { load() },
                     modifier = Modifier.fillMaxSize().padding(padding),
