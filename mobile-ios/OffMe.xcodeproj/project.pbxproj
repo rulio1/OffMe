@@ -49,6 +49,9 @@
 		A10000000000000000000063 /* VerificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000062 /* VerificationSettingsView.swift */; };
 		A10000000000000000000083 /* SettingsHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000082 /* SettingsHubView.swift */; };
 		A10000000000000000000065 /* PushNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000064 /* PushNotificationService.swift */; };
+		A10000000000000000000084 /* ActionIcons.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000085 /* ActionIcons.swift */; };
+		A10000000000000000000086 /* BetaBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000087 /* BetaBanner.swift */; };
+		A10000000000000000000088 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000089 /* FeedbackView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -96,6 +99,9 @@
 		A10000000000000000000062 /* VerificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationSettingsView.swift; sourceTree = "<group>"; };
 		A10000000000000000000082 /* SettingsHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHubView.swift; sourceTree = "<group>"; };
 		A10000000000000000000064 /* PushNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushNotificationService.swift; sourceTree = "<group>"; };
+		A10000000000000000000085 /* ActionIcons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionIcons.swift; sourceTree = "<group>"; };
+		A10000000000000000000087 /* BetaBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetaBanner.swift; sourceTree = "<group>"; };
+		A10000000000000000000089 /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -198,6 +204,9 @@
 				A10000000000000000000062 /* VerificationSettingsView.swift */,
 				A10000000000000000000082 /* SettingsHubView.swift */,
 				A10000000000000000000058 /* FeaturePlaceholderView.swift */,
+				A10000000000000000000085 /* ActionIcons.swift */,
+				A10000000000000000000087 /* BetaBanner.swift */,
+				A10000000000000000000089 /* FeedbackView.swift */,
 				A10000000000000000000047 /* ImageCropView.swift */,
 				A1000000000000000000001E /* MainTabView.swift */,
 				A1000000000000000000001F /* ProfileView.swift */,
@@ -313,6 +322,9 @@
 				A10000000000000000000046 /* BottomTabBar.swift in Sources */,
 				A1000000000000000000004C /* XNavIcons.swift in Sources */,
 				A1000000000000000000004E /* BookmarksView.swift in Sources */,
+				A10000000000000000000084 /* ActionIcons.swift in Sources */,
+				A10000000000000000000086 /* BetaBanner.swift in Sources */,
+				A10000000000000000000088 /* FeedbackView.swift in Sources */,
 				A10000000000000000000048 /* ImageCropView.swift in Sources */,
 				A1000000000000000000000D /* MainTabView.swift in Sources */,
 				A1000000000000000000000E /* ProfileView.swift in Sources */,

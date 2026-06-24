@@ -247,9 +247,10 @@ struct PostRowView: View {
             }
         } label: {
             Image(systemName: "ellipsis")
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(OffMeTheme.muted)
-                .padding(6)
+                .padding(8)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
