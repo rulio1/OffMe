@@ -10,6 +10,7 @@ import { FollowButton } from '@/components/user/FollowButton';
 import { VerifiedBadge } from '@/components/user/VerifiedBadge';
 import { OfficialBadge } from '@/components/user/OfficialBadge';
 import { EditProfileModal } from '@/components/profile/EditProfileModal';
+import { OffMeLogo } from '@/components/auth/OffMeLogo';
 import {
   fetchPost,
   fetchUserPosts,
@@ -45,6 +46,15 @@ function formatCount(n: number): string {
 
 function Avatar({ url, size = 'lg' }: { url?: string; size?: 'lg' | 'sm' }) {
   const dim = size === 'lg' ? 'h-20 w-20 sm:h-24 sm:w-24' : 'h-10 w-10';
+  if (url?.startsWith('/brand/')) {
+    return (
+      <div
+        className={`${dim} shrink-0 rounded-full border-4 border-offme-bg bg-offme-surface flex items-center justify-center`}
+      >
+        <OffMeLogo className="w-full h-full p-1" />
+      </div>
+    );
+  }
   if (url) {
     return (
       <img
