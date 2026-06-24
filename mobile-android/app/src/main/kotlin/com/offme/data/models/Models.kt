@@ -31,6 +31,27 @@ object OfficialProfiles {
             "bannerUrl" to "/brand/offme-banner.png",
             "location" to "Brasil"
         ),
+        "offme_beta" to mapOf(
+            "displayName" to "OffMe Beta",
+            "bio" to "Programa Beta do OffMe · seja um testador.",
+            "avatarUrl" to "/brand/beta-team-avatar.png",
+            "bannerUrl" to "/brand/offme-banner.png",
+            "location" to "Global"
+        ),
+        "offme_tips" to mapOf(
+            "displayName" to "OffMe Dicas",
+            "bio" to "Dicas e tutoriais para usar o OffMe.",
+            "avatarUrl" to "/brand/offme-official-avatar.png",
+            "bannerUrl" to "/brand/offme-banner.png",
+            "location" to "Global"
+        ),
+        "offme_news" to mapOf(
+            "displayName" to "OffMe Notícias",
+            "bio" to "Novidades e atualizações do OffMe.",
+            "avatarUrl" to "/brand/offme-official-avatar.png",
+            "bannerUrl" to "/brand/offme-banner.png",
+            "location" to "Global"
+        ),
         "betateam" to mapOf(
             "displayName" to "Beta Team",
             "bio" to "Equipe Beta do OffMe · novidades, suporte e testes.",

@@ -124,6 +124,27 @@ enum OfficialProfiles {
             "bannerUrl": "/brand/offme-banner.png",
             "location": "Brasil"
         ],
+        "offme_beta": [
+            "displayName": "OffMe Beta",
+            "bio": "Programa Beta do OffMe · seja um testador.",
+            "avatarUrl": "/brand/beta-team-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Global"
+        ],
+        "offme_tips": [
+            "displayName": "OffMe Dicas",
+            "bio": "Dicas e tutoriais para usar o OffMe.",
+            "avatarUrl": "/brand/offme-official-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Global"
+        ],
+        "offme_news": [
+            "displayName": "OffMe Notícias",
+            "bio": "Novidades e atualizações do OffMe.",
+            "avatarUrl": "/brand/offme-official-avatar.png",
+            "bannerUrl": "/brand/offme-banner.png",
+            "location": "Global"
+        ],
         "betateam": [
             "displayName": "Beta Team",
             "bio": "Equipe Beta do OffMe · novidades, suporte e testes.",
