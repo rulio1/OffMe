@@ -3,7 +3,7 @@
  * Cross-platform button implementation for Web
  */
 import React from 'react';
-import { classNames } from '@/styles/design-system';
+import { classNames } from '../../../frontend-web/src/styles/design-system';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'filled' | 'outline' | 'ghost' | 'destructive' | 'success';

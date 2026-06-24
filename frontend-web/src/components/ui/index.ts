@@ -3,6 +3,7 @@
 
 export { Button, IconButton } from './Button';
 export { UnifiedButton, UnifiedIconButton } from './UnifiedButton';
+export { UnifiedCard, UnifiedBadge, UnifiedInput } from './UnifiedCard';
 export { Card } from './Card';
 export { Badge } from './Badge';
 export { Input, Textarea } from './Input';

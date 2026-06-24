@@ -44,12 +44,33 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>OffMe precisa acessar sua câmera para tirar fotos e publicar imagens.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>OffMe precisa acessar seu microfone para gravar áudio.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>OffMe precisa acessar suas fotos para publicar imagens e atualizar o avatar.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>OffMe precisa acessar sua localização para mostrar conteúdo relevante da sua região.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+				<key>NSIncludesSubdomains</key>
+				<true/>
+			</dict>
+		</dict>
 	</dict>
 </dict>
 </plist>

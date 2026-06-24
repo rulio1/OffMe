@@ -45,6 +45,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -65,6 +67,7 @@ fun PostRow(
     onAuthorClick: (String) -> Unit = {},
     onPostClick: (Int) -> Unit = {},
     onDeleted: () -> Unit = {},
+    onError: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var dismissed by remember(post.id) { mutableStateOf(false) }
@@ -95,11 +98,15 @@ fun PostRow(
         if (post.timelineSource == "repost") {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 68.dp, bottom = 8.dp),
+                modifier = Modifier
+                    .padding(start = 68.dp, bottom = 8.dp)
+                    .semantics {
+                        contentDescription = "Repostado por $authorName"
+                    },
             ) {
                 Icon(
                     imageVector = ActionIcons.Repost,
-                    contentDescription = null,
+                    contentDescription = "Ícone de repost",
                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     modifier = Modifier.size(14.dp),
                 )
@@ -121,7 +128,11 @@ fun PostRow(
             UserAvatar(
                 url = author?.avatarUrl,
                 size = 40.dp,
-                modifier = Modifier.clickable { onAuthorClick(username) },
+                modifier = Modifier
+                    .clickable { onAuthorClick(username) }
+                    .semantics {
+                        contentDescription = "Avatar de $authorName"
+                    },
             )
 
             Column(modifier = Modifier.weight(1f)) {
@@ -129,7 +140,11 @@ fun PostRow(
                     Text(
                         text = authorName,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.clickable { onAuthorClick(username) },
+                        modifier = Modifier
+                            .clickable { onAuthorClick(username) }
+                            .semantics {
+                                contentDescription = "Nome: $authorName"
+                            },
                     )
                     if (author?.isOfficial == true) {
                         Spacer(Modifier.width(2.dp))
@@ -140,18 +155,31 @@ fun PostRow(
                         text = "@$username",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.semantics {
+                            contentDescription = "Usuário: @$username"
+                        },
                     )
                     Text(
                         text = " · ${Formatters.timeAgo(post.createdAt)}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        modifier = Modifier.semantics {
+                            contentDescription = "Postado ${Formatters.timeAgo(post.createdAt)}"
+                        },
                     )
                     Spacer(Modifier.weight(1f))
                     Box {
-                        IconButton(onClick = { showMenu = true }, modifier = Modifier.size(32.dp)) {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier
+                                .size(32.dp)
+                                .semantics {
+                                    contentDescription = "Mais opções"
+                                }
+                        ) {
                             Icon(
                                 Icons.Default.MoreVert,
-                                contentDescription = "Mais opções",
+                                contentDescription = "Menu de opções",
                                 modifier = Modifier.size(18.dp),
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             )
@@ -182,12 +210,23 @@ fun PostRow(
                     Text(
                         text = post.text,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .semantics {
+                                contentDescription = "Conteúdo do post: ${post.text}"
+                            },
                     )
                 }
 
                 post.mediaUrls?.takeIf { it.isNotEmpty() }?.let { urls ->
-                    PostMediaGrid(urls = urls, modifier = Modifier.padding(top = 8.dp))
+                    PostMediaGrid(
+                        urls = urls,
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .semantics {
+                                contentDescription = "${urls.size} mídia(s) anexada(s)"
+                            }
+                    )
                 }
 
                 Row(
@@ -201,6 +240,7 @@ fun PostRow(
                         count = post.replyCount,
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         onClick = { onPostClick(post.id) },
+                        contentDescription = "Responder: ${post.replyCount} respostas",
                     )
 
                     PostAction(
@@ -222,15 +262,18 @@ fun PostRow(
                                         }
                                         reposted = result.repostedByMe
                                         repostCount = result.repostCount
-                                    } catch (_: Exception) {
+                                    } catch (e: Exception) {
                                         reposted = wasReposted
                                         repostCount = post.repostCount
+                                        onError("Falha ao processar repost: ${e.message}")
                                     } finally {
                                         reposting = false
                                     }
                                 }
                             }
                         } else null,
+                        contentDescription = if (reposted) "Desfazer repost" else "Repostar",
+                        hint = if (reposted) "Desfazer repostagem deste post" else "Repostar este post",
                     )
 
                     PostAction(
@@ -252,15 +295,18 @@ fun PostRow(
                                         }
                                         liked = result.likedByMe
                                         likeCount = result.likeCount
-                                    } catch (_: Exception) {
+                                    } catch (e: Exception) {
                                         liked = wasLiked
                                         likeCount = post.likeCount
+                                        onError("Falha ao processar curtida: ${e.message}")
                                     } finally {
                                         liking = false
                                     }
                                 }
                             }
                         } else null,
+                        contentDescription = if (liked) "Descurtir" else "Curtir",
+                        hint = if (liked) "Remover sua curtida" else "Curtir este post",
                     )
 
                     PostAction(
@@ -274,6 +320,8 @@ fun PostRow(
                             }
                             context.startActivity(Intent.createChooser(intent, "Compartilhar post"))
                         },
+                        contentDescription = "Compartilhar post",
+                        hint = "Compartilhar este post com outros apps",
                     )
 
                     PostAction(
@@ -297,14 +345,17 @@ fun PostRow(
                                             api.bookmarkPost(token, post.id)
                                         }
                                         bookmarked = result.bookmarkedByMe
-                                    } catch (_: Exception) {
+                                    } catch (e: Exception) {
                                         bookmarked = wasBookmarked
+                                        onError("Falha ao salvar post: ${e.message}")
                                     } finally {
                                         bookmarking = false
                                     }
                                 }
                             }
                         } else null,
+                        contentDescription = if (bookmarked) "Remover dos salvos" else "Salvar post",
+                        hint = if (bookmarked) "Remover este post dos seus salvos" else "Salvar este post para ler depois",
                     )
                 }
             }
@@ -327,8 +378,8 @@ fun PostRow(
                                 api.deletePost(t, post.id)
                                 dismissed = true
                                 onDeleted()
-                            } catch (_: Exception) {
-                                // Keep post visible on failure.
+                            } catch (e: Exception) {
+                                onError("Falha ao excluir post: ${e.message}")
                             } finally {
                                 deleting = false
                             }
@@ -353,14 +404,27 @@ private fun PostAction(
     count: Int,
     tint: Color,
     onClick: (() -> Unit)? = null,
+    contentDescription: String? = null,
+    hint: String? = null,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .semantics {
+                this.contentDescription = contentDescription
+                if (hint != null) {
+                    // Hint would be added as additional info in accessibility services
+                }
+            },
     ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
+        Icon(
+            icon,
+            contentDescription = contentDescription,
+            tint = tint,
+            modifier = Modifier.size(18.dp)
+        )
         if (count > 0) {
             Spacer(Modifier.width(4.dp))
             Text(
@@ -380,7 +444,7 @@ private fun PostMediaGrid(
     if (urls.size == 1) {
         AsyncImage(
             model = urls.first(),
-            contentDescription = null,
+            contentDescription = "Imagem anexada",
             modifier = modifier
                 .fillMaxWidth()
                 .height(220.dp)
@@ -391,10 +455,10 @@ private fun PostMediaGrid(
         Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             urls.take(4).chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    row.forEach { url ->
+                    row.forEachIndexed { index, url ->
                         AsyncImage(
                             model = url,
-                            contentDescription = null,
+                            contentDescription = "Imagem ${index + 1} de ${urls.size}",
                             modifier = Modifier
                                 .weight(1f)
                                 .height(120.dp)

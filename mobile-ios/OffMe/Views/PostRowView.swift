@@ -27,6 +27,8 @@ struct PostRowView: View {
     @State private var showShareSheet = false
     @State private var showDeleteConfirm = false
     @State private var deleting = false
+    @State private var showErrorAlert = false
+    @State private var errorMessage = ""
 
     init(post: Post) {
         self.post = post
@@ -45,16 +47,16 @@ struct PostRowView: View {
         post.author?.username ?? "usuario"
     }
 
-
     private var isOwnPost: Bool {
         guard let currentUserId = auth.session?.user.id else { return false }
         if post.authorId == currentUserId { return true }
         return post.author?.id == currentUserId
     }
 
-
     private var shareURL: URL {
-        URL(string: "https://offme.vercel.app/post/\(post.id)")!
+        // Use environment-specific base URL with fallback to production
+        let baseURL = Bundle.main.infoDictionary?["OFFME_BASE_URL"] as? String ?? "https://offme.vercel.app"
+        return URL(string: "\(baseURL)/post/\(post.id)")!
     }
 
     private var timeAgo: String {
@@ -85,6 +87,8 @@ struct PostRowView: View {
                 }
                 .padding(.leading, 52)
                 .padding(.bottom, 8)
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Repostado por \(authorName)")
             }
 
             HStack(alignment: .top, spacing: 12) {
@@ -92,6 +96,7 @@ struct PostRowView: View {
                     UserAvatarView(url: post.author?.avatarUrl, size: 40)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Perfil de \(authorName)")
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .top, spacing: 4) {
@@ -104,6 +109,7 @@ struct PostRowView: View {
                                         .lineLimit(1)
                                 }
                                 .buttonStyle(.plain)
+                                .accessibilityLabel("Nome: \(authorName)")
 
                                 if post.author?.isOfficial == true {
                                     OfficialBadgeIOS()
@@ -111,12 +117,14 @@ struct PostRowView: View {
                                     Image(systemName: "checkmark.seal.fill")
                                         .font(.system(size: 14))
                                         .foregroundStyle(OffMeTheme.accent)
+                                        .accessibilityLabel("Conta verificada")
                                 }
 
                                 Text("@\(username)")
                                     .font(.system(size: 15))
                                     .foregroundStyle(OffMeTheme.muted)
                                     .lineLimit(1)
+                                    .accessibilityLabel("Usuário: @\(username)")
 
                                 Text("·")
                                     .foregroundStyle(OffMeTheme.muted)
@@ -124,12 +132,14 @@ struct PostRowView: View {
                                 Text(timeAgo)
                                     .font(.system(size: 15))
                                     .foregroundStyle(OffMeTheme.muted)
+                                    .accessibilityLabel("Postado \(timeAgo)")
                             }
                         }
 
                         Spacer(minLength: 0)
 
                         postMenu
+                            .accessibilityLabel("Mais opções")
                     }
 
                     if !post.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -139,6 +149,7 @@ struct PostRowView: View {
                                 .foregroundStyle(OffMeTheme.text)
                                 .lineSpacing(2)
                                 .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityLabel("Conteúdo do post: \(post.text)")
                         }
                         .buttonStyle(.plain)
                     }
@@ -147,6 +158,7 @@ struct PostRowView: View {
                         NavigationLink(value: post.id) {
                             PostMediaGrid(urls: urls)
                                 .padding(.top, 4)
+                                .accessibilityLabel("\(urls.count) mídia(s) anexada(s)")
                         }
                         .buttonStyle(.plain)
                     }
@@ -158,6 +170,7 @@ struct PostRowView: View {
                             color: OffMeTheme.muted,
                             destination: post.id
                         )
+                        .accessibilityLabel("Responder: \(post.replyCount) respostas")
 
                         Button {
                             Task { await toggleRepost() }
@@ -171,6 +184,8 @@ struct PostRowView: View {
                         }
                         .buttonStyle(.plain)
                         .disabled(reposting)
+                        .accessibilityLabel(reposted ? "Desfazer repost" : "Repostar")
+                        .accessibilityHint(reposted ? "Desfazer repostagem deste post" : "Repostar este post")
 
                         Button {
                             Task { await toggleLike() }
@@ -184,12 +199,15 @@ struct PostRowView: View {
                         }
                         .buttonStyle(.plain)
                         .disabled(liking)
+                        .accessibilityLabel(liked ? "Descurtir" : "Curtir")
+                        .accessibilityHint(liked ? "Remover sua curtida" : "Curtir este post")
 
                         actionLabel(
                             kind: .views,
                             count: viewCount,
                             color: OffMeTheme.muted
                         )
+                        .accessibilityLabel("Visualizações: \(viewCount)")
 
                         Button {
                             showShareSheet = true
@@ -199,6 +217,7 @@ struct PostRowView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Compartilhar")
+                        .accessibilityHint("Compartilhar este post com outros apps")
 
                         Button {
                             Task { await toggleBookmark() }
@@ -212,6 +231,7 @@ struct PostRowView: View {
                         .buttonStyle(.plain)
                         .disabled(bookmarking)
                         .accessibilityLabel(bookmarked ? "Remover dos salvos" : "Salvar post")
+                        .accessibilityHint(bookmarked ? "Remover este post dos seus salvos" : "Salvar este post para ler depois")
                     }
                     .padding(.top, 8)
                 }
@@ -236,6 +256,11 @@ struct PostRowView: View {
         } message: {
             Text("Esta ação não pode ser desfeita.")
         }
+        .alert("Erro", isPresented: $showErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
     }
 
     @ViewBuilder
@@ -248,6 +273,7 @@ struct PostRowView: View {
                     Label("Excluir post", systemImage: "trash")
                 }
                 .disabled(deleting)
+                .accessibilityLabel("Excluir seu post")
             }
 
             Button {
@@ -255,6 +281,7 @@ struct PostRowView: View {
             } label: {
                 Label("Ocultar post", systemImage: "xmark")
             }
+            .accessibilityLabel("Ocultar este post do seu feed")
         } label: {
             Image(systemName: "ellipsis")
                 .font(.system(size: 16, weight: .medium))
@@ -311,6 +338,8 @@ struct PostRowView: View {
         } catch {
             liked = wasLiked
             likeCount = post.likeCount
+            errorMessage = "Falha ao processar sua curtida. Por favor, tente novamente."
+            showErrorAlert = true
         }
     }
 
@@ -334,6 +363,8 @@ struct PostRowView: View {
         } catch {
             reposted = wasReposted
             repostCount = post.repostCount
+            errorMessage = "Falha ao processar seu repost. Por favor, tente novamente."
+            showErrorAlert = true
         }
     }
 
@@ -354,6 +385,8 @@ struct PostRowView: View {
             bookmarked = result.bookmarkedByMe
         } catch {
             bookmarked = wasBookmarked
+            errorMessage = "Falha ao salvar o post. Por favor, tente novamente."
+            showErrorAlert = true
         }
     }
 
@@ -366,7 +399,8 @@ struct PostRowView: View {
             try await APIClient.shared.deletePost(postId: post.id, token: token)
             dismissed = true
         } catch {
-            // Keep post visible on failure
+            errorMessage = "Falha ao excluir o post. Por favor, tente novamente."
+            showErrorAlert = true
         }
     }
 }
@@ -401,6 +435,7 @@ private struct PostMediaGrid: View {
                 mediaImage(url: url)
                     .frame(maxHeight: 280)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .accessibilityLabel("Imagem anexada")
             } else {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 2) {
                     ForEach(urls, id: \.self) { urlString in
@@ -408,6 +443,7 @@ private struct PostMediaGrid: View {
                             mediaImage(url: url)
                                 .frame(minHeight: 120, maxHeight: 180)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .accessibilityLabel("Imagem \(urls.firstIndex(of: urlString)! + 1) de \(urls.count)")
                         }
                     }
                 }
@@ -416,6 +452,8 @@ private struct PostMediaGrid: View {
                     RoundedRectangle(cornerRadius: 16)
                         .strokeBorder(OffMeTheme.border, lineWidth: 0.5)
                 )
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("Grade de \(urls.count) imagens")
             }
         }
     }

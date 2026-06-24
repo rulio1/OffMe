@@ -64,14 +64,21 @@ export async function POST(request: NextRequest) {
     }
 
     return jsonOk(await enrichPost(post, user.id), 201);
-  } catch (err) {
+   } catch (err) {
     if (err instanceof Error) {
       if (err.message.includes('não encontrado')) return jsonError(err.message, 404);
       if (err.message.includes('Enquete') || err.message.includes('opção')) {
         return jsonError(err.message, 400);
       }
+      // Log detailed error information for debugging
+      console.error('[posts/create] Detailed error:', {
+        message: err.message,
+        stack: err.stack,
+        timestamp: new Date().toISOString()
+      });
+      return jsonError('Erro ao criar post: ' + err.message, 500);
     }
-    console.error('[posts/create]', err);
-    return jsonError('Erro ao criar post', 500);
+    console.error('[posts/create] Unknown error:', err);
+    return jsonError('Erro desconhecido ao criar post', 500);
   }
 }

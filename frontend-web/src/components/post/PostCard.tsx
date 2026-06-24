@@ -54,7 +54,7 @@ function QuotedPostPreview({ quoted }: { quoted: Post }) {
   };
 
   return (
-    <div className="mt-3 rounded-xl border border-offme-border p-3 text-sm">
+    <div className="mt-3 rounded-xl border border-offme-border p-3 text-sm" aria-label="Post citado">
       <p className="font-bold">
         {author.displayName}
         {author.isOfficial ? (
@@ -65,7 +65,7 @@ function QuotedPostPreview({ quoted }: { quoted: Post }) {
         <span className="ml-1 font-normal text-offme-muted">@{author.username}</span>
       </p>
       {quoted.text.trim().length > 0 && (
-        <p className="mt-1 line-clamp-3 text-offme-muted">
+        <p className="mt-1 line-clamp-3 text-offme-muted" aria-label="Conteúdo do post citado">
           <PostRichText text={quoted.text} />
         </p>
       )}
@@ -82,15 +82,17 @@ function PollBlock({
 }) {
   const [poll, setPoll] = useState(initialPoll);
   const [voting, setVoting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleVote = async (optionId: number) => {
     if (poll.ended || voting) return;
     setVoting(true);
+    setError(null);
     try {
       const updated = await votePoll(postId, optionId);
       setPoll(updated);
     } catch {
-      // keep current state
+      setError('Falha ao processar seu voto. Por favor, tente novamente.');
     } finally {
       setVoting(false);
     }
@@ -117,6 +119,8 @@ function PollBlock({
                 ? 'border-offme-accent text-offme-accent'
                 : 'border-offme-border hover:border-offme-accent/50'
             )}
+            aria-label={`Votar em: ${option.label}`}
+            aria-disabled={poll.ended || voting}
           >
             {showResults && (
               <span
@@ -135,6 +139,7 @@ function PollBlock({
         {poll.totalVotes} voto{poll.totalVotes !== 1 ? 's' : ''}
         {poll.ended ? ' · Encerrada' : ''}
       </p>
+      {error && <p className="text-xs text-red-500" role="alert">{error}</p>}
     </div>
   );
 }
@@ -164,13 +169,16 @@ function PostCardInner({
   const [liked, setLiked] = useState(Boolean(post.likedByMe));
   const [likeCount, setLikeCount] = useState(post.likeCount);
   const [liking, setLiking] = useState(false);
+  const [likeError, setLikeError] = useState<string | null>(null);
 
   const [reposted, setReposted] = useState(Boolean(post.repostedByMe));
   const [repostCount, setRepostCount] = useState(post.repostCount);
   const [reposting, setReposting] = useState(false);
+  const [repostError, setRepostError] = useState<string | null>(null);
 
   const [bookmarked, setBookmarked] = useState(Boolean(post.bookmarkedByMe));
   const [bookmarking, setBookmarking] = useState(false);
+  const [bookmarkError, setBookmarkError] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
@@ -201,6 +209,7 @@ function PostCardInner({
     e.stopPropagation();
     if (liking) return;
     setLiking(true);
+    setLikeError(null);
     const wasLiked = liked;
     setLiked(!wasLiked);
     setLikeCount((c) => (wasLiked ? Math.max(c - 1, 0) : c + 1));
@@ -212,6 +221,7 @@ function PostCardInner({
     } catch {
       setLiked(wasLiked);
       setLikeCount(post.likeCount);
+      setLikeError('Falha ao processar sua curtida. Por favor, tente novamente.');
     } finally {
       setLiking(false);
     }
@@ -222,6 +232,7 @@ function PostCardInner({
     e.stopPropagation();
     if (reposting) return;
     setReposting(true);
+    setRepostError(null);
     const wasReposted = reposted;
     setReposted(!wasReposted);
     setRepostCount((c) => (wasReposted ? Math.max(c - 1, 0) : c + 1));
@@ -233,6 +244,7 @@ function PostCardInner({
     } catch {
       setReposted(wasReposted);
       setRepostCount(post.repostCount);
+      setRepostError('Falha ao processar seu repost. Por favor, tente novamente.');
     } finally {
       setReposting(false);
     }
@@ -243,6 +255,7 @@ function PostCardInner({
     e.stopPropagation();
     if (bookmarking) return;
     setBookmarking(true);
+    setBookmarkError(null);
     const wasBookmarked = bookmarked;
     setBookmarked(!wasBookmarked);
 
@@ -253,6 +266,7 @@ function PostCardInner({
       setBookmarked(result.bookmarkedByMe);
     } catch {
       setBookmarked(wasBookmarked);
+      setBookmarkError('Falha ao salvar o post. Por favor, tente novamente.');
     } finally {
       setBookmarking(false);
     }
@@ -351,10 +365,10 @@ function PostCardInner({
   if (dismissed) return null;
 
   return (
-    <article className="offme-card px-4 py-3" onClick={openThread} role="link" tabIndex={0}>
+    <article className="offme-card px-4 py-3" onClick={openThread} role="link" tabIndex={0} aria-label={`Post de ${author.displayName}`}>
       {post.timelineSource === 'repost' && (
-        <p className="mb-2 flex items-center gap-1.5 pl-12 text-[13px] text-offme-muted">
-           <ActionIcon name="repost" active className="h-3.5 w-3.5" />
+        <p className="mb-2 flex items-center gap-1.5 pl-12 text-[13px] text-offme-muted" aria-label="Este é um repost">
+          <ActionIcon name="repost" active className="h-3.5 w-3.5" />
           Repost
         </p>
       )}
@@ -364,6 +378,7 @@ function PostCardInner({
           href={`/profile/${author.username}`}
           onClick={(e) => e.stopPropagation()}
           className="shrink-0"
+          aria-label={`Perfil de ${author.displayName}`}
         >
           <UserAvatar url={author.avatarUrl} size="md" />
         </Link>
@@ -375,6 +390,7 @@ function PostCardInner({
                 href={`/profile/${author.username}`}
                 onClick={(e) => e.stopPropagation()}
                 className="truncate font-bold hover:underline"
+                aria-label={`Nome: ${author.displayName}`}
               >
                 {author.displayName}
               </Link>
@@ -387,11 +403,14 @@ function PostCardInner({
                 href={`/profile/${author.username}`}
                 onClick={(e) => e.stopPropagation()}
                 className="truncate text-offme-muted hover:underline"
+                aria-label={`Usuário: @${author.username}`}
               >
                 @{author.username}
               </Link>
               <span className="text-offme-muted">·</span>
-              <time className="shrink-0 text-offme-muted hover:underline">{timeLabel}</time>
+              <time className="shrink-0 text-offme-muted hover:underline" aria-label={`Postado ${timeLabel}`}>
+                {timeLabel}
+              </time>
             </div>
 
             <div ref={menuRef} className="absolute right-0 top-0">
@@ -417,6 +436,7 @@ function PostCardInner({
                   role="menu"
                   className="absolute right-0 z-20 mt-1 w-52 overflow-hidden rounded-xl border border-offme-border bg-offme-bg py-1 shadow-lg"
                   onClick={(e) => e.stopPropagation()}
+                  aria-label="Menu de opções do post"
                 >
                   {isOwnPost && (
                     <>
@@ -438,6 +458,7 @@ function PostCardInner({
                         }}
                         disabled={menuBusy}
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
+                        aria-label={pinnedPostId === post.id ? 'Desfixar do perfil' : 'Fixar no perfil'}
                       >
                         <ActionIcon name="pin" className="h-4 w-4" />
                         {pinnedPostId === post.id ? 'Desfixar do perfil' : 'Fixar no perfil'}
@@ -448,6 +469,7 @@ function PostCardInner({
                         onClick={handleDelete}
                         disabled={menuBusy}
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+                        aria-label="Excluir post"
                       >
                         <ActionIcon name="delete" className="h-4 w-4" />
                         Excluir post
@@ -462,6 +484,7 @@ function PostCardInner({
                         onClick={handleMute}
                         disabled={menuBusy}
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
+                        aria-label={`Silenciar @${author.username}`}
                       >
                         <VolumeX className="h-4 w-4" />
                         Silenciar @{author.username}
@@ -472,6 +495,7 @@ function PostCardInner({
                         onClick={handleBlock}
                         disabled={menuBusy}
                         className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
+                        aria-label={`Bloquear @${author.username}`}
                       >
                         <Ban className="h-4 w-4" />
                         Bloquear @{author.username}
@@ -485,6 +509,7 @@ function PostCardInner({
                       onClick={() => setReportMode(true)}
                       disabled={menuBusy}
                       className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
+                      aria-label="Denunciar post"
                     >
                       <Flag className="h-4 w-4" />
                       Denunciar post
@@ -502,6 +527,7 @@ function PostCardInner({
                           onClick={() => handleReport(item.value)}
                           disabled={menuBusy}
                           className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-offme-hover disabled:opacity-50"
+                          aria-label={`Denunciar por ${item.label}`}
                         >
                           {item.label}
                         </button>
@@ -511,6 +537,7 @@ function PostCardInner({
                         role="menuitem"
                         onClick={() => setReportMode(false)}
                         className="flex w-full px-4 py-2 text-left text-xs text-offme-muted hover:bg-offme-hover"
+                        aria-label="Voltar ao menu principal"
                       >
                         Voltar
                       </button>
@@ -522,51 +549,55 @@ function PostCardInner({
           </div>
 
           {isPinnedHighlight && (
-            <p className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-offme-muted">
+            <p className="mb-1 inline-flex items-center gap-1 text-xs font-bold text-offme-muted" aria-label="Post fixado no perfil">
               <ActionIcon name="pin" className="h-3.5 w-3.5" />
               Post fixado
             </p>
           )}
           {post.text.trim().length > 0 && (
-            <p className="mt-1 text-[15px] leading-5">
+            <p className="mt-1 text-[15px] leading-5" aria-label="Conteúdo do post">
               <PostRichText text={post.text} />
             </p>
           )}
 
           {post.quotedPost && <QuotedPostPreview quoted={post.quotedPost} />}
 
-          {post.mediaUrls && post.mediaUrls.length > 0 && (
-            <div
-              className={clsx(
-                'mt-3 overflow-hidden rounded-2xl border border-offme-border',
-                post.mediaUrls.length > 1 ? 'grid grid-cols-2 gap-0.5' : ''
-              )}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {post.mediaUrls.map((url) => (
-                <div key={url} className="relative aspect-video max-h-[min(512px,70vh)] w-full">
-                  <Image
-                    src={url}
-                    alt=""
-                    fill
-                    sizes="(max-width: 768px) 100vw, 600px"
-                    className="object-cover"
-                    loading="lazy"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
+            {post.mediaUrls && post.mediaUrls.length > 0 && (
+              <div
+                className={clsx(
+                  'mt-3 overflow-hidden rounded-2xl border border-offme-border',
+                  post.mediaUrls.length > 1 ? 'grid grid-cols-2 gap-0.5' : ''
+                )}
+                onClick={(e) => e.stopPropagation()}
+                aria-label={`${post.mediaUrls.length} mídia(s) anexada(s)`}
+              >
+                {post.mediaUrls.map((url, index) => (
+                  <div key={url} className="relative aspect-video max-h-[min(512px,70vh)] w-full">
+                    <Image
+                      src={url}
+                      alt={`Imagem anexada ${index + 1} de ${post.mediaUrls!.length}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 600px"
+                      className="object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
 
           {post.poll && <PollBlock postId={post.id} poll={post.poll} />}
 
           <div
             className="post-engagement mt-3 flex max-w-[425px] justify-between text-offme-muted"
             onClick={(e) => e.stopPropagation()}
+            role="toolbar"
+            aria-label="Ações do post"
           >
             <Link
               href={`/post/${post.id}`}
               className={clsx('post-action post-action-reply', post.replyCount > 0 && 'gap-1')}
+              aria-label={`Responder: ${post.replyCount} respostas`}
             >
               <ActionIcon name="reply" className="h-[18px] w-[18px]" />
               {post.replyCount > 0 && <span className="text-[13px]">{formatCount(post.replyCount)}</span>}
@@ -581,6 +612,8 @@ function PostCardInner({
                 reposted && 'text-offme-repost',
                 repostCount > 0 && 'gap-1'
               )}
+              aria-label={reposted ? `Desfazer repost: ${repostCount} reposts` : `Repostar: ${repostCount} reposts`}
+              aria-busy={reposting}
             >
                <ActionIcon name="repost" active={reposted} className="h-[18px] w-[18px]" />
               {repostCount > 0 && <span className="text-[13px]">{formatCount(repostCount)}</span>}
@@ -595,12 +628,14 @@ function PostCardInner({
                 liked && 'text-offme-like',
                 likeCount > 0 && 'gap-1'
               )}
+              aria-label={liked ? `Descurtir: ${likeCount} curtidas` : `Curtir: ${likeCount} curtidas`}
+              aria-busy={liking}
             >
                <ActionIcon name="like" active={liked} className="h-[18px] w-[18px]" />
               {likeCount > 0 && <span className="text-[13px]">{formatCount(likeCount)}</span>}
             </button>
 
-            <button type="button" className="post-action post-action-views gap-1">
+            <button type="button" className="post-action post-action-views gap-1" aria-label={`Visualizações: ${viewCount}`}>
               <ActionIcon name="views" className="h-[18px] w-[18px]" />
               {viewCount > 0 && <span className="text-[13px]">{formatCount(viewCount)}</span>}
             </button>
@@ -632,10 +667,21 @@ function PostCardInner({
                 'post-action post-action-bookmark',
                 bookmarked && 'text-offme-accent'
               )}
+              aria-label={bookmarked ? 'Remover dos salvos' : 'Salvar post'}
+              aria-busy={bookmarking}
             >
                <ActionIcon name="bookmark" active={bookmarked} className="h-[18px] w-[18px]" />
             </button>
           </div>
+
+          {/* Error messages */}
+          {(likeError || repostError || bookmarkError) && (
+            <div className="mt-2 text-xs text-red-500" role="alert">
+              {likeError && <p>{likeError}</p>}
+              {repostError && <p>{repostError}</p>}
+              {bookmarkError && <p>{bookmarkError}</p>}
+            </div>
+          )}
         </div>
       </div>
     </article>

@@ -140,10 +140,41 @@
         "heavy": { "value": "3px" }
       }
     },
-    "opacity": {
-      "disabled": { "value": "0.4" },
-      "hover": { "value": "0.8" },
-      "active": { "value": "0.9" }
+  "opacity": {
+    "disabled": { "value": "0.4" },
+    "hover": { "value": "0.8" },
+    "active": { "value": "0.9" }
+  },
+  "elevation": {
+    "none": { "value": "0" },
+    "xs": { "value": "0 1px 2px rgba(0, 0, 0, 0.05)" },
+    "sm": { "value": "0 2px 4px rgba(0, 0, 0, 0.08)" },
+    "md": { "value": "0 4px 6px rgba(0, 0, 0, 0.10)" },
+    "lg": { "value": "0 8px 12px rgba(0, 0, 0, 0.12)" },
+    "xl": { "value": "0 16px 24px rgba(0, 0, 0, 0.14)" }
+  },
+  "motion": {
+    "duration": {
+      "instant": { "value": "50ms" },
+      "fast": { "value": "100ms" },
+      "normal": { "value": "200ms" },
+      "slow": { "value": "300ms" },
+      "extraSlow": { "value": "500ms" }
+    },
+    "easing": {
+      "standard": { "value": "cubic-bezier(0.4, 0, 0.2, 1)" },
+      "decelerate": { "value": "cubic-bezier(0, 0, 0.2, 1)" },
+      "accelerate": { "value": "cubic-bezier(0.4, 0, 1, 1)" },
+      "easeInOut": { "value": "cubic-bezier(0.4, 0, 0.2, 1)" },
+      "emphasized": { "value": "cubic-bezier(0.2, 0, 0, 1)" }
     }
+  },
+  "zIndex": {
+    "modal": { "value": "1000" },
+    "dropdown": { "value": "900" },
+    "toast": { "value": "800" },
+    "header": { "value": "50" },
+    "default": { "value": "1" }
+  }
   }
 }
