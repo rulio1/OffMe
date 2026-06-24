@@ -40,6 +40,27 @@ export const OFFICIAL_PROFILES: readonly OfficialProfile[] = [
     bannerUrl: '/brand/offme-banner.png',
   },
   {
+    username: 'offme_beta',
+    displayName: 'OffMe Beta',
+    role: 'Programa Beta',
+    avatarUrl: '/brand/beta-team-avatar.png',
+    bannerUrl: '/brand/offme-banner.png',
+  },
+  {
+    username: 'offme_tips',
+    displayName: 'OffMe Dicas',
+    role: 'Dicas e tutoriais',
+    avatarUrl: '/brand/offme-official-avatar.png',
+    bannerUrl: '/brand/offme-banner.png',
+  },
+  {
+    username: 'offme_news',
+    displayName: 'OffMe Notícias',
+    role: 'Novidades e atualizações',
+    avatarUrl: '/brand/offme-official-avatar.png',
+    bannerUrl: '/brand/offme-banner.png',
+  },
+  {
     username: 'betateam',
     displayName: 'Beta Team',
     role: 'Equipa Beta',
