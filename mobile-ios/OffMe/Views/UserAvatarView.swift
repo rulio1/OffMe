@@ -15,6 +15,8 @@ struct UserAvatarView: View {
                         placeholder
                     }
                 }
+            } else if let url, url.hasPrefix("/brand/") {
+                OffMeLogoView(size: size)
             } else {
                 placeholder
             }
