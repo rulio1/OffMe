@@ -3,12 +3,12 @@ import Foundation
 enum SupabaseConfig {
     /// URL do Supabase (mesmo projeto usado na web para Realtime)
     static var url: String {
-        return EnvironmentConfig.supabaseURL
+        return "https://mojmkhuafptpvwrprxqg.supabase.co"
     }
 
     /// Chave anônima do Supabase
     static var anonKey: String {
-        return EnvironmentConfig.supabaseAnonKey
+        return "sb_publishable__3x5fSHfdWSMtQ3xAKNB9A_u25kjxIA"
     }
 
     static var isConfigured: Bool {

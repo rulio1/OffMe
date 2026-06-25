@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { OffMeLogo } from '@/components/auth/OffMeLogo';
 import { useTheme } from '@/hooks/useTheme';

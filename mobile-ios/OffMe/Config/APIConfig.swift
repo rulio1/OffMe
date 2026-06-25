@@ -10,8 +10,8 @@ enum APIConfig {
         }
         #endif
 
-        // Use environment-specific configuration
-        return EnvironmentConfig.baseURL
+        // Use environment-specific configuration from WebConfig
+        return WebConfig.apiBaseURL
     }
 
     /// Alternative API endpoints
