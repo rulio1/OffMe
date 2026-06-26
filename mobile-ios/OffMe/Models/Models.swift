@@ -455,6 +455,9 @@ struct OffMeList: Codable, Identifiable {
     let isPrivate: Bool
     let memberCount: Int
     let createdAt: Int64
+    let bannerUrl: String?
+    let avatarUrl: String?
+    let isOwnedByCurrentUser: Bool
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -465,10 +468,14 @@ struct OffMeList: Codable, Identifiable {
         isPrivate = FlexibleDecoding.boolIfPresent(from: c, forKey: .isPrivate) ?? false
         memberCount = FlexibleDecoding.intIfPresent(from: c, forKey: .memberCount) ?? 0
         createdAt = try FlexibleDecoding.int64(from: c, forKey: .createdAt)
+        bannerUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .bannerUrl)
+        avatarUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .avatarUrl)
+        isOwnedByCurrentUser = FlexibleDecoding.boolIfPresent(from: c, forKey: .isOwnedByCurrentUser) ?? false
     }
 
     enum CodingKeys: String, CodingKey {
         case id, ownerId, name, description, isPrivate, memberCount, createdAt
+        case bannerUrl, avatarUrl, isOwnedByCurrentUser
     }
 }
 
@@ -479,7 +486,11 @@ struct OffMeCommunity: Codable, Identifiable {
     let description: String?
     let creatorId: Int?
     let memberCount: Int
+    let postCount: Int?
     let createdAt: Int64
+    let avatarUrl: String?
+    let bannerUrl: String?
+    let isMember: Bool
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -489,11 +500,16 @@ struct OffMeCommunity: Codable, Identifiable {
         description = FlexibleDecoding.stringIfPresent(from: c, forKey: .description)
         creatorId = FlexibleDecoding.intIfPresent(from: c, forKey: .creatorId)
         memberCount = FlexibleDecoding.intIfPresent(from: c, forKey: .memberCount) ?? 0
+        postCount = FlexibleDecoding.intIfPresent(from: c, forKey: .postCount)
         createdAt = try FlexibleDecoding.int64(from: c, forKey: .createdAt)
+        avatarUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .avatarUrl)
+        bannerUrl = FlexibleDecoding.stringIfPresent(from: c, forKey: .bannerUrl)
+        isMember = FlexibleDecoding.boolIfPresent(from: c, forKey: .isMember) ?? false
     }
 
     enum CodingKeys: String, CodingKey {
-        case id, slug, name, description, creatorId, memberCount, createdAt
+        case id, slug, name, description, creatorId, memberCount, postCount, createdAt
+        case avatarUrl, bannerUrl, isMember
     }
 }
 

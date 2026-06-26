@@ -10,8 +10,8 @@ enum APIConfig {
         }
         #endif
 
-        // Use environment-specific configuration from WebConfig
-        return WebConfig.apiBaseURL
+        // Default to production URL
+        return "https://offme.vercel.app/api/v1"
     }
 
     /// Alternative API endpoints

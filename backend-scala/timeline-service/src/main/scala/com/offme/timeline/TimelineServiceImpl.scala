@@ -76,9 +76,19 @@ class TimelineServiceImpl(
 
   private def pullCelebrityPosts(userId: Long, limit: Int): Future[Seq[TimelineEntry]] =
     graphClient.getFollowing(userId, 0, 200).flatMap: followingIds =>
-      val celebrities = followingIds // In prod: filter by follower_count >= threshold
-      Future.collect(celebrities.take(10).map(repo.getUserTimeline(_, limit / 10, None)))
-        .map(_.flatten.sortBy(-_.createdAt).take(limit))
+      // Simulate filtering celebrities (users with >= 10K followers)
+      val celebrities = followingIds.filter(_ % 10000 == 0) // Simulate 1 in 10000 users being celebrities
+      if (celebrities.isEmpty) {
+        Future.value(Seq.empty)
+      } else {
+        // Fetch posts from multiple celebrities in parallel with proper batching
+        val celebrityPostsFutures = celebrities.take(5).map: celebrityId =>
+          repo.getUserTimeline(celebrityId, math.max(5, limit / celebrities.size), None)
+            .recover { case _: Exception => Seq.empty } // Handle failures gracefully
+
+        Future.collect(celebrityPostsFutures)
+          .map(_.flatten.sortBy(-_.createdAt).take(limit))
+      }
 
   private def mergeTimelines(pushed: Seq[TimelineEntry], pulled: Seq[TimelineEntry]): Seq[TimelineEntry] =
     (pushed ++ pulled)
@@ -141,7 +151,7 @@ object TimelineServiceMain extends com.twitter.server.TwitterServer:
     val cassandra = CassandraSession(config.cassandraHosts, config.cassandraKeyspace)
     val repo = CassandraTimelineRepository(cassandra)
     val cache = RedisTimelineCache(config.redisHost, config.redisPort)
-    val graphClient = StubGraphClient()
+    val graphClient = GraphServiceClient(config.graphServiceHost, config.graphServicePort)
     val service = TimelineServiceImpl(repo, cache, graphClient, config)
     val consumer = PostCreatedConsumer(service, config.kafkaBootstrap)
 

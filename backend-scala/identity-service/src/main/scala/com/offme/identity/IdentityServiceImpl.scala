@@ -112,9 +112,108 @@ class IdentityServiceImpl(repo: UserRepository, jwtSecret: SecretKey):
 import org.mindrot.jbcrypt.BCrypt
 
 object PasswordHasher:
-  def hash(password: String): String = BCrypt.hashpw(password, BCrypt.gensalt(10))
-  def verify(password: String, hash: String): Boolean = BCrypt.checkpw(password, hash)
+  // Enhanced password hashing with salt verification and parameter validation
+  def hash(password: String): String = {
+    require(password != null && password.nonEmpty, "Password cannot be null or empty")
+
+    // Use BCrypt with work factor 10 (adjustable based on security requirements)
+    val salt = BCrypt.gensalt(10)
+
+    // Verify salt was generated correctly
+    require(salt != null && salt.startsWith("$2a$10$"), "Salt generation failed")
+
+    BCrypt.hashpw(password, salt)
+  }
+
+  def verify(password: String, hash: String): Boolean = {
+    require(password != null && password.nonEmpty, "Password cannot be null or empty")
+    require(hash != null && hash.nonEmpty, "Hash cannot be null or empty")
+
+    // Verify the hash follows expected BCrypt format
+    if (!hash.startsWith("$2a$") && !hash.startsWith("$2b$")) {
+      throw new IllegalArgumentException("Invalid hash format")
+    }
+
+    BCrypt.checkpw(password, hash)
+  }
+
+  // Method to check if a hash needs rehashing (for password rotation)
+  def needsRehash(hash: String): Boolean = {
+    // Check if hash uses outdated work factor or algorithm
+    !hash.startsWith("$2a$10$") && !hash.startsWith("$2b$10$")
+  }
 
 final case class DuplicateEmailException(email: String) extends Exception(s"Email already registered: $email")
 final case class DuplicateUsernameException(username: String) extends Exception(s"Username taken: $username")
 final case class InvalidCredentialsException() extends Exception("Invalid email or password")
+
+/** JWT Secret Manager with rotation support
+  *
+  * Manages JWT secrets with the ability to rotate secrets while maintaining
+  * backward compatibility for token validation.
+  */
+class JwtSecretManager(initialSecret: String):
+  import java.util.concurrent.atomic.AtomicReference
+  import io.jsonwebtoken.security.Keys
+  import java.nio.charset.StandardCharsets
+  import javax.crypto.SecretKey
+
+  private val currentSecret = new AtomicReference[SecretKey](
+    Keys.hmacShaKeyFor(initialSecret.getBytes(StandardCharsets.UTF_8))
+  )
+  private val previousSecret = new AtomicReference[Option[SecretKey]](None)
+
+  /** Get the current active secret for signing new tokens */
+  def getCurrentSecret: SecretKey = currentSecret.get()
+
+  /** Rotate to a new JWT secret
+    *
+    * @param newSecret The new secret string
+    * @return The new secret key
+    */
+  def rotateSecret(newSecret: String): SecretKey = {
+    val newKey = Keys.hmacShaKeyFor(newSecret.getBytes(StandardCharsets.UTF_8))
+    val oldKey = currentSecret.getAndSet(newKey)
+    previousSecret.set(Some(oldKey))
+    newKey
+  }
+
+  /** Validate a token against current or previous secret
+    *
+    * @param token The JWT token to validate
+    * @return True if token is valid against current or previous secret
+    */
+  def validateToken(token: String): Boolean = {
+    try {
+      // Try current secret first
+      Jwts.parserBuilder()
+        .setSigningKey(getCurrentSecret)
+        .build()
+        .parseClaimsJws(token)
+      true
+    } catch {
+      case _: Exception =>
+        // Try previous secret if available
+        previousSecret.get().exists: secret =>
+          try {
+            Jwts.parserBuilder()
+              .setSigningKey(secret)
+              .build()
+              .parseClaimsJws(token)
+            true
+          } catch {
+            case _: Exception => false
+          }
+    }
+  }
+
+  /** Check if secret rotation is needed
+    *
+    * @param rotationIntervalMs Recommended rotation interval
+    * @return True if rotation is recommended
+    */
+  def needsRotation(rotationIntervalMs: Long = 30L * 24 * 60 * 60 * 1000): Boolean = {
+    // In a real implementation, this would track secret age
+    // For now, this is a placeholder for the rotation logic
+    false
+  }

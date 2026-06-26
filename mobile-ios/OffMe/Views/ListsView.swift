@@ -23,11 +23,16 @@ struct ListsView: View {
                 Text("Nenhuma lista ainda.")
             } else {
                 ForEach(lists) { list in
-                    VStack(alignment: .leading) {
-                        Text(list.name).font(.headline)
-                        Text("\(list.memberCount) membros")
-                            .font(.subheadline)
-                            .foregroundStyle(OffMeTheme.muted)
+                    NavigationLink {
+                        ListDetailView(listId: list.id)
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(list.name).font(.headline)
+                            Text("\(list.memberCount) membros")
+                                .font(.subheadline)
+                                .foregroundStyle(OffMeTheme.muted)
+                        }
+                        .padding(.vertical, 8)
                     }
                 }
             }

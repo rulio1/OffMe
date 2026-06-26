@@ -23,11 +23,16 @@ struct CommunitiesView: View {
                 Text("Nenhuma comunidade ainda.")
             } else {
                 ForEach(communities) { community in
-                    VStack(alignment: .leading) {
-                        Text(community.name).font(.headline)
-                        Text("@\(community.slug) · \(community.memberCount) membros")
-                            .font(.subheadline)
-                            .foregroundStyle(OffMeTheme.muted)
+                    NavigationLink {
+                        CommunityDetailView(communityId: community.id)
+                    } label: {
+                        VStack(alignment: .leading) {
+                            Text(community.name).font(.headline)
+                            Text("@\(community.slug) · \(community.memberCount) membros")
+                                .font(.subheadline)
+                                .foregroundStyle(OffMeTheme.muted)
+                        }
+                        .padding(.vertical, 8)
                     }
                 }
             }

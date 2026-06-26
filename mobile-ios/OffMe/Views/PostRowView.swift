@@ -29,6 +29,7 @@ struct PostRowView: View {
     @State private var deleting = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
+    @State private var showErrorToast = false
 
     init(post: Post) {
         self.post = post
@@ -261,6 +262,22 @@ struct PostRowView: View {
         } message: {
             Text(errorMessage)
         }
+        .overlay(
+            Group {
+                if showErrorToast {
+                    errorToast
+                        .transition(.move(edge: .top))
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                withAnimation {
+                                    showErrorToast = false
+                                }
+                            }
+                        }
+                }
+            },
+            alignment: .top
+        )
     }
 
     @ViewBuilder
@@ -413,6 +430,47 @@ struct OfficialBadgeIOS: View {
                 .foregroundStyle(OffMeTheme.accent)
         }
         .accessibilityLabel("Conta oficial")
+    }
+    @ViewBuilder
+    private var errorToast: some View {
+        VStack {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.white)
+
+                Text(errorMessage)
+                    .font(.subheadline)
+                    .foregroundStyle(.white)
+                    .lineLimit(2)
+
+                Spacer()
+
+                Button {
+                    withAnimation {
+                        showErrorToast = false
+                    }
+                } label: {
+                    Image(systemName: "xmark")
+                        .foregroundStyle(.white)
+                        .padding(4)
+                        .background(Circle().fill(.white.opacity(0.2)))
+                }
+            }
+            .padding(12)
+        }
+        .background(OffMeTheme.accent)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .shadow(radius: 4)
+        .padding(.horizontal, 16)
+        .padding(.top, 40)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Erro: \(errorMessage)")
+        .accessibilityAddTraits(.isButton)
+        .onTapGesture {
+            withAnimation {
+                showErrorToast = false
+            }
+        }
     }
 }
 

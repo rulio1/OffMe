@@ -1,0 +1,1395 @@
+openapi: 3.0.3
+info:
+  title: OffMe API
+  description: |
+    OffMe is a production-grade Twitter/X-inspired social media platform with microservices architecture.
+
+    This API provides comprehensive access to all OffMe features including:
+    - User authentication and profiles
+    - Post creation and management
+    - Timeline and feed operations
+    - Social graph (follow/unfollow)
+    - Real-time notifications
+    - Media uploads and management
+
+    ## Architecture Overview
+    OffMe uses a microservices architecture with:
+    - **API Gateway**: This service (Finatra-based)
+    - **Core Services**: Post, Timeline, Graph, Identity, Notification services
+    - **Data Stores**: PostgreSQL, Cassandra, Redis, Kafka
+    - **Observability**: Prometheus, Grafana, Zipkin
+
+    ## Authentication
+    Most endpoints require authentication using JWT tokens obtained from the auth endpoints.
+    Include the token in the `Authorization` header: `Bearer <token>`
+
+    ## Rate Limiting
+    All endpoints are subject to rate limiting. Response headers include:
+    - `X-RateLimit-Limit`: Maximum requests allowed
+    - `X-RateLimit-Remaining`: Remaining requests
+    - `X-RateLimit-Reset`: Time when limit resets (Unix timestamp)
+
+    ## Error Responses
+    Errors follow a consistent format:
+    ```json
+    {
+      "error": "ErrorType",
+      "message": "Human-readable error message",
+      "trace_id": "Unique trace identifier for debugging",
+      "correlation_id": "Request correlation identifier"
+    }
+    ```
+
+    ## Versioning
+    Current API version: v1
+    Base path: `/api/v1`
+  version: 1.0.0
+  contact:
+    name: OffMe Development Team
+    url: https://github.com/rulio1/OffMe
+    email: support@offme.com
+  license:
+    name: MIT License
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.offme.com/api/v1
+    description: Production server
+  - url: https://staging.offme.com/api/v1
+    description: Staging server
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+tags:
+  - name: auth
+    description: Authentication and user sessions
+  - name: users
+    description: User profile management
+  - name: posts
+    description: Post creation and management
+  - name: timeline
+    description: User timelines and feeds
+  - name: graph
+    description: Social graph operations
+  - name: notifications
+    description: User notifications
+  - name: media
+    description: Media upload and management
+  - name: health
+    description: Service health checks
+
+paths:
+  /health:
+    get:
+      tags:
+        - health
+      summary: Health check endpoint
+      description: |
+        Check the health status of the API Gateway and dependent services.
+        Returns detailed health information including service dependencies.
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /metrics:
+    get:
+      tags:
+        - health
+      summary: Prometheus metrics endpoint
+      description: |
+        Expose Prometheus metrics for monitoring and observability.
+        Returns metrics in Prometheus text format.
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  # HELP api_gateway_requests_total Total number of HTTP requests
+                  # TYPE api_gateway_requests_total counter
+                  api_gateway_requests_total 1234
+                  ...
+
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register a new user
+      description: |
+        Create a new user account. The username must be unique and the email must be valid.
+        Password must meet complexity requirements (minimum 8 characters, mixed case, numbers).
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Invalid registration data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Username or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login user
+      description: |
+        Authenticate a user and return access and refresh tokens.
+        Tokens are valid for 15 minutes (access) and 30 days (refresh).
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account locked or disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/refresh:
+    post:
+      tags:
+        - auth
+      summary: Refresh access token
+      description: |
+        Refresh an expired access token using a valid refresh token.
+        Returns a new access token and optionally a new refresh token.
+      operationId: refreshToken
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: Logout user
+      description: |
+        Invalidate the current access token and refresh token.
+        Adds tokens to the revocation list.
+      operationId: logoutUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/me:
+    get:
+      tags:
+        - users
+      summary: Get current user profile
+      description: |
+        Retrieve the profile information for the currently authenticated user.
+        Includes basic profile info, statistics, and preferences.
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - users
+      summary: Update current user profile
+      description: |
+        Update the profile information for the currently authenticated user.
+        Only fields provided in the request will be updated.
+      operationId: updateCurrentUser
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: User profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Invalid update data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{userId}:
+    get:
+      tags:
+        - users
+      summary: Get user profile by ID
+      description: |
+        Retrieve the public profile information for a specific user by ID.
+        Includes basic profile info and public statistics.
+      operationId: getUserById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user to retrieve
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicUserProfile'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/{username}:
+    get:
+      tags:
+        - users
+      summary: Get user profile by username
+      description: |
+        Retrieve the public profile information for a specific user by username.
+        Includes basic profile info and public statistics.
+      operationId: getUserByUsername
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: Username of the user to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicUserProfile'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /posts:
+    post:
+      tags:
+        - posts
+      summary: Create a new post
+      description: |
+        Create a new post with the specified content. Posts can be public or private.
+        Media URLs can be included for posts with images or videos.
+      operationId: createPost
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostCreation'
+      responses:
+        '201':
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        '400':
+          description: Invalid post data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - posts
+      summary: Get posts by IDs
+      description: |
+        Retrieve multiple posts by their IDs. Useful for hydrating client-side caches.
+        Returns only posts that are visible to the current user.
+      operationId: getPostsByIds
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: ids
+          in: query
+          required: true
+          description: Comma-separated list of post IDs
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Posts retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostsListResponse'
+        '400':
+          description: Invalid post IDs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /posts/{postId}:
+    get:
+      tags:
+        - posts
+      summary: Get post by ID
+      description: |
+        Retrieve a single post by its ID. Returns the post only if it's visible to the current user.
+      operationId: getPostById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: ID of the post to retrieve
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Post retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostResponse'
+        '404':
+          description: Post not found or not visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - posts
+      summary: Delete a post
+      description: |
+        Delete a post owned by the current user. This action is irreversible.
+        The post will be removed from all timelines and search indexes.
+      operationId: deletePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: postId
+          in: path
+          required: true
+          description: ID of the post to delete
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Post deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '403':
+          description: Not authorized to delete this post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /timeline/home:
+    get:
+      tags:
+        - timeline
+      summary: Get home timeline
+      description: |
+        Retrieve the home timeline for the current user, which includes posts from followed users
+        and recommended content. Supports pagination with cursor-based approach.
+      operationId: getHomeTimeline
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of posts to return (default 20, max 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: cursor
+          in: query
+          description: Pagination cursor for retrieving next page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Home timeline retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /timeline/user/{userId}:
+    get:
+      tags:
+        - timeline
+      summary: Get user timeline
+      description: |
+        Retrieve the timeline for a specific user (their own posts). Supports pagination.
+      operationId: getUserTimeline
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose timeline to retrieve
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Maximum number of posts to return (default 20, max 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: cursor
+          in: query
+          description: Pagination cursor for retrieving next page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User timeline retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimelineResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /graph/follow/{userId}:
+    post:
+      tags:
+        - graph
+      summary: Follow a user
+      description: |
+        Follow another user to receive their public posts in your home timeline.
+        Creates a follow relationship in the social graph.
+      operationId: followUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user to follow
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User followed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowResponse'
+        '400':
+          description: Cannot follow yourself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Already following this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - graph
+      summary: Unfollow a user
+      description: |
+        Unfollow a user to stop receiving their posts in your home timeline.
+        Removes the follow relationship from the social graph.
+      operationId: unfollowUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user to unfollow
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: User unfollowed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Not following this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /graph/followers/{userId}:
+    get:
+      tags:
+        - graph
+      summary: Get user followers
+      description: |
+        Retrieve the list of users who follow the specified user.
+        Supports pagination and returns public profile information.
+      operationId: getFollowers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose followers to retrieve
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Maximum number of followers to return (default 20, max 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: cursor
+          in: query
+          description: Pagination cursor for retrieving next page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Followers retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowersResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /graph/following/{userId}:
+    get:
+      tags:
+        - graph
+      summary: Get users that the specified user follows
+      description: |
+        Retrieve the list of users that the specified user follows.
+        Supports pagination and returns public profile information.
+      operationId: getFollowing
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose following list to retrieve
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Maximum number of following users to return (default 20, max 100)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: cursor
+          in: query
+          description: Pagination cursor for retrieving next page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Following users retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FollowingResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /notifications:
+    get:
+      tags:
+        - notifications
+      summary: Get user notifications
+      description: |
+        Retrieve notifications for the current user. Notifications include likes, reposts,
+        follows, mentions, and other relevant events. Supports pagination.
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of notifications to return (default 20, max 50)
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+        - name: cursor
+          in: query
+          description: Pagination cursor for retrieving next page
+          schema:
+            type: string
+        - name: types
+          in: query
+          description: Filter by notification types (comma-separated)
+          schema:
+            type: string
+            enum: [like, repost, follow, mention, reply]
+      responses:
+        '200':
+          description: Notifications retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /notifications/mark-read:
+    post:
+      tags:
+        - notifications
+      summary: Mark notifications as read
+      description: |
+        Mark one or more notifications as read. If no notification IDs are provided,
+        marks all notifications as read.
+      operationId: markNotificationsRead
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkNotificationsRead'
+      responses:
+        '200':
+          description: Notifications marked as read
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT authentication using Bearer token. Obtain token from /auth/login or /auth/refresh.
+        Tokens are valid for 15 minutes (access) and can be refreshed using refresh tokens.
+
+  schemas:
+    # Request/Response Schemas
+    UserRegistration:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - name
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 30
+          pattern: '^[a-zA-Z0-9_]+$'
+          description: Unique username (letters, numbers, underscores)
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          minLength: 8
+          format: password
+          description: User password (minimum 8 characters)
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: User's full name
+        bio:
+          type: string
+          maxLength: 280
+          description: User biography
+        website:
+          type: string
+          format: uri
+          description: User website URL
+
+    UserLogin:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Username or email
+        password:
+          type: string
+          format: password
+          description: User password
+
+    TokenRefresh:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+          description: Refresh token obtained during login
+
+    PostCreation:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 280
+          description: Post content (text)
+        visibility:
+          type: string
+          enum: [public, private]
+          default: public
+          description: Post visibility
+        media_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: URLs of media attachments
+        poll:
+          type: object
+          description: Poll configuration (if post contains a poll)
+          properties:
+            options:
+              type: array
+              items:
+                type: string
+              minItems: 2
+              maxItems: 4
+            duration_minutes:
+              type: integer
+              minimum: 5
+              maximum: 10080
+
+    UserProfileUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: User's full name
+        bio:
+          type: string
+          maxLength: 280
+          description: User biography
+        website:
+          type: string
+          format: uri
+          description: User website URL
+        location:
+          type: string
+          maxLength: 100
+          description: User location
+        avatar_url:
+          type: string
+          format: uri
+          description: URL of user avatar image
+        banner_url:
+          type: string
+          format: uri
+          description: URL of user banner image
+
+    MarkNotificationsRead:
+      type: object
+      properties:
+        notification_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: IDs of notifications to mark as read
+        mark_all:
+          type: boolean
+          default: false
+          description: Mark all notifications as read
+
+    # Response Schemas
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [healthy, degraded, unhealthy]
+              response_time_ms:
+                type: number
+              error:
+                type: string
+        version:
+          type: string
+          description: API version
+        environment:
+          type: string
+          description: Deployment environment
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        tokens:
+          type: object
+          required:
+            - access_token
+            - refresh_token
+            - expires_in
+          properties:
+            access_token:
+              type: string
+              description: JWT access token
+            refresh_token:
+              type: string
+              description: JWT refresh token
+            expires_in:
+              type: integer
+              description: Access token expiration time in seconds
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        bio:
+          type: string
+        website:
+          type: string
+          format: uri
+        location:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+        banner_url:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        stats:
+          type: object
+          properties:
+            posts_count:
+              type: integer
+            followers_count:
+              type: integer
+            following_count:
+              type: integer
+            likes_count:
+              type: integer
+
+    PublicUserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        name:
+          type: string
+        bio:
+          type: string
+        website:
+          type: string
+          format: uri
+        location:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+        banner_url:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+        stats:
+          type: object
+          properties:
+            posts_count:
+              type: integer
+            followers_count:
+              type: integer
+            following_count:
+              type: integer
+        is_following:
+          type: boolean
+          description: Whether current user follows this user
+        is_followed_by:
+          type: boolean
+          description: Whether this user follows current user
+
+    PostResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        visibility:
+          type: string
+          enum: [public, private]
+        media_urls:
+          type: array
+          items:
+            type: string
+            format: uri
+        stats:
+          type: object
+          properties:
+            likes_count:
+              type: integer
+            reposts_count:
+              type: integer
+            replies_count:
+              type: integer
+            views_count:
+              type: integer
+        user:
+          $ref: '#/components/schemas/PublicUserProfile'
+        is_liked:
+          type: boolean
+        is_reposted:
+          type: boolean
+
+    PostsListResponse:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostResponse'
+        cursor:
+          type: string
+          description: Pagination cursor for next page
+
+    TimelineResponse:
+      type: object
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/PostResponse'
+        cursor:
+          type: string
+          description: Pagination cursor for next page
+        stats:
+          type: object
+          properties:
+            total_posts:
+              type: integer
+            unread_count:
+              type: integer
+
+    FollowResponse:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+        following_user_id:
+          type: integer
+          format: int64
+        created_at:
+          type: string
+          format: date-time
+        user:
+          $ref: '#/components/schemas/PublicUserProfile'
+
+    FollowersResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicUserProfile'
+        cursor:
+          type: string
+          description: Pagination cursor for next page
+        total_count:
+          type: integer
+
+    FollowingResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicUserProfile'
+        cursor:
+          type: string
+          description: Pagination cursor for next page
+        total_count:
+          type: integer
+
+    NotificationsResponse:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+        cursor:
+          type: string
+          description: Pagination cursor for next page
+        unread_count:
+          type: integer
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [like, repost, follow, mention, reply]
+        user_id:
+          type: integer
+          format: int64
+        from_user_id:
+          type: integer
+          format: int64
+        post_id:
+          type: integer
+          format: int64
+        created_at:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+        metadata:
+          type: object
+          description: Additional metadata specific to notification type
+
+    # Common Response Schemas
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error message
+        trace_id:
+          type: string
+          description: Trace ID for debugging
+        correlation_id:
+          type: string
+          description: Correlation ID for request tracking
+        details:
+          type: object
+          description: Additional error details

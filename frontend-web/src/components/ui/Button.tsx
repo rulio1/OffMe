@@ -34,18 +34,25 @@ export function Button({
     className
   );
 
+  // Accessibility attributes
+  const ariaAttributes = {
+    'aria-disabled': isLoading || props.disabled,
+    'aria-busy': isLoading,
+    ...props
+  };
+
   return (
-    <button className={buttonClasses} disabled={isLoading || props.disabled} {...props}>
+    <button className={buttonClasses} disabled={isLoading || props.disabled} {...ariaAttributes}>
       {isLoading ? (
         <>
-          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
-          {children && <span className="ml-2">{children}</span>}
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />
+          {children && <span className="ml-2" aria-live="polite">{children}</span>}
         </>
       ) : (
         <>
-          {leftIcon && <span className={size === 'sm' ? 'mr-1' : 'mr-2'}>{leftIcon}</span>}
+          {leftIcon && <span className={size === 'sm' ? 'mr-1' : 'mr-2'} aria-hidden="true">{leftIcon}</span>}
           {children}
-          {rightIcon && <span className={size === 'sm' ? 'ml-1' : 'ml-2'}>{rightIcon}</span>}
+          {rightIcon && <span className={size === 'sm' ? 'ml-1' : 'ml-2'} aria-hidden="true">{rightIcon}</span>}
         </>
       )}
     </button>
@@ -78,12 +85,20 @@ export function IconButton({
     className
   );
 
+  // Accessibility attributes for icon button
+  const ariaAttributes = {
+    'aria-disabled': isLoading || props.disabled,
+    'aria-busy': isLoading,
+    'aria-label': props['aria-label'] || 'Icon button',
+    ...props
+  };
+
   return (
-    <button className={buttonClasses} disabled={isLoading || props.disabled} {...props}>
+    <button className={buttonClasses} disabled={isLoading || props.disabled} {...ariaAttributes}>
       {isLoading ? (
-        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" />
+        <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-r-transparent" aria-hidden="true" />
       ) : (
-        children
+        <span aria-hidden="true">{children}</span>
       )}
     </button>
   );
