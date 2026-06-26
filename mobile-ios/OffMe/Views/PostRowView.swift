@@ -420,17 +420,7 @@ struct PostRowView: View {
             showErrorAlert = true
         }
     }
-}
 
-struct OfficialBadgeIOS: View {
-    var body: some View {
-        HStack(spacing: 2) {
-            Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 14))
-                .foregroundStyle(OffMeTheme.accent)
-        }
-        .accessibilityLabel("Conta oficial")
-    }
     @ViewBuilder
     private var errorToast: some View {
         VStack {
@@ -471,6 +461,17 @@ struct OfficialBadgeIOS: View {
                 showErrorToast = false
             }
         }
+    }
+}
+
+struct OfficialBadgeIOS: View {
+    var body: some View {
+        HStack(spacing: 2) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 14))
+                .foregroundStyle(OffMeTheme.accent)
+        }
+        .accessibilityLabel("Conta oficial")
     }
 }
 
